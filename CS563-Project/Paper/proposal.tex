@@ -1,4 +1,4 @@
-\documentclass[12pt, letterpaper]{report}
+\documentclass[12pt, letterpaper]{article}
 \usepackage{setspace} 
 \usepackage{geometry}
 \usepackage{marginnote}
@@ -12,7 +12,7 @@
 
 \setlength{\parindent}{0pt}
 
-\setstretch{1.4}
+\setstretch{1.0}
 
 \geometry{
     left=0.75in,
@@ -23,10 +23,6 @@
 
 \setlength{\parskip}{1em}
 
-% \newcommand{\qa}[2]{
-%   \textcolor{questionColor}{\textbf{\textit{#1}}} \\
-%   #2 
-% }
 
 
 \title{\textbf{ Project Idea Proposal:\\ Analysis of Fault Localization Techniques on REST APIs
@@ -38,6 +34,37 @@
 
 \begin{document}
 \maketitle
+
+\section{Problem statement}
+    While fault localization techniques are pivotal in reducing the time and effort required for debugging, their effectiveness in the context of REST APIs—which are crucial in today's distributed systems—is not well understood. The challenge lies in accurately identifying faults within REST APIs using automated techniques, where faults may vary widely in nature and complexity.
+    
+
+
+\section{Key Insight or Idea}
+    The core of this research is the hypothesis that existing fault localization techniques can be adapted to effectively identify faults in REST APIs. By leveraging a detailed taxonomy of API faults and employing a tool like EvoMaster for automated test case generation, this project aims to systematically assess which fault categories are more amenable to automation. The feasibility of this approach within a 5-week timeframe is supported by the availability of comprehensive datasets and mature tools.
+    
+
+
+\section{Research questions}
+    \begin{itemize}
+        \item \textbf{RQ1:} Do fault localization techniques effectively localize faults in REST APIs?
+        \item \textbf{RQ2:} What categories of faults (as per the existing taxonomy) are most effectively localized by current techniques?
+        \item \textbf{RQ3:} Which fault localization techniques offer the highest accuracy and precision in the context of REST APIs?
+    \end{itemize}
+    
+
+\section{Evaluation Plan}
+
+\begin{itemize}
+    \item \textbf{Data Preparation:} Secure and preprocess the dataset of some faults from REST API applications
+    \item \textbf{Selection of Techniques:} Identify and configure several fault localization techniques suited for REST APIs.
+    \item \textbf{Fault Localization Testing:} For each API and fault, apply each technique and record the localization success.
+    \item \textbf{Result Comparison:} Compare localization results with ground truth from the taxonomy.
+    \item \textbf{Success Criteria:} Calculate accuracy, precision, and recall for each technique.
+    \item \textbf{Fault Type Analysis:} Determine which types of faults are more frequently localized correctly.
+    \item \textbf{Data Visualization:} Use graphs to represent technique performance and fault localization success rates.
+    \item \textbf{Summary Report:} Document methodology, results, and analytical insights, highlighting significant findings.
+\end{itemize}
 
 
 \end{document}
