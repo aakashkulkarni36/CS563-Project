@@ -12,25 +12,19 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Project Title}
+\title{Analysis of Fault Localization Techniques on REST APIs}
 
-\author{\IEEEauthorblockN{Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
+\author{\IEEEauthorblockN{Aakash Kulkarni}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\ % --- To do ---
+\textit{name of organization (of Aff.)}\\ % --- To do ---
+Corvallis, United States \\ % --- To do ---
 email address or ORCID}
 \and
-\IEEEauthorblockN{Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
+\IEEEauthorblockN{Soon Song Cheok}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\ % --- To do ---
+\textit{name of organization (of Aff.)}\\  % --- To do ---
+Corvallis, United States \\ % --- To do ---
+cheoks@oregonstate.edu}
 }
 
 \maketitle
@@ -46,21 +40,31 @@ email address or ORCID}
 \label{sec:introduction}
 
 \subsection{Problem statement}
+    While fault localization techniques are pivotal in reducing the time and effort required for debugging, their effectiveness in the context of REST APIs—which are crucial in today's distributed systems—is not well understood. The challenge lies in accurately identifying faults within REST APIs using automated techniques, where faults may vary widely in nature and complexity.
     \todo{What is the problem statement that you plan to solve?}
 
 \subsection{Motivation}
+    Effective fault localization can significantly expedite the maintenance process of REST APIs, which are integral to modern software ecosystems. Enhancing these techniques can lead to reduced downtime and improved service quality, directly impacting user experience and operational costs. Addressing the efficacy of fault localization in REST APIs is crucial for advancing automated debugging tools and practices in software engineering.
     \todo{Why should anyone care about solving that problem?}
 
 \subsection{Relation with software engineering research}
-    \todo{How is the problem related to software engineering research? What is already known about that problem space and what is still unknown that you are interested in solving?}
+    Fault localization is a well-established area of research within software engineering, focusing primarily on traditional software systems. However, the unique characteristics of REST APIs, such as their stateless nature and network dependency, introduce new challenges that are not fully addressed by existing studies. Previous works have created taxonomies of faults in REST APIs but have not extensively explored the applicability of fault localization techniques to these faults. This research seeks to bridge that gap by applying these techniques to a curated dataset of faults specific to REST APIs.
+    \todo{How is the problem related to software engineering research? What is already known about that problem space, and what is still unknown that you are interested in solving?}
 
 \subsection{Key Insight or Idea}
+    The core of this research is the hypothesis that existing fault localization techniques can be adapted to effectively identify faults in REST APIs. By leveraging a detailed taxonomy of API faults and employing a tool like EvoMaster for automated test case generation, this project aims to systematically assess which fault categories are more amenable to automation. The feasibility of this approach within a 5-week timeframe is supported by the availability of comprehensive datasets and mature tools.
     \todo{What is the high-level approach that you would like to explore to the solve the problem? Why you feel you can succeed with that approach in 5 weeks?}
 
 \subsection{Assumptions}
     \todo{What kind of assumptions will you need to make for your choice of solution?}
 
 \subsection{Research questions}
+    The primary research questions are formulated as follows:
+    \begin{itemize}
+        \item \textbf{RQ1:} Do fault localization techniques effectively localize faults in REST APIs?
+        \item \textbf{RQ2:} What categories of faults (as per the existing taxonomy) are most effectively localized by current techniques?
+        \item \textbf{RQ3:} Which fault localization techniques offer the highest accuracy and precision in the context of REST APIs?
+    \end{itemize}
     \todo{What research question(s) will you answer?}
 
 \subsection{Evaluation Dataset}
