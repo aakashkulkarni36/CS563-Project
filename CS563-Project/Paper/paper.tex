@@ -54,9 +54,18 @@ cheoks@oregonstate.edu}
 
 \subsection{Key Insight or Idea}
     The core of this research is the hypothesis that existing fault localization techniques can be adapted to effectively identify faults in REST APIs. By leveraging a detailed taxonomy of API faults and employing a tool like EvoMaster for automated test case generation, this project aims to systematically assess which fault categories are more amenable to automation. The feasibility of this approach within a 5-week timeframe is supported by the availability of comprehensive datasets and mature tools.
-    \todo{What is the high-level approach that you would like to explore to the solve the problem? Why you feel you can succeed with that approach in 5 weeks?}
+    \todo{What is the high-level approach that you would like to explore to to solve the problem? Why you feel you can succeed with that approach in 5 weeks?}
 
 \subsection{Assumptions}
+\begin{itemize}
+    \item \textbf{Homogeneity of Dataset:} Assume that the dataset obtained from REST API projects using Spring Boot or Jersey frameworks is representative of typical real-world scenarios.
+    
+    \item \textbf{Consistency in Bug Documentation:} Assume that the bugs and their fixes documented in the repositories and commit histories of the selected projects are accurate and comprehensive.
+    
+    \item \textbf{Alignment with Taxonomy:} Assume that the established taxonomy of API faults accurately categorizes the identified bugs according to their nature and impact.
+        
+    \item \textbf{Applicability of Fault Localization Techniques:} Assume that the fault localization techniques selected for evaluation are applicable and compatible with the characteristics of REST API projects developed using Spring Boot or Jersey frameworks.
+\end{itemize}
     \todo{What kind of assumptions will you need to make for your choice of solution?}
 
 \subsection{Research questions}
