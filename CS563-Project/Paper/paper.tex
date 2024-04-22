@@ -19,7 +19,7 @@
 \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\ % --- To do ---
 \textit{name of organization (of Aff.)}\\ % --- To do ---
 Corvallis, United States \\ % --- To do ---
-email address or ORCID}
+kulkaraa@oregonstate.edu}
 \and
 \IEEEauthorblockN{Soon Song Cheok}
 \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\ % --- To do ---
@@ -69,9 +69,23 @@ cheoks@oregonstate.edu}
     \todo{What research question(s) will you answer?}
 
 \subsection{Evaluation Dataset}
+For the evaluation dataset, we will mine bugs and their fixes from REST API projects that utilize Spring Boot or Jersey frameworks. This dataset will encompass various categories of faults identified in REST APIs. By analyzing repositories and commit histories, we will extract specific instances where bugs have been documented and subsequently fixed. The categorization of these faults will be aligned with an established taxonomy of API faults, ensuring that each bug is classified according to its nature and impact. This rigorous dataset compilation aims to provide a comprehensive basis for testing fault localization techniques within a controlled, relevant environment.
     \todo{What kind of dataset will you evaluate your solution on? Where and how will you get that dataset?}
 
 \subsection{Evaluation metrics}
+For the project, the evaluation of fault localization techniques using the dataset derived from REST APIs employing Spring Boot and Jersey frameworks will be guided by the following metrics:
+
+\textbf{Precision:} This metric will measure the accuracy of the fault localization techniques in identifying only the actual faults. Precision is calculated as the ratio of true positive results (faults correctly localized) to the total number of faults that the techniques reported as localized (true positives plus false positives). This metric helps assess the exactness of a technique in pinpointing faults.
+
+
+\textbf{Recall:} This metric will evaluate the completeness of the fault localization techniques by measuring the ratio of true positive results to the total number of actual faults present (true positives plus false negatives). High recall indicates that the technique can localize a large percentage of all existing faults.
+
+
+\textbf{F-Measure Score:} Since precision and recall can sometimes present a trade-off, the F-measure Score will be used to find the harmonic mean of precision and recall. This measure balances both metrics and gives a single score to evaluate the overall effectiveness of a fault localization technique.
+
+\textbf{Accuracy:} This metric measures the overall correctness of the fault localization techniques in identifying faults within the REST API projects. It is calculated as the ratio of correctly localized faults to the total number of faults in the dataset. 
+
+These metrics will collectively provide a thorough assessment of each fault localization technique's ability to detect and accurately categorize faults in REST APIs, contributing to a detailed understanding of their practical utility and areas for improvement.
     \todo{How will you know that you have solved the problem successfully? In other words, how will you evaluate your solution?}
 
 
