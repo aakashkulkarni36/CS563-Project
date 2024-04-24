@@ -1,0 +1,20 @@
+Issue #4: United Kingdom's TLD is .uk, not .gb
+URL: https://github.com/apilayer/restcountries/pull/4
+
+Commit ID: dbfac68c5dbb082600485d6fc17d55dc1d673161
+
+Commit Message: United Kingdom's TLD is .uk, not .gb
+
+See: http://en.wikipedia.org/wiki/.gb
+
+Files Changed (1):
+File: src/main/resources/countries.json ======================
+    - Additions: 2
+    - Deletions: 2
+=======================================================
+
+    ---Removed (old line 235): {"name":"United Kingdom","tld":".gb","cca2":"GB","ccn3":826,"cca3":"GBR","currency":"GBP","callingcode":"44","capital":"London","altSpellings":"GB,Great Britain,England,UK,Wales,Scotland,Northern Ireland","relevance":2.5,"region":"Europe","subregion":"Northern Europe"},
+    +++Added (new line 235): {"name":"United Kingdom","tld":".uk","cca2":"GB","ccn3":826,"cca3":"GBR","currency":"GBP","callingcode":"44","capital":"London","altSpellings":"GB,Great Britain,England,UK,Wales,Scotland,Northern Ireland","relevance":2.5,"region":"Europe","subregion":"Northern Europe"},
+    ---Removed (old line 249): {"name":"Zimbabwe","tld":".zw","cca2":"ZW","ccn3":716,"cca3":"ZWE","currency":"ZWL","callingcode":"263","capital":"Harare","altSpellings":"ZW","relevance":0,"region":"Africa","subregion":"Eastern Africa"}]
+    +++Added (new line 249): {"name":"Zimbabwe","tld":".zw","cca2":"ZW","ccn3":716,"cca3":"ZWE","currency":"ZWL","callingcode":"263","capital":"Harare","altSpellings":"ZW","relevance":0,"region":"Africa","subregion":"Eastern Africa"}]
+

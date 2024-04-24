@@ -1,0 +1,26 @@
+Issue #217: fix: unnecessary annotations
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/217
+
+Commit ID: 91664f4ec04e49652fdaa4a9eed97e1881591e34
+
+Commit Message: Merge branch 'master' into fix/unnecessary-annotations
+
+Files Changed (2):
+File: src/main/java/app/coronawarn/verification/controller/ExternalTanController.java ======================
+    - Additions: 2
+    - Deletions: 2
+=======================================================
+
+    ---Removed (old line 79):   private final FakeRequestService fakeRequestController;
+    +++Added (new line 79):   private final FakeRequestService fakeRequestService;
+    ---Removed (old line 104):       return fakeRequestController.generateTan(registrationToken);
+    +++Added (new line 104):       return fakeRequestService.generateTan(registrationToken);
+
+File: src/main/java/app/coronawarn/verification/controller/ExternalTestStateController.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 130):     log.info("The registration token doesn't exists.");
+    +++Added (new line 130):     log.info("The registration token doesn't exist.");
+

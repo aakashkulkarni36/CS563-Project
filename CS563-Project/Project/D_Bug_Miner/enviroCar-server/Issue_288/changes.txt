@@ -1,0 +1,261 @@
+Issue #288:  updated mongo-java-driver to v3.8.2
+URL: https://github.com/enviroCar/enviroCar-server/pull/288
+
+Commit ID: fabd8507dbc7af33338dbc55e82870096b04d299
+
+Commit Message: Merge pull request #287 from autermann/fix/mongo-3.6
+
+Update mongo-java-driver to v3.8.2
+
+Files Changed (9):
+File: core/src/main/java/org/envirocar/server/core/CarSimilarityServiceImpl.java ======================
+    - Additions: 39
+    - Deletions: 36
+=======================================================
+
+    ---Removed (old line 19): import com.fasterxml.jackson.databind.JsonNode;
+    ---Removed (old line 20): import com.fasterxml.jackson.databind.ObjectMapper;
+    ---Removed (old line 21): import com.google.inject.Inject;
+    +++Added (new line 25): 
+    +++Added (new line 36): import com.fasterxml.jackson.databind.JsonNode;
+    +++Added (new line 37): import com.fasterxml.jackson.databind.ObjectMapper;
+    +++Added (new line 38): import com.google.inject.Inject;
+    +++Added (new line 39): 
+    ---Removed (old line 42):     
+    +++Added (new line 44): 
+    ---Removed (old line 44):     
+    +++Added (new line 46): 
+    ---Removed (old line 50):     
+    +++Added (new line 52): 
+    ---Removed (old line 58):         
+    +++Added (new line 60): 
+    ---Removed (old line 63):     
+    +++Added (new line 65): 
+    ---Removed (old line 71):         
+    +++Added (new line 73): 
+    +++Added (new line 77):     @SuppressWarnings("unchecked")
+    ---Removed (old line 77):         
+    +++Added (new line 80): 
+    ---Removed (old line 83):                 
+    +++Added (new line 86): 
+    ---Removed (old line 91):                 
+    +++Added (new line 94): 
+    ---Removed (old line 102):         
+    +++Added (new line 105): 
+    ---Removed (old line 112):         
+    +++Added (new line 115): 
+    ---Removed (old line 120):         
+    +++Added (new line 123): 
+    ---Removed (old line 124):         
+    +++Added (new line 127): 
+    ---Removed (old line 127):     
+    +++Added (new line 130): 
+    ---Removed (old line 131):        
+    +++Added (new line 134): 
+    ---Removed (old line 135):         
+    +++Added (new line 138): 
+    ---Removed (old line 141):         
+    +++Added (new line 144): 
+    ---Removed (old line 145):         
+    +++Added (new line 148): 
+    ---Removed (old line 149):         
+    +++Added (new line 152): 
+    ---Removed (old line 153):         
+    +++Added (new line 156): 
+    ---Removed (old line 161):         
+    +++Added (new line 164): 
+    ---Removed (old line 164):     
+    +++Added (new line 167): 
+    ---Removed (old line 169):         
+    +++Added (new line 172): 
+    ---Removed (old line 172):         
+    +++Added (new line 175): 
+    ---Removed (old line 184):         
+    +++Added (new line 187): 
+    ---Removed (old line 194):         
+    +++Added (new line 197): 
+    ---Removed (old line 203):         
+    +++Added (new line 206): 
+    ---Removed (old line 211):     
+    +++Added (new line 214): 
+    ---Removed (old line 213):         
+    +++Added (new line 216): 
+    ---Removed (old line 219):         
+    +++Added (new line 222): 
+    ---Removed (old line 223):         
+    +++Added (new line 226): 
+    ---Removed (old line 225):     
+    ---Removed (old line 226):     
+    +++Added (new line 228): 
+    +++Added (new line 229): 
+
+File: mongo/pom.xml ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 57):             <artifactId>mongo-java-driver</artifactId>
+    +++Added (new line 58):             <artifactId>mongo-java-driver</artifactId>
+
+File: mongo/src/main/java/org/envirocar/server/mongo/MongoDB.java ======================
+    - Additions: 4
+    - Deletions: 2
+=======================================================
+
+    +++Added (new line 47): import com.mongodb.MongoClientOptions;
+    ---Removed (old line 80):                 mongo = new MongoClient(new ServerAddress(host, port), Collections.singletonList(
+    ---Removed (old line 81):                                         MongoCredential.createMongoCRCredential(username, database, password)));
+    +++Added (new line 81):                 mongo = new MongoClient(new ServerAddress(host, port),
+    +++Added (new line 82):                                         MongoCredential.createCredential(username, database, password),
+    +++Added (new line 83):                                         MongoClientOptions.builder().build());
+
+File: mongo/src/main/java/org/envirocar/server/mongo/dao/MongoMeasurementDao.java ======================
+    - Additions: 12
+    - Deletions: 13
+=======================================================
+
+    ---Removed (old line 21): import java.util.Arrays;
+    +++Added (new line 22): import java.util.LinkedList;
+    ---Removed (old line 58): import com.mongodb.AggregationOutput;
+    +++Added (new line 58): import com.mongodb.AggregationOptions;
+    +++Added (new line 62): import com.mongodb.Cursor;
+    ---Removed (old line 273):         AggregationOutput out = aggregate(ops);
+    ---Removed (old line 274): 
+    ---Removed (old line 275):         return toKeyList(out.results());
+    ---Removed (old line 276):     }
+    ---Removed (old line 277): 
+    ---Removed (old line 278):     private AggregationOutput aggregate(DBObject... ops) {
+    ---Removed (old line 279):         return aggregate(Arrays.asList(ops));
+    +++Added (new line 274):         return toKeyList(aggregate(ops));
+    ---Removed (old line 282):     private AggregationOutput aggregate(List<DBObject> ops) {
+    ---Removed (old line 283):         return mongoDB.getDatastore()
+    ---Removed (old line 284):                 .getCollection(MongoMeasurement.class)
+    ---Removed (old line 285):                 .aggregate(ops);
+    +++Added (new line 277):     private Iterable<DBObject> aggregate(List<DBObject> ops) {
+    +++Added (new line 278):         AggregationOptions options = AggregationOptions.builder().build();
+    +++Added (new line 279):         DBCollection collection = mongoDB.getDatastore().getCollection(MongoMeasurement.class);
+    +++Added (new line 280):         try (Cursor cursor = collection.aggregate(ops, options)) {
+    +++Added (new line 281):             LinkedList<DBObject> list = new LinkedList<>();
+    +++Added (new line 282):             cursor.forEachRemaining(list::add);
+    +++Added (new line 283):             return list;
+    +++Added (new line 284):         }
+
+File: mongo/src/main/java/org/envirocar/server/mongo/dao/MongoSensorDao.java ======================
+    - Additions: 16
+    - Deletions: 9
+=======================================================
+
+    +++Added (new line 23): import java.util.LinkedList;
+    ---Removed (old line 25): import java.util.stream.Collectors;
+    ---Removed (old line 26): import java.util.stream.StreamSupport;
+    ---Removed (old line 49): import com.mongodb.AggregationOutput;
+    +++Added (new line 48): import com.mongodb.AggregationOptions;
+    +++Added (new line 50): import com.mongodb.Cursor;
+    +++Added (new line 51): import com.mongodb.DBCollection;
+    ---Removed (old line 119):         AggregationOutput result = getMongoDB().getDatastore()
+    ---Removed (old line 120):                 .getCollection(MongoMeasurement.class).aggregate(Arrays.asList(match, group));
+    ---Removed (old line 121):         return StreamSupport.stream(result.results().spliterator(), false)
+    ---Removed (old line 122):                 .map(x -> (ObjectId) x.get(ID))
+    ---Removed (old line 123): //                .map(x -> new Key<>(MongoSensor.class, x))
+    ---Removed (old line 124):                 .collect(Collectors.toList());
+    +++Added (new line 120):         DBCollection collection = getMongoDB().getDatastore().getCollection(MongoMeasurement.class);
+    +++Added (new line 121):         List<DBObject> ops = Arrays.asList(match, group);
+    +++Added (new line 122):         AggregationOptions options = AggregationOptions.builder().build();
+    +++Added (new line 123):         try (Cursor result = collection.aggregate(ops, options)) {
+    +++Added (new line 124):             List<ObjectId> ids = new LinkedList<>();
+    +++Added (new line 125):             result.forEachRemaining(x -> {
+    +++Added (new line 126):                 //ids.add(new Key<>(MongoSensor.class, collection.getName(), x.get(ID)));
+    +++Added (new line 127):                 ids.add((ObjectId) x.get(ID));
+    +++Added (new line 128):             });
+    +++Added (new line 129):             return ids;
+    +++Added (new line 130):         }
+    +++Added (new line 131): 
+
+File: mongo/src/main/java/org/envirocar/server/mongo/dao/MongoStatisticsDao.java ======================
+    - Additions: 19
+    - Deletions: 12
+=======================================================
+
+    +++Added (new line 20): import java.util.LinkedList;
+    ---Removed (old line 47): import com.mongodb.AggregationOutput;
+    +++Added (new line 48): import com.mongodb.AggregationOptions;
+    +++Added (new line 51): import com.mongodb.Cursor;
+    +++Added (new line 52): import com.mongodb.DBCollection;
+    ---Removed (old line 137):         AggregationOutput aggregate = aggregate(matches(request),
+    ---Removed (old line 138):                 project(),
+    ---Removed (old line 139):                 unwind(),
+    ---Removed (old line 140):                 group());
+    +++Added (new line 140):         Iterable<DBObject> aggregate = aggregate(matches(request),
+    +++Added (new line 141):                                   project(),
+    +++Added (new line 142):                                   unwind(),
+    +++Added (new line 143):                                   group());
+    +++Added (new line 144): 
+    ---Removed (old line 142):                     parseStatistics(aggregate.results());
+    +++Added (new line 146):                     parseStatistics(aggregate);
+    ---Removed (old line 158):     private AggregationOutput aggregate(DBObject... ops) {
+    +++Added (new line 162):     private Iterable<DBObject> aggregate(DBObject... ops) {
+    ---Removed (old line 162):     private AggregationOutput aggregate(List<DBObject> ops) {
+    ---Removed (old line 163):         AggregationOutput result = mongoDB.getDatastore()
+    ---Removed (old line 164):                 .getCollection(MongoMeasurement.class)
+    ---Removed (old line 165):                 .aggregate(ops);
+    ---Removed (old line 166):         return result;
+    +++Added (new line 166):     private Iterable<DBObject> aggregate(List<DBObject> ops) {
+    +++Added (new line 167):         AggregationOptions options = AggregationOptions.builder().build();
+    +++Added (new line 168):         DBCollection collection = mongoDB.getDatastore().getCollection(MongoMeasurement.class);
+    +++Added (new line 169):         try (Cursor cursor = collection.aggregate(ops, options)) {
+    +++Added (new line 170):             LinkedList<DBObject> list = new LinkedList<>();
+    +++Added (new line 171):             cursor.forEachRemaining(list::add);
+    +++Added (new line 172):             return list;
+    +++Added (new line 173):         }
+
+File: pom.xml ======================
+    - Additions: 6
+    - Deletions: 6
+=======================================================
+
+    ---Removed (old line 218):                 <artifactId>morphia</artifactId>
+    +++Added (new line 219):                 <artifactId>morphia</artifactId>
+    +++Added (new line 231):             </dependency>
+    +++Added (new line 232):              <dependency>
+    +++Added (new line 233):                 <artifactId>mongo-java-driver</artifactId>
+    +++Added (new line 234):                 <groupId>org.mongodb</groupId>
+    +++Added (new line 235):                 <version>3.8.2</version>
+    ---Removed (old line 255):             <dependency>
+    ---Removed (old line 256):                 <artifactId>mongo-java-driver</artifactId>
+    ---Removed (old line 257):                 <groupId>org.mongodb</groupId>
+    ---Removed (old line 258):                 <version>3.4.2</version>
+    ---Removed (old line 259):             </dependency>
+
+File: rest/src/main/java/org/envirocar/server/rest/decoding/json/MeasurementDecoder.java ======================
+    - Additions: 10
+    - Deletions: 10
+=======================================================
+
+    +++Added (new line 19): import java.util.HashMap;
+    +++Added (new line 21): import java.util.Map;
+    ---Removed (old line 25): import com.fasterxml.jackson.databind.JsonNode;
+    ---Removed (old line 26): import com.google.inject.Inject;
+    ---Removed (old line 27): import com.vividsolutions.jts.geom.Geometry;
+    ---Removed (old line 28): import java.util.HashMap;
+    ---Removed (old line 29): import java.util.Map;
+    ---Removed (old line 30): 
+    ---Removed (old line 33): 
+    +++Added (new line 36): import com.fasterxml.jackson.databind.JsonNode;
+    +++Added (new line 37): import com.google.inject.Inject;
+    +++Added (new line 38): import com.vividsolutions.jts.geom.Geometry;
+    +++Added (new line 39): 
+    ---Removed (old line 67):     
+    +++Added (new line 66): 
+    ---Removed (old line 120):         
+    +++Added (new line 119): 
+    +++Added (new line 127):     @SuppressWarnings("unchecked")
+    ---Removed (old line 143):         
+    +++Added (new line 143): 
+
+File: rest/src/test/java/org/envirocar/server/rest/decoding/json/ContextKnowledgeTest.java ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 72):         @SuppressWarnings("unchecked")
+

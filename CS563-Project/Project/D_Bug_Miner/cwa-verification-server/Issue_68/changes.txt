@@ -1,0 +1,792 @@
+Issue #68: fix: rename test class for use in build process
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/68
+
+Commit ID: ae3323c49aa923aa82d0bf9b376423eef0936a8a
+
+Commit Message: fix: rename test class for use in build process
+
+Files Changed (1):
+File: src/test/java/app/coronawarn/verification/VerificationApplicationTest.java ======================
+    - Additions: 388
+    - Deletions: 390
+=======================================================
+
+    ---Removed (old line 1): /*
+    ---Removed (old line 2):  * Corona-Warn-App / cwa-verification
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    ---Removed (old line 10):  * You may obtain a copy of the License at
+    ---Removed (old line 11):  *
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 13):  *
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    ---Removed (old line 20):  */
+    ---Removed (old line 21): 
+    ---Removed (old line 22): package app.coronawarn.verification;
+    ---Removed (old line 23): 
+    ---Removed (old line 24): import app.coronawarn.verification.client.HashedGuid;
+    ---Removed (old line 25): import app.coronawarn.verification.client.TestResult;
+    ---Removed (old line 26): import app.coronawarn.verification.domain.VerificationAppSession;
+    ---Removed (old line 27): import app.coronawarn.verification.domain.VerificationTan;
+    ---Removed (old line 28): import app.coronawarn.verification.model.*;
+    ---Removed (old line 29): import app.coronawarn.verification.repository.VerificationAppSessionRepository;
+    ---Removed (old line 30): import app.coronawarn.verification.service.LabServerService;
+    ---Removed (old line 31): import app.coronawarn.verification.service.TanService;
+    ---Removed (old line 32): import com.fasterxml.jackson.core.JsonProcessingException;
+    ---Removed (old line 33): import com.fasterxml.jackson.databind.ObjectMapper;
+    ---Removed (old line 34): import lombok.extern.slf4j.Slf4j;
+    ---Removed (old line 35): import org.junit.Test;
+    ---Removed (old line 36): import org.junit.jupiter.api.BeforeEach;
+    ---Removed (old line 37): import org.junit.runner.RunWith;
+    ---Removed (old line 38): import org.mockito.MockitoAnnotations;
+    ---Removed (old line 39): import org.springframework.beans.factory.annotation.Autowired;
+    ---Removed (old line 40): import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+    ---Removed (old line 41): import org.springframework.boot.test.context.SpringBootTest;
+    ---Removed (old line 42): import org.springframework.boot.test.mock.mockito.MockBean;
+    ---Removed (old line 43): import org.springframework.http.MediaType;
+    ---Removed (old line 44): import org.springframework.test.context.ContextConfiguration;
+    ---Removed (old line 45): import org.springframework.test.context.junit4.SpringRunner;
+    ---Removed (old line 46): import org.springframework.test.web.servlet.MockMvc;
+    ---Removed (old line 47): 
+    ---Removed (old line 48): import java.time.LocalDateTime;
+    ---Removed (old line 49): import java.util.List;
+    ---Removed (old line 50): import java.util.Optional;
+    ---Removed (old line 51): 
+    ---Removed (old line 52): import static org.junit.Assert.*;
+    ---Removed (old line 53): import static org.mockito.ArgumentMatchers.any;
+    ---Removed (old line 54): import static org.mockito.BDDMockito.given;
+    ---Removed (old line 55): import static org.mockito.Mockito.doReturn;
+    ---Removed (old line 56): import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+    ---Removed (old line 57): import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+    ---Removed (old line 58): import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+    ---Removed (old line 59): 
+    ---Removed (old line 60): /**
+    ---Removed (old line 61):  * This is the test class for the verification application.
+    ---Removed (old line 62):  */
+    ---Removed (old line 63): @Slf4j
+    ---Removed (old line 64): @RunWith(SpringRunner.class)
+    ---Removed (old line 65): @AutoConfigureMockMvc
+    ---Removed (old line 66): @SpringBootTest
+    ---Removed (old line 67): @ContextConfiguration(classes = VerificationApplication.class)
+    ---Removed (old line 68): public class VerificationAppTests {
+    ---Removed (old line 69): 
+    ---Removed (old line 70):   public static final String TEST_GUI_HASH = "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b";
+    ---Removed (old line 71):   public static final String TEST_TELETAN = "8eFjPSV";
+    ---Removed (old line 72):   public static final String TEST_REG_TOK = "1234567890";
+    ---Removed (old line 73):   public static final String TEST_REG_TOK_HASH = "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646";
+    ---Removed (old line 74):   public static final TestResult TEST_LAB_POSITIVE_RESULT = new TestResult(2);
+    ---Removed (old line 75):   public static final String TEST_TAN = "1ea6ce8a-9740-11ea-bb37-0242ac130002";
+    ---Removed (old line 76):   public static final String TEST_SOT = "connectedLab17";
+    ---Removed (old line 77):   public static final String TEST_HASHED_TAN = "16154ea91c2c59d6ef9d0e7f902a59283b1e7ff9111570d20139a4e6b1832876";
+    ---Removed (old line 78):   public static final String TEST_TAN_TYPE = "TAN";
+    ---Removed (old line 79):   private static final LocalDateTime TAN_VALID_UNTIL_IN_DAYS = LocalDateTime.now().plusDays(7);
+    ---Removed (old line 80):   private static final String PREFIX_API_VERSION = "/version/v1";
+    ---Removed (old line 81): 
+    ---Removed (old line 82):   @Autowired
+    ---Removed (old line 83):   private MockMvc mockMvc;
+    ---Removed (old line 84):   @MockBean
+    ---Removed (old line 85):   private LabServerService labServerService;
+    ---Removed (old line 86):   @MockBean
+    ---Removed (old line 87):   private TanService tanService;
+    ---Removed (old line 88):   @Autowired
+    ---Removed (old line 89):   private VerificationAppSessionRepository appSessionrepository;
+    ---Removed (old line 90):   @Autowired
+    ---Removed (old line 91):   private ObjectMapper mapper;
+    ---Removed (old line 92): 
+    ---Removed (old line 93):   @BeforeEach
+    ---Removed (old line 94):   void setUp() {
+    ---Removed (old line 95):     MockitoAnnotations.initMocks(this);
+    ---Removed (old line 96):   }
+    ---Removed (old line 97): 
+    ---Removed (old line 98):   /**
+    ---Removed (old line 99):    * Test generateTAN.
+    ---Removed (old line 100):    *
+    ---Removed (old line 101):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 102):    */
+    ---Removed (old line 103):   @Test
+    ---Removed (old line 104):   public void callGenerateTAN() throws Exception {
+    ---Removed (old line 105):     log.info("VerificationAppTests callGenerateTAN()");
+    ---Removed (old line 106): 
+    ---Removed (old line 107):     prepareAppSessionTestData();
+    ---Removed (old line 108):     doReturn(TEST_LAB_POSITIVE_RESULT).when(labServerService).result(any());
+    ---Removed (old line 109): 
+    ---Removed (old line 110):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan")
+    ---Removed (old line 111):         .contentType(MediaType.APPLICATION_JSON)
+    ---Removed (old line 112):         .content(getAsJsonFormat(new RegistrationToken(TEST_REG_TOK))))
+    ---Removed (old line 113):         .andExpect(status().isCreated());
+    ---Removed (old line 114): 
+    ---Removed (old line 115):     long count = appSessionrepository.count();
+    ---Removed (old line 116):     log.info("Got {} verification entries from db repository.", count);
+    ---Removed (old line 117):     assertEquals("Verification Failed: Amount of verfication entries is not 1 (Result=" + count + "). ", 1, count);
+    ---Removed (old line 118): 
+    ---Removed (old line 119):     List<VerificationAppSession> verficationList = appSessionrepository.findAll();
+    ---Removed (old line 120):     assertNotNull(verficationList);
+    ---Removed (old line 121):     assertEquals(TEST_GUI_HASH, verficationList.get(0).getHashedGuid());
+    ---Removed (old line 122):     assertEquals(AppSessionSourceOfTrust.HASHED_GUID.getSourceName(), verficationList.get(0).getSourceOfTrust());
+    ---Removed (old line 123):     assertEquals(TEST_REG_TOK_HASH, verficationList.get(0).getRegistrationTokenHash());
+    ---Removed (old line 124): 
+    ---Removed (old line 125):   }
+    ---Removed (old line 126): 
+    ---Removed (old line 127):   /**
+    ---Removed (old line 128):    * Test the generation of a tele Tan.
+    ---Removed (old line 129):    *
+    ---Removed (old line 130):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 131):    */
+    ---Removed (old line 132):   @Test
+    ---Removed (old line 133):   public void callGenerateTeleTAN() throws Exception {
+    ---Removed (old line 134):     log.info("VerificationAppTests callGenerateTeleTAN()");
+    ---Removed (old line 135): 
+    ---Removed (old line 136):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/teletan"))
+    ---Removed (old line 137):         .andExpect(status().isCreated());
+    ---Removed (old line 138):   }
+    ---Removed (old line 139): 
+    ---Removed (old line 140):   /**
+    ---Removed (old line 141):    * Test get registration token by a guid.
+    ---Removed (old line 142):    *
+    ---Removed (old line 143):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 144):    */
+    ---Removed (old line 145):   @Test
+    ---Removed (old line 146):   public void callGetRegistrationTokenByGuid() throws Exception {
+    ---Removed (old line 147):     log.info("VerificationAppTests callGetRegistrationToken() ");
+    ---Removed (old line 148): 
+    ---Removed (old line 149):     RegistrationTokenRequest request = new RegistrationTokenRequest(TEST_GUI_HASH, RegistrationTokenKeyType.GUID);
+    ---Removed (old line 150):     mockMvc.perform(post(PREFIX_API_VERSION + "/registrationToken")
+    ---Removed (old line 151):         .contentType(MediaType.APPLICATION_JSON)
+    ---Removed (old line 152):         .content(getAsJsonFormat(request)))
+    ---Removed (old line 153):         .andExpect(status().isCreated())
+    ---Removed (old line 154):         .andExpect(jsonPath("$.token").exists());
+    ---Removed (old line 155): 
+    ---Removed (old line 156):     long count = appSessionrepository.count();
+    ---Removed (old line 157):     log.info("Got {} verification entries from db repository.", count);
+    ---Removed (old line 158):     assertEquals("Verification Failed: Amount of verfication entries is not 1 (Result=" + count + "). ", 1, count);
+    ---Removed (old line 159): 
+    ---Removed (old line 160):     List<VerificationAppSession> verificationList = appSessionrepository.findAll();
+    ---Removed (old line 161):     assertNotNull(verificationList);
+    ---Removed (old line 162):     assertEquals(TEST_GUI_HASH, verificationList.get(0).getHashedGuid());
+    ---Removed (old line 163):     assertEquals(AppSessionSourceOfTrust.HASHED_GUID.getSourceName(), verificationList.get(0).getSourceOfTrust());
+    ---Removed (old line 164):     assertNotNull(verificationList.get(0).getRegistrationTokenHash());
+    ---Removed (old line 165):   }
+    ---Removed (old line 166): 
+    ---Removed (old line 167):   /**
+    ---Removed (old line 168):    * Test get registration token by a tele tan.
+    ---Removed (old line 169):    *
+    ---Removed (old line 170):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 171):    */
+    ---Removed (old line 172):   @Test
+    ---Removed (old line 173):   public void callGetRegistrationTokenByTeleTan() throws Exception {
+    ---Removed (old line 174):     log.info("VerificationAppTests callGetRegistrationToken() ");
+    ---Removed (old line 175):     appSessionrepository.deleteAll();
+    ---Removed (old line 176):     RegistrationTokenRequest request = new RegistrationTokenRequest(TEST_TELETAN, RegistrationTokenKeyType.TELETAN);
+    ---Removed (old line 177):     given(this.tanService.verifyTeleTan(TEST_TELETAN)).willReturn(true);
+    ---Removed (old line 178):     given(this.tanService.isTeleTanValid(TEST_TELETAN)).willReturn(true);
+    ---Removed (old line 179):     given(this.tanService.getEntityByTan(TEST_TELETAN)).willReturn(Optional.of(getTeleTanTestData()));
+    ---Removed (old line 180): 
+    ---Removed (old line 181):     mockMvc.perform(post(PREFIX_API_VERSION + "/registrationToken")
+    ---Removed (old line 182):         .contentType(MediaType.APPLICATION_JSON)
+    ---Removed (old line 183):         .content(getAsJsonFormat(request)))
+    ---Removed (old line 184):         .andExpect(status().isCreated())
+    ---Removed (old line 185):         .andExpect(jsonPath("$.token").exists());
+    ---Removed (old line 186): 
+    ---Removed (old line 187):     long count = appSessionrepository.count();
+    ---Removed (old line 188):     log.info("Got {} verification entries from db repository.", count);
+    ---Removed (old line 189):     assertEquals("Verification Failed: Amount of verfication entries is not 1 (Result=" + count + "). ", 1, count);
+    ---Removed (old line 190): 
+    ---Removed (old line 191):     List<VerificationAppSession> verificationList = appSessionrepository.findAll();
+    ---Removed (old line 192):     assertNotNull(verificationList);
+    ---Removed (old line 193):     assertNull(verificationList.get(0).getHashedGuid());
+    ---Removed (old line 194):     assertEquals(AppSessionSourceOfTrust.TELETAN.getSourceName(), verificationList.get(0).getSourceOfTrust());
+    ---Removed (old line 195):     assertNotNull(verificationList.get(0).getRegistrationTokenHash());
+    ---Removed (old line 196):   }
+    ---Removed (old line 197): 
+    ---Removed (old line 198):   /**
+    ---Removed (old line 199):    * Test getTestState.
+    ---Removed (old line 200):    *
+    ---Removed (old line 201):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 202):    */
+    ---Removed (old line 203):   @Test
+    ---Removed (old line 204):   public void callGetTestState() throws Exception {
+    ---Removed (old line 205):     log.info("VerificationAppTests callGetTestState()");
+    ---Removed (old line 206): 
+    ---Removed (old line 207):     prepareAppSessionTestData();
+    ---Removed (old line 208): 
+    ---Removed (old line 209):     given(this.labServerService.result(new HashedGuid(TEST_GUI_HASH))).willReturn(TEST_LAB_POSITIVE_RESULT);
+    ---Removed (old line 210): 
+    ---Removed (old line 211):     mockMvc.perform(post(PREFIX_API_VERSION + "/testresult").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new RegistrationToken(TEST_REG_TOK))))
+    ---Removed (old line 212):         .andExpect(status().isOk())
+    ---Removed (old line 213):         .andExpect(jsonPath("$.testResult").value(TEST_LAB_POSITIVE_RESULT.getTestResult()));
+    ---Removed (old line 214):   }
+    ---Removed (old line 215): 
+    ---Removed (old line 216):   /**
+    ---Removed (old line 217):    * Test getTestState with empty Entity of VerificationAppSession.
+    ---Removed (old line 218):    *
+    ---Removed (old line 219):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 220):    */
+    ---Removed (old line 221):   @Test
+    ---Removed (old line 222):   public void callGetTestStateByAppSessionIsEmpty() throws Exception {
+    ---Removed (old line 223):     log.info("VerificationAppTests callGetTestStateByAppSessionIsEmpty()");
+    ---Removed (old line 224): 
+    ---Removed (old line 225):     //clean the repo
+    ---Removed (old line 226):     appSessionrepository.deleteAll();
+    ---Removed (old line 227): 
+    ---Removed (old line 228):     mockMvc.perform(post(PREFIX_API_VERSION + "/testresult")
+    ---Removed (old line 229):         .contentType(MediaType.APPLICATION_JSON)
+    ---Removed (old line 230):         .content(getAsJsonFormat(new RegistrationToken(TEST_REG_TOK))))
+    ---Removed (old line 231):         .andExpect(status().isBadRequest());
+    ---Removed (old line 232):   }
+    ---Removed (old line 233): 
+    ---Removed (old line 234):   /**
+    ---Removed (old line 235):    * Test verifyTAN.
+    ---Removed (old line 236):    *
+    ---Removed (old line 237):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 238):    */
+    ---Removed (old line 239):   @Test
+    ---Removed (old line 240):   public void callVerifyTAN() throws Exception {
+    ---Removed (old line 241):     log.info("VerificationAppTests callVerifyTAN()");
+    ---Removed (old line 242): 
+    ---Removed (old line 243):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    ---Removed (old line 244):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(getVerificationTANTestData()));
+    ---Removed (old line 245): 
+    ---Removed (old line 246):     assertFalse("Is TAN redeemed?", this.tanService.getEntityByTan(TEST_TAN).get().isRedeemed());
+    ---Removed (old line 247): 
+    ---Removed (old line 248):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify")
+    ---Removed (old line 249):         .contentType(MediaType.APPLICATION_JSON)
+    ---Removed (old line 250):         .content(getAsJsonFormat(new Tan(TEST_TAN))))
+    ---Removed (old line 251):         .andExpect(status().isOk());
+    ---Removed (old line 252):   }
+    ---Removed (old line 253): 
+    ---Removed (old line 254):   /**
+    ---Removed (old line 255):    * Test verifyTAN with empty Entity.
+    ---Removed (old line 256):    *
+    ---Removed (old line 257):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 258):    */
+    ---Removed (old line 259):   @Test
+    ---Removed (old line 260):   public void callVerifyTANByVerificationTANIsEmpty() throws Exception {
+    ---Removed (old line 261):     log.info("VerificationAppTests callVerifyTANByVerificationTANIsEmpty()");
+    ---Removed (old line 262): 
+    ---Removed (old line 263):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    ---Removed (old line 264):     // without mock tanService.getEntityByTan so this method will return empty entity
+    ---Removed (old line 265): 
+    ---Removed (old line 266):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify")
+    ---Removed (old line 267):         .contentType(MediaType.APPLICATION_JSON)
+    ---Removed (old line 268):         .content(getAsJsonFormat(new Tan(TEST_TAN))))
+    ---Removed (old line 269):         .andExpect(status().isNotFound());
+    ---Removed (old line 270):   }
+    ---Removed (old line 271): 
+    ---Removed (old line 272):   /**
+    ---Removed (old line 273):    * Test verifyTAN with syntax problems.
+    ---Removed (old line 274):    *
+    ---Removed (old line 275):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 276):    */
+    ---Removed (old line 277):   @Test
+    ---Removed (old line 278):   public void callVerifyTANByTanSyntaxFailed() throws Exception {
+    ---Removed (old line 279):     log.info("VerificationAppTests callVerifyTANByTanSyntaxFailed()");
+    ---Removed (old line 280): 
+    ---Removed (old line 281):     // without mock tanService.syntaxVerification so this method will return false
+    ---Removed (old line 282):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(getVerificationTANTestData()));
+    ---Removed (old line 283): 
+    ---Removed (old line 284):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    ---Removed (old line 285):         .andExpect(status().isNotFound());
+    ---Removed (old line 286):   }
+    ---Removed (old line 287): 
+    ---Removed (old line 288):   /**
+    ---Removed (old line 289):    * Test verifyTAN expired from.
+    ---Removed (old line 290):    *
+    ---Removed (old line 291):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 292):    */
+    ---Removed (old line 293):   @Test
+    ---Removed (old line 294):   public void callVerifyTANByExpiredTimeFrom() throws Exception {
+    ---Removed (old line 295):     log.info("VerificationAppTests callVerifyTANByTanSyntaxFailed()");
+    ---Removed (old line 296): 
+    ---Removed (old line 297):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    ---Removed (old line 298):     VerificationTan cvtan = getVerificationTANTestData();
+    ---Removed (old line 299):     // setValidFrom later 2 days then now
+    ---Removed (old line 300):     cvtan.setValidFrom(LocalDateTime.now().plusDays(2));
+    ---Removed (old line 301):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(cvtan));
+    ---Removed (old line 302): 
+    ---Removed (old line 303):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    ---Removed (old line 304):         .andExpect(status().isNotFound());
+    ---Removed (old line 305):   }
+    ---Removed (old line 306): 
+    ---Removed (old line 307):   /**
+    ---Removed (old line 308):    * Test verifyTAN expired until.
+    ---Removed (old line 309):    *
+    ---Removed (old line 310):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 311):    */
+    ---Removed (old line 312):   @Test
+    ---Removed (old line 313):   public void callVerifyTANByExpiredTimeUntil() throws Exception {
+    ---Removed (old line 314):     log.info("VerificationAppTests callVerifyTANByTanSyntaxFailed()");
+    ---Removed (old line 315): 
+    ---Removed (old line 316):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    ---Removed (old line 317):     VerificationTan cvtan = getVerificationTANTestData();
+    ---Removed (old line 318):     // setValidUntil earlier 2 days then now
+    ---Removed (old line 319):     cvtan.setValidUntil(LocalDateTime.now().minusDays(2));
+    ---Removed (old line 320):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(cvtan));
+    ---Removed (old line 321): 
+    ---Removed (old line 322):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    ---Removed (old line 323):         .andExpect(status().isNotFound());
+    ---Removed (old line 324):   }
+    ---Removed (old line 325): 
+    ---Removed (old line 326):   /**
+    ---Removed (old line 327):    * Test verifyTAN is redeemed.
+    ---Removed (old line 328):    *
+    ---Removed (old line 329):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 330):    */
+    ---Removed (old line 331):   @Test
+    ---Removed (old line 332):   public void callVerifyTANByIsRedeemed() throws Exception {
+    ---Removed (old line 333):     log.info("VerificationAppTests callVerifyTANByIsRedeemed()");
+    ---Removed (old line 334): 
+    ---Removed (old line 335):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    ---Removed (old line 336):     VerificationTan cvtan = getVerificationTANTestData();
+    ---Removed (old line 337):     // tan is redeemed
+    ---Removed (old line 338):     cvtan.setRedeemed(true);
+    ---Removed (old line 339):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(cvtan));
+    ---Removed (old line 340): 
+    ---Removed (old line 341):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    ---Removed (old line 342):         .andExpect(status().isNotFound());
+    ---Removed (old line 343):   }
+    ---Removed (old line 344): 
+    ---Removed (old line 345):   private void prepareAppSessionTestData() {
+    ---Removed (old line 346):     appSessionrepository.deleteAll();
+    ---Removed (old line 347):     appSessionrepository.save(getAppSessionTestData());
+    ---Removed (old line 348):   }
+    ---Removed (old line 349): 
+    ---Removed (old line 350):   private VerificationAppSession getAppSessionTestData() {
+    ---Removed (old line 351):     VerificationAppSession cv = new VerificationAppSession();
+    ---Removed (old line 352):     cv.setHashedGuid(TEST_GUI_HASH);
+    ---Removed (old line 353):     cv.setCreatedAt(LocalDateTime.now());
+    ---Removed (old line 354):     cv.setUpdatedAt(LocalDateTime.now());
+    ---Removed (old line 355):     cv.setTanCounter(0);
+    ---Removed (old line 356):     cv.setSourceOfTrust(AppSessionSourceOfTrust.HASHED_GUID.getSourceName());
+    ---Removed (old line 357):     cv.setRegistrationTokenHash(TEST_REG_TOK_HASH);
+    ---Removed (old line 358):     return cv;
+    ---Removed (old line 359):   }
+    ---Removed (old line 360): 
+    ---Removed (old line 361):   private VerificationTan getVerificationTANTestData() {
+    ---Removed (old line 362):     VerificationTan cvtan = new VerificationTan();
+    ---Removed (old line 363):     cvtan.setCreatedAt(LocalDateTime.now());
+    ---Removed (old line 364):     cvtan.setUpdatedAt(LocalDateTime.now());
+    ---Removed (old line 365):     cvtan.setRedeemed(false);
+    ---Removed (old line 366):     cvtan.setSourceOfTrust(TEST_SOT);
+    ---Removed (old line 367):     cvtan.setTanHash(TEST_HASHED_TAN);
+    ---Removed (old line 368):     cvtan.setType(TEST_TAN_TYPE);
+    ---Removed (old line 369):     cvtan.setValidFrom(LocalDateTime.now().minusDays(5));
+    ---Removed (old line 370):     cvtan.setValidUntil(TAN_VALID_UNTIL_IN_DAYS);
+    ---Removed (old line 371):     return cvtan;
+    ---Removed (old line 372):   }
+    ---Removed (old line 373): 
+    ---Removed (old line 374):   private VerificationTan getTeleTanTestData() {
+    ---Removed (old line 375):     VerificationTan cvtan = new VerificationTan();
+    ---Removed (old line 376):     cvtan.setCreatedAt(LocalDateTime.now());
+    ---Removed (old line 377):     cvtan.setUpdatedAt(LocalDateTime.now());
+    ---Removed (old line 378):     cvtan.setRedeemed(false);
+    ---Removed (old line 379):     cvtan.setSourceOfTrust(TanSourceOfTrust.TELETAN.getSourceName());
+    ---Removed (old line 380):     cvtan.setTanHash(TEST_HASHED_TAN);
+    ---Removed (old line 381):     cvtan.setType(TanType.TELETAN.name());
+    ---Removed (old line 382):     cvtan.setValidFrom(LocalDateTime.now());
+    ---Removed (old line 383):     cvtan.setValidUntil(LocalDateTime.now().plusHours(1));
+    ---Removed (old line 384):     return cvtan;
+    ---Removed (old line 385):   }
+    ---Removed (old line 386): 
+    ---Removed (old line 387):   private String getAsJsonFormat(Object o) throws JsonProcessingException {
+    ---Removed (old line 388):     return mapper.writeValueAsString(o);
+    ---Removed (old line 389):   }
+    ---Removed (old line 390): }
+    +++Added (new line 1): /*
+    +++Added (new line 2):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 3):  *
+    +++Added (new line 4):  * (C) 2020, T-Systems International GmbH
+    +++Added (new line 5):  *
+    +++Added (new line 6):  * Deutsche Telekom AG and all other contributors /
+    +++Added (new line 7):  * copyright owners license this file to you under the Apache
+    +++Added (new line 8):  * License, Version 2.0 (the "License"); you may not use this
+    +++Added (new line 9):  * file except in compliance with the License.
+    +++Added (new line 10):  * You may obtain a copy of the License at
+    +++Added (new line 11):  *
+    +++Added (new line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 13):  *
+    +++Added (new line 14):  * Unless required by applicable law or agreed to in writing,
+    +++Added (new line 15):  * software distributed under the License is distributed on an
+    +++Added (new line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    +++Added (new line 17):  * KIND, either express or implied.  See the License for the
+    +++Added (new line 18):  * specific language governing permissions and limitations
+    +++Added (new line 19):  * under the License.
+    +++Added (new line 20):  */
+    +++Added (new line 21): 
+    +++Added (new line 22): package app.coronawarn.verification;
+    +++Added (new line 23): 
+    +++Added (new line 24): import app.coronawarn.verification.client.HashedGuid;
+    +++Added (new line 25): import app.coronawarn.verification.client.TestResult;
+    +++Added (new line 26): import app.coronawarn.verification.domain.VerificationAppSession;
+    +++Added (new line 27): import app.coronawarn.verification.domain.VerificationTan;
+    +++Added (new line 28): import app.coronawarn.verification.model.*;
+    +++Added (new line 29): import app.coronawarn.verification.repository.VerificationAppSessionRepository;
+    +++Added (new line 30): import app.coronawarn.verification.service.LabServerService;
+    +++Added (new line 31): import app.coronawarn.verification.service.TanService;
+    +++Added (new line 32): import com.fasterxml.jackson.core.JsonProcessingException;
+    +++Added (new line 33): import com.fasterxml.jackson.databind.ObjectMapper;
+    +++Added (new line 34): import java.time.LocalDateTime;
+    +++Added (new line 35): import java.util.List;
+    +++Added (new line 36): import java.util.Optional;
+    +++Added (new line 37): import lombok.extern.slf4j.Slf4j;
+    +++Added (new line 38): import static org.junit.Assert.*;
+    +++Added (new line 39): import org.junit.Test;
+    +++Added (new line 40): import org.junit.jupiter.api.BeforeEach;
+    +++Added (new line 41): import org.junit.runner.RunWith;
+    +++Added (new line 42): import static org.mockito.ArgumentMatchers.any;
+    +++Added (new line 43): import static org.mockito.BDDMockito.given;
+    +++Added (new line 44): import static org.mockito.Mockito.doReturn;
+    +++Added (new line 45): import org.mockito.MockitoAnnotations;
+    +++Added (new line 46): import org.springframework.beans.factory.annotation.Autowired;
+    +++Added (new line 47): import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+    +++Added (new line 48): import org.springframework.boot.test.context.SpringBootTest;
+    +++Added (new line 49): import org.springframework.boot.test.mock.mockito.MockBean;
+    +++Added (new line 50): import org.springframework.http.MediaType;
+    +++Added (new line 51): import org.springframework.test.context.ContextConfiguration;
+    +++Added (new line 52): import org.springframework.test.context.junit4.SpringRunner;
+    +++Added (new line 53): import org.springframework.test.web.servlet.MockMvc;
+    +++Added (new line 54): import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+    +++Added (new line 55): import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+    +++Added (new line 56): import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+    +++Added (new line 57): 
+    +++Added (new line 58): /**
+    +++Added (new line 59):  * This is the test class for the verification application.
+    +++Added (new line 60):  */
+    +++Added (new line 61): @Slf4j
+    +++Added (new line 62): @RunWith(SpringRunner.class)
+    +++Added (new line 63): @SpringBootTest
+    +++Added (new line 64): @ContextConfiguration(classes = VerificationApplication.class)
+    +++Added (new line 65): @AutoConfigureMockMvc
+    +++Added (new line 66): public class VerificationApplicationTest {
+    +++Added (new line 67): 
+    +++Added (new line 68):   public static final String TEST_GUI_HASH = "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b";
+    +++Added (new line 69):   public static final String TEST_TELETAN = "8eFjPSV";
+    +++Added (new line 70):   public static final String TEST_REG_TOK = "1234567890";
+    +++Added (new line 71):   public static final String TEST_REG_TOK_HASH = "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646";
+    +++Added (new line 72):   public static final TestResult TEST_LAB_POSITIVE_RESULT = new TestResult(2);
+    +++Added (new line 73):   public static final String TEST_TAN = "1ea6ce8a-9740-11ea-bb37-0242ac130002";
+    +++Added (new line 74):   public static final String TEST_SOT = "connectedLab17";
+    +++Added (new line 75):   public static final String TEST_HASHED_TAN = "16154ea91c2c59d6ef9d0e7f902a59283b1e7ff9111570d20139a4e6b1832876";
+    +++Added (new line 76):   public static final String TEST_TAN_TYPE = "TAN";
+    +++Added (new line 77):   private static final LocalDateTime TAN_VALID_UNTIL_IN_DAYS = LocalDateTime.now().plusDays(7);
+    +++Added (new line 78):   private static final String PREFIX_API_VERSION = "/version/v1";
+    +++Added (new line 79): 
+    +++Added (new line 80):   @Autowired
+    +++Added (new line 81):   private MockMvc mockMvc;
+    +++Added (new line 82):   @MockBean
+    +++Added (new line 83):   private LabServerService labServerService;
+    +++Added (new line 84):   @MockBean
+    +++Added (new line 85):   private TanService tanService;
+    +++Added (new line 86):   @Autowired
+    +++Added (new line 87):   private VerificationAppSessionRepository appSessionrepository;
+    +++Added (new line 88):   @Autowired
+    +++Added (new line 89):   private ObjectMapper mapper;
+    +++Added (new line 90): 
+    +++Added (new line 91):   @BeforeEach
+    +++Added (new line 92):   void setUp() {
+    +++Added (new line 93):     MockitoAnnotations.initMocks(this);
+    +++Added (new line 94):   }
+    +++Added (new line 95): 
+    +++Added (new line 96):   /**
+    +++Added (new line 97):    * Test generateTAN.
+    +++Added (new line 98):    *
+    +++Added (new line 99):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 100):    */
+    +++Added (new line 101):   @Test
+    +++Added (new line 102):   public void callGenerateTAN() throws Exception {
+    +++Added (new line 103):     log.info("VerificationAppTests callGenerateTAN()");
+    +++Added (new line 104): 
+    +++Added (new line 105):     prepareAppSessionTestData();
+    +++Added (new line 106):     doReturn(TEST_LAB_POSITIVE_RESULT).when(labServerService).result(any());
+    +++Added (new line 107): 
+    +++Added (new line 108):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan")
+    +++Added (new line 109):         .contentType(MediaType.APPLICATION_JSON)
+    +++Added (new line 110):         .content(getAsJsonFormat(new RegistrationToken(TEST_REG_TOK))))
+    +++Added (new line 111):         .andExpect(status().isCreated());
+    +++Added (new line 112): 
+    +++Added (new line 113):     long count = appSessionrepository.count();
+    +++Added (new line 114):     log.info("Got {} verification entries from db repository.", count);
+    +++Added (new line 115):     assertEquals("Verification Failed: Amount of verfication entries is not 1 (Result=" + count + "). ", 1, count);
+    +++Added (new line 116): 
+    +++Added (new line 117):     List<VerificationAppSession> verficationList = appSessionrepository.findAll();
+    +++Added (new line 118):     assertNotNull(verficationList);
+    +++Added (new line 119):     assertEquals(TEST_GUI_HASH, verficationList.get(0).getHashedGuid());
+    +++Added (new line 120):     assertEquals(AppSessionSourceOfTrust.HASHED_GUID.getSourceName(), verficationList.get(0).getSourceOfTrust());
+    +++Added (new line 121):     assertEquals(TEST_REG_TOK_HASH, verficationList.get(0).getRegistrationTokenHash());
+    +++Added (new line 122): 
+    +++Added (new line 123):   }
+    +++Added (new line 124): 
+    +++Added (new line 125):   /**
+    +++Added (new line 126):    * Test the generation of a tele Tan.
+    +++Added (new line 127):    *
+    +++Added (new line 128):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 129):    */
+    +++Added (new line 130):   @Test
+    +++Added (new line 131):   public void callGenerateTeleTAN() throws Exception {
+    +++Added (new line 132):     log.info("VerificationAppTests callGenerateTeleTAN()");
+    +++Added (new line 133): 
+    +++Added (new line 134):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/teletan"))
+    +++Added (new line 135):         .andExpect(status().isCreated());
+    +++Added (new line 136):   }
+    +++Added (new line 137): 
+    +++Added (new line 138):   /**
+    +++Added (new line 139):    * Test get registration token by a guid.
+    +++Added (new line 140):    *
+    +++Added (new line 141):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 142):    */
+    +++Added (new line 143):   @Test
+    +++Added (new line 144):   public void callGetRegistrationTokenByGuid() throws Exception {
+    +++Added (new line 145):     log.info("VerificationAppTests callGetRegistrationToken() ");
+    +++Added (new line 146): 
+    +++Added (new line 147):     RegistrationTokenRequest request = new RegistrationTokenRequest(TEST_GUI_HASH, RegistrationTokenKeyType.GUID);
+    +++Added (new line 148):     mockMvc.perform(post(PREFIX_API_VERSION + "/registrationToken")
+    +++Added (new line 149):         .contentType(MediaType.APPLICATION_JSON)
+    +++Added (new line 150):         .content(getAsJsonFormat(request)))
+    +++Added (new line 151):         .andExpect(status().isCreated())
+    +++Added (new line 152):         .andExpect(jsonPath("$.token").exists());
+    +++Added (new line 153): 
+    +++Added (new line 154):     long count = appSessionrepository.count();
+    +++Added (new line 155):     log.info("Got {} verification entries from db repository.", count);
+    +++Added (new line 156):     assertEquals("Verification Failed: Amount of verfication entries is not 1 (Result=" + count + "). ", 1, count);
+    +++Added (new line 157): 
+    +++Added (new line 158):     List<VerificationAppSession> verificationList = appSessionrepository.findAll();
+    +++Added (new line 159):     assertNotNull(verificationList);
+    +++Added (new line 160):     assertEquals(TEST_GUI_HASH, verificationList.get(0).getHashedGuid());
+    +++Added (new line 161):     assertEquals(AppSessionSourceOfTrust.HASHED_GUID.getSourceName(), verificationList.get(0).getSourceOfTrust());
+    +++Added (new line 162):     assertNotNull(verificationList.get(0).getRegistrationTokenHash());
+    +++Added (new line 163):   }
+    +++Added (new line 164): 
+    +++Added (new line 165):   /**
+    +++Added (new line 166):    * Test get registration token by a tele tan.
+    +++Added (new line 167):    *
+    +++Added (new line 168):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 169):    */
+    +++Added (new line 170):   @Test
+    +++Added (new line 171):   public void callGetRegistrationTokenByTeleTan() throws Exception {
+    +++Added (new line 172):     log.info("VerificationAppTests callGetRegistrationToken() ");
+    +++Added (new line 173):     appSessionrepository.deleteAll();
+    +++Added (new line 174):     RegistrationTokenRequest request = new RegistrationTokenRequest(TEST_TELETAN, RegistrationTokenKeyType.TELETAN);
+    +++Added (new line 175):     given(this.tanService.verifyTeleTan(TEST_TELETAN)).willReturn(true);
+    +++Added (new line 176):     given(this.tanService.isTeleTanValid(TEST_TELETAN)).willReturn(true);
+    +++Added (new line 177):     given(this.tanService.getEntityByTan(TEST_TELETAN)).willReturn(Optional.of(getTeleTanTestData()));
+    +++Added (new line 178): 
+    +++Added (new line 179):     mockMvc.perform(post(PREFIX_API_VERSION + "/registrationToken")
+    +++Added (new line 180):         .contentType(MediaType.APPLICATION_JSON)
+    +++Added (new line 181):         .content(getAsJsonFormat(request)))
+    +++Added (new line 182):         .andExpect(status().isCreated())
+    +++Added (new line 183):         .andExpect(jsonPath("$.token").exists());
+    +++Added (new line 184): 
+    +++Added (new line 185):     long count = appSessionrepository.count();
+    +++Added (new line 186):     log.info("Got {} verification entries from db repository.", count);
+    +++Added (new line 187):     assertEquals("Verification Failed: Amount of verfication entries is not 1 (Result=" + count + "). ", 1, count);
+    +++Added (new line 188): 
+    +++Added (new line 189):     List<VerificationAppSession> verificationList = appSessionrepository.findAll();
+    +++Added (new line 190):     assertNotNull(verificationList);
+    +++Added (new line 191):     assertNull(verificationList.get(0).getHashedGuid());
+    +++Added (new line 192):     assertEquals(AppSessionSourceOfTrust.TELETAN.getSourceName(), verificationList.get(0).getSourceOfTrust());
+    +++Added (new line 193):     assertNotNull(verificationList.get(0).getRegistrationTokenHash());
+    +++Added (new line 194):   }
+    +++Added (new line 195): 
+    +++Added (new line 196):   /**
+    +++Added (new line 197):    * Test getTestState.
+    +++Added (new line 198):    *
+    +++Added (new line 199):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 200):    */
+    +++Added (new line 201):   @Test
+    +++Added (new line 202):   public void callGetTestState() throws Exception {
+    +++Added (new line 203):     log.info("VerificationAppTests callGetTestState()");
+    +++Added (new line 204): 
+    +++Added (new line 205):     prepareAppSessionTestData();
+    +++Added (new line 206): 
+    +++Added (new line 207):     given(this.labServerService.result(new HashedGuid(TEST_GUI_HASH))).willReturn(TEST_LAB_POSITIVE_RESULT);
+    +++Added (new line 208): 
+    +++Added (new line 209):     mockMvc.perform(post(PREFIX_API_VERSION + "/testresult").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new RegistrationToken(TEST_REG_TOK))))
+    +++Added (new line 210):         .andExpect(status().isOk())
+    +++Added (new line 211):         .andExpect(jsonPath("$.testResult").value(TEST_LAB_POSITIVE_RESULT.getTestResult()));
+    +++Added (new line 212):   }
+    +++Added (new line 213): 
+    +++Added (new line 214):   /**
+    +++Added (new line 215):    * Test getTestState with empty Entity of VerificationAppSession.
+    +++Added (new line 216):    *
+    +++Added (new line 217):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 218):    */
+    +++Added (new line 219):   @Test
+    +++Added (new line 220):   public void callGetTestStateByAppSessionIsEmpty() throws Exception {
+    +++Added (new line 221):     log.info("VerificationAppTests callGetTestStateByAppSessionIsEmpty()");
+    +++Added (new line 222): 
+    +++Added (new line 223):     //clean the repo
+    +++Added (new line 224):     appSessionrepository.deleteAll();
+    +++Added (new line 225): 
+    +++Added (new line 226):     mockMvc.perform(post(PREFIX_API_VERSION + "/testresult")
+    +++Added (new line 227):         .contentType(MediaType.APPLICATION_JSON)
+    +++Added (new line 228):         .content(getAsJsonFormat(new RegistrationToken(TEST_REG_TOK))))
+    +++Added (new line 229):         .andExpect(status().isBadRequest());
+    +++Added (new line 230):   }
+    +++Added (new line 231): 
+    +++Added (new line 232):   /**
+    +++Added (new line 233):    * Test verifyTAN.
+    +++Added (new line 234):    *
+    +++Added (new line 235):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 236):    */
+    +++Added (new line 237):   @Test
+    +++Added (new line 238):   public void callVerifyTAN() throws Exception {
+    +++Added (new line 239):     log.info("VerificationAppTests callVerifyTAN()");
+    +++Added (new line 240): 
+    +++Added (new line 241):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    +++Added (new line 242):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(getVerificationTANTestData()));
+    +++Added (new line 243): 
+    +++Added (new line 244):     assertFalse("Is TAN redeemed?", this.tanService.getEntityByTan(TEST_TAN).get().isRedeemed());
+    +++Added (new line 245): 
+    +++Added (new line 246):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify")
+    +++Added (new line 247):         .contentType(MediaType.APPLICATION_JSON)
+    +++Added (new line 248):         .content(getAsJsonFormat(new Tan(TEST_TAN))))
+    +++Added (new line 249):         .andExpect(status().isOk());
+    +++Added (new line 250):   }
+    +++Added (new line 251): 
+    +++Added (new line 252):   /**
+    +++Added (new line 253):    * Test verifyTAN with empty Entity.
+    +++Added (new line 254):    *
+    +++Added (new line 255):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 256):    */
+    +++Added (new line 257):   @Test
+    +++Added (new line 258):   public void callVerifyTANByVerificationTANIsEmpty() throws Exception {
+    +++Added (new line 259):     log.info("VerificationAppTests callVerifyTANByVerificationTANIsEmpty()");
+    +++Added (new line 260): 
+    +++Added (new line 261):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    +++Added (new line 262):     // without mock tanService.getEntityByTan so this method will return empty entity
+    +++Added (new line 263): 
+    +++Added (new line 264):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify")
+    +++Added (new line 265):         .contentType(MediaType.APPLICATION_JSON)
+    +++Added (new line 266):         .content(getAsJsonFormat(new Tan(TEST_TAN))))
+    +++Added (new line 267):         .andExpect(status().isNotFound());
+    +++Added (new line 268):   }
+    +++Added (new line 269): 
+    +++Added (new line 270):   /**
+    +++Added (new line 271):    * Test verifyTAN with syntax problems.
+    +++Added (new line 272):    *
+    +++Added (new line 273):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 274):    */
+    +++Added (new line 275):   @Test
+    +++Added (new line 276):   public void callVerifyTANByTanSyntaxFailed() throws Exception {
+    +++Added (new line 277):     log.info("VerificationAppTests callVerifyTANByTanSyntaxFailed()");
+    +++Added (new line 278): 
+    +++Added (new line 279):     // without mock tanService.syntaxVerification so this method will return false
+    +++Added (new line 280):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(getVerificationTANTestData()));
+    +++Added (new line 281): 
+    +++Added (new line 282):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    +++Added (new line 283):         .andExpect(status().isNotFound());
+    +++Added (new line 284):   }
+    +++Added (new line 285): 
+    +++Added (new line 286):   /**
+    +++Added (new line 287):    * Test verifyTAN expired from.
+    +++Added (new line 288):    *
+    +++Added (new line 289):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 290):    */
+    +++Added (new line 291):   @Test
+    +++Added (new line 292):   public void callVerifyTANByExpiredTimeFrom() throws Exception {
+    +++Added (new line 293):     log.info("VerificationAppTests callVerifyTANByTanSyntaxFailed()");
+    +++Added (new line 294): 
+    +++Added (new line 295):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    +++Added (new line 296):     VerificationTan cvtan = getVerificationTANTestData();
+    +++Added (new line 297):     // setValidFrom later 2 days then now
+    +++Added (new line 298):     cvtan.setValidFrom(LocalDateTime.now().plusDays(2));
+    +++Added (new line 299):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(cvtan));
+    +++Added (new line 300): 
+    +++Added (new line 301):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    +++Added (new line 302):         .andExpect(status().isNotFound());
+    +++Added (new line 303):   }
+    +++Added (new line 304): 
+    +++Added (new line 305):   /**
+    +++Added (new line 306):    * Test verifyTAN expired until.
+    +++Added (new line 307):    *
+    +++Added (new line 308):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 309):    */
+    +++Added (new line 310):   @Test
+    +++Added (new line 311):   public void callVerifyTANByExpiredTimeUntil() throws Exception {
+    +++Added (new line 312):     log.info("VerificationAppTests callVerifyTANByTanSyntaxFailed()");
+    +++Added (new line 313): 
+    +++Added (new line 314):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    +++Added (new line 315):     VerificationTan cvtan = getVerificationTANTestData();
+    +++Added (new line 316):     // setValidUntil earlier 2 days then now
+    +++Added (new line 317):     cvtan.setValidUntil(LocalDateTime.now().minusDays(2));
+    +++Added (new line 318):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(cvtan));
+    +++Added (new line 319): 
+    +++Added (new line 320):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    +++Added (new line 321):         .andExpect(status().isNotFound());
+    +++Added (new line 322):   }
+    +++Added (new line 323): 
+    +++Added (new line 324):   /**
+    +++Added (new line 325):    * Test verifyTAN is redeemed.
+    +++Added (new line 326):    *
+    +++Added (new line 327):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 328):    */
+    +++Added (new line 329):   @Test
+    +++Added (new line 330):   public void callVerifyTANByIsRedeemed() throws Exception {
+    +++Added (new line 331):     log.info("VerificationAppTests callVerifyTANByIsRedeemed()");
+    +++Added (new line 332): 
+    +++Added (new line 333):     given(this.tanService.syntaxVerification(TEST_TAN)).willReturn(true);
+    +++Added (new line 334):     VerificationTan cvtan = getVerificationTANTestData();
+    +++Added (new line 335):     // tan is redeemed
+    +++Added (new line 336):     cvtan.setRedeemed(true);
+    +++Added (new line 337):     given(this.tanService.getEntityByTan(TEST_TAN)).willReturn(Optional.of(cvtan));
+    +++Added (new line 338): 
+    +++Added (new line 339):     mockMvc.perform(post(PREFIX_API_VERSION + "/tan/verify").contentType(MediaType.APPLICATION_JSON).content(getAsJsonFormat(new Tan(TEST_TAN))))
+    +++Added (new line 340):         .andExpect(status().isNotFound());
+    +++Added (new line 341):   }
+    +++Added (new line 342): 
+    +++Added (new line 343):   private void prepareAppSessionTestData() {
+    +++Added (new line 344):     appSessionrepository.deleteAll();
+    +++Added (new line 345):     appSessionrepository.save(getAppSessionTestData());
+    +++Added (new line 346):   }
+    +++Added (new line 347): 
+    +++Added (new line 348):   private VerificationAppSession getAppSessionTestData() {
+    +++Added (new line 349):     VerificationAppSession cv = new VerificationAppSession();
+    +++Added (new line 350):     cv.setHashedGuid(TEST_GUI_HASH);
+    +++Added (new line 351):     cv.setCreatedAt(LocalDateTime.now());
+    +++Added (new line 352):     cv.setUpdatedAt(LocalDateTime.now());
+    +++Added (new line 353):     cv.setTanCounter(0);
+    +++Added (new line 354):     cv.setSourceOfTrust(AppSessionSourceOfTrust.HASHED_GUID.getSourceName());
+    +++Added (new line 355):     cv.setRegistrationTokenHash(TEST_REG_TOK_HASH);
+    +++Added (new line 356):     return cv;
+    +++Added (new line 357):   }
+    +++Added (new line 358): 
+    +++Added (new line 359):   private VerificationTan getVerificationTANTestData() {
+    +++Added (new line 360):     VerificationTan cvtan = new VerificationTan();
+    +++Added (new line 361):     cvtan.setCreatedAt(LocalDateTime.now());
+    +++Added (new line 362):     cvtan.setUpdatedAt(LocalDateTime.now());
+    +++Added (new line 363):     cvtan.setRedeemed(false);
+    +++Added (new line 364):     cvtan.setSourceOfTrust(TEST_SOT);
+    +++Added (new line 365):     cvtan.setTanHash(TEST_HASHED_TAN);
+    +++Added (new line 366):     cvtan.setType(TEST_TAN_TYPE);
+    +++Added (new line 367):     cvtan.setValidFrom(LocalDateTime.now().minusDays(5));
+    +++Added (new line 368):     cvtan.setValidUntil(TAN_VALID_UNTIL_IN_DAYS);
+    +++Added (new line 369):     return cvtan;
+    +++Added (new line 370):   }
+    +++Added (new line 371): 
+    +++Added (new line 372):   private VerificationTan getTeleTanTestData() {
+    +++Added (new line 373):     VerificationTan cvtan = new VerificationTan();
+    +++Added (new line 374):     cvtan.setCreatedAt(LocalDateTime.now());
+    +++Added (new line 375):     cvtan.setUpdatedAt(LocalDateTime.now());
+    +++Added (new line 376):     cvtan.setRedeemed(false);
+    +++Added (new line 377):     cvtan.setSourceOfTrust(TanSourceOfTrust.TELETAN.getSourceName());
+    +++Added (new line 378):     cvtan.setTanHash(TEST_HASHED_TAN);
+    +++Added (new line 379):     cvtan.setType(TanType.TELETAN.name());
+    +++Added (new line 380):     cvtan.setValidFrom(LocalDateTime.now());
+    +++Added (new line 381):     cvtan.setValidUntil(LocalDateTime.now().plusHours(1));
+    +++Added (new line 382):     return cvtan;
+    +++Added (new line 383):   }
+    +++Added (new line 384): 
+    +++Added (new line 385):   private String getAsJsonFormat(Object o) throws JsonProcessingException {
+    +++Added (new line 386):     return mapper.writeValueAsString(o);
+    +++Added (new line 387):   }
+    +++Added (new line 388): }
+

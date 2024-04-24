@@ -1,0 +1,28 @@
+Issue #274: fix changed HTTP POST size property name
+URL: https://github.com/GIScience/ohsome-api/pull/274
+
+Commit ID: 540a04b3a48b361ec95724059628eef6d0e5f843
+
+Commit Message: fix changed HTTP POST size property name
+
+related to #272
+
+Files Changed (2):
+File: CHANGELOG.md ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 16): * fix changed name of property setting HTTP POST size ([#274])
+    +++Added (new line 23): [#274]: https://github.com/GIScience/ohsome-api/pull/274
+
+File: src/main/resources/application.properties ======================
+    - Additions: 2
+    - Deletions: 2
+=======================================================
+
+    ---Removed (old line 7): # Setting max size for post requests to 100MB (default: 2MB)
+    ---Removed (old line 8): server.tomcat.max-http-post-size=104857600
+    +++Added (new line 7): # Setting max size for (formencoded) post requests to 100MB (default: 2MB)
+    +++Added (new line 8): server.tomcat.max-http-form-post-size=104857600
+

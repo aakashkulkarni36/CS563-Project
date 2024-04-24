@@ -1,0 +1,24 @@
+Issue #228: fix non-unique-parameter check for post request
+URL: https://github.com/GIScience/ohsome-api/pull/228
+
+Commit ID: 8fcdb4e54d0801cb13243582998698fd559d38cc
+
+Commit Message: bump version to 1.7.0-SNAPSHOT
+
+Files Changed (2):
+File: CHANGELOG.md ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 4): ## 1.6.0-SNAPSHOT (current master)
+    +++Added (new line 4): ## 1.7.0-SNAPSHOT (current master)
+
+File: pom.xml ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 17):   <version>1.6.0-SNAPSHOT</version>
+    +++Added (new line 17):   <version>1.7.0-SNAPSHOT</version>
+

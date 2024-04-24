@@ -1,0 +1,22 @@
+Issue #211: Throw an exception for `bpolys` and `bcircles` boundaries lying outside the underlying data-extract polygon
+URL: https://github.com/GIScience/ohsome-api/pull/211
+
+Commit ID: 9a55051d3fabdef2a4cdfd2605d45da43ca44329
+
+Commit Message: chore: remove unnecessary headings
+
+Files Changed (1):
+File: CHANGELOG.md ======================
+    - Additions: 0
+    - Deletions: 8
+=======================================================
+
+    ---Removed (old line 6): ### New Features
+    ---Removed (old line 7): 
+    ---Removed (old line 8): 
+    ---Removed (old line 9): 
+    ---Removed (old line 14): ### Performance and Code Quality
+    ---Removed (old line 15): 
+    ---Removed (old line 16): 
+    ---Removed (old line 17): 
+

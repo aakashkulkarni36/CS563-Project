@@ -1,0 +1,26 @@
+Issue #78: fix: updated guava to newest version
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/78
+
+Commit ID: 93d9a0c91122b1c85f7451b0056c2452b19de5d1
+
+Commit Message: fix: updated guava to newest version
+
+Files Changed (1):
+File: pom.xml ======================
+    - Additions: 12
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 43):     <guava.version>29.0-jre</guava.version>
+    +++Added (new line 103):       <exclusions>
+    +++Added (new line 104):         <exclusion>
+    +++Added (new line 105):           <groupId>com.google.guava</groupId>
+    +++Added (new line 106):           <artifactId>guava</artifactId>
+    +++Added (new line 107):         </exclusion>
+    +++Added (new line 108):       </exclusions>
+    +++Added (new line 109):     </dependency>
+    +++Added (new line 110):     <dependency>
+    +++Added (new line 111):       <groupId>com.google.guava</groupId>
+    +++Added (new line 112):       <artifactId>guava</artifactId>
+    +++Added (new line 113):       <version>${guava.version}</version>
+

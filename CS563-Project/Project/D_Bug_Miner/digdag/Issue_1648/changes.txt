@@ -1,0 +1,18 @@
+Issue #1648: Fix to fail Resume workflow after Pause
+URL: https://github.com/treasure-data/digdag/pull/1648
+
+Commit ID: c677e201c682a15a2bd1e81606c15d9fbefb5112
+
+Commit Message: add content-type
+
+Files Changed (1):
+File: digdag-ui/model.js ======================
+    - Additions: 3
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 453):       headers: this.headers()
+    +++Added (new line 453):       headers: Object.assign({}, this.headers(), {
+    +++Added (new line 454):         'Content-Type': 'application/json',
+    +++Added (new line 455):       }),
+

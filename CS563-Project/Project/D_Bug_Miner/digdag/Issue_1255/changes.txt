@@ -1,0 +1,20 @@
+Issue #1255: To fix TravisCI failure caused by too long log, incrase CI nodes.
+URL: https://github.com/treasure-data/digdag/pull/1255
+
+Commit ID: 9783a43eb456b0af3f94ce9b0685aa00f4ee3e33
+
+Commit Message: To fix TravisCI failure caused by too long log, incrase CI nodes.
+
+Files Changed (1):
+File: .travis.yml ======================
+    - Additions: 5
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 21):     - CI_NODE_TOTAL=8
+    +++Added (new line 21):     - CI_NODE_TOTAL=12
+    +++Added (new line 32):     - CI_NODE_INDEX=8
+    +++Added (new line 33):     - CI_NODE_INDEX=9
+    +++Added (new line 34):     - CI_NODE_INDEX=10
+    +++Added (new line 35):     - CI_NODE_INDEX=11
+

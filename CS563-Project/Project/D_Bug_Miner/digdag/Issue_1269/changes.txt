@@ -1,0 +1,16 @@
+Issue #1269: Fix typo, wrong database name.
+URL: https://github.com/treasure-data/digdag/pull/1269
+
+Commit ID: aac839be46d0ac3cd7ab5987e77eddc5211d3f9e
+
+Commit Message: Fix typo, wrong database name.
+
+Files Changed (1):
+File: digdag-core/src/main/java/io/digdag/core/database/DatabaseConfig.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 202):                 throw new IllegalArgumentException("Database type is postgresql but remoteDatabaseConfig is not set unexpectedly");
+    +++Added (new line 202):                 throw new IllegalArgumentException("Database type is h2 but remoteDatabaseConfig is not set unexpectedly");
+

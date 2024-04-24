@@ -1,0 +1,23 @@
+Issue #11: update ohsome parent to 2.3
+URL: https://github.com/GIScience/ohsome-api/pull/11
+
+Commit ID: 8cdb32f3c40d724646147e7b1cd45d9e58e5fc74
+
+Commit Message: update ohsome parent to 2.3
+
+Files Changed (2):
+File: CHANGELOG.md ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 3): * update ohsome parent to version 2.3 (for building javadoc with JDK 11)
+
+File: pom.xml ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 9):     <version>2.2</version>
+    +++Added (new line 9):     <version>2.3</version>
+

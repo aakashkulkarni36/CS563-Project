@@ -1,0 +1,16 @@
+Issue #100: fix: rename lab server to test result server
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/100
+
+Commit ID: 83b2f53c090d05889bbff01deb9820f5cb916e28
+
+Commit Message: Merge branch 'master' into fix/rename-to-test-result-server
+
+Files Changed (1):
+File: README.md ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 36): - The Testresult Server of the Corona Warn App (repository: cwa-testresult-server) receives the results from laboratories and delivers these results to the app via the verification-server.
+    +++Added (new line 36): - The Test Result Server of the Corona Warn App (repository: cwa-testresult-server) receives the results from laboratories and delivers these results to the app via the verification-server.
+

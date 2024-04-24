@@ -1,0 +1,18 @@
+Issue #111: Fix test and docu improvements
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/111
+
+Commit ID: 5c6850fe3f1af6351831d5a4a4b9b6b3f5582d71
+
+Commit Message: add media type mapping
+
+Files Changed (1):
+File: src/main/java/app/coronawarn/verification/controller/VerificationController.java ======================
+    - Additions: 3
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 280):   @PostMapping(TELE_TAN_ROUTE)
+    +++Added (new line 280):   @PostMapping(value = TELE_TAN_ROUTE,
+    +++Added (new line 281):       produces = MediaType.APPLICATION_JSON_VALUE
+    +++Added (new line 282):   )
+

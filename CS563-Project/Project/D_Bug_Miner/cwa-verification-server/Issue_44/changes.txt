@@ -1,0 +1,274 @@
+Issue #44: Teletan matched string with [characters]{7} and thus also matched 8 c…
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/44
+
+Commit ID: d719ed194029cdcdff82cbdbbe4b28f9bdaf81f3
+
+Commit Message: Teletan matched string with [characters]{7} and thus also matched 8 char strings. It also used a strange character definition syntax with M-N-P-Z form, which would allow - char as well.
+Generator was also a bit inefficient and was replaced by a simpler version.
+
+Files Changed (2):
+File: src/main/java/app/coronawarn/verification/service/TanService.java ======================
+    - Additions: 22
+    - Deletions: 8
+=======================================================
+
+    +++Added (new line 27): import java.security.SecureRandom;
+    +++Added (new line 33): import java.util.stream.Collector;
+    +++Added (new line 34): import java.util.stream.IntStream;
+    +++Added (new line 43): 
+    ---Removed (old line 48):   private static final String TELE_TAN_PATTERN = "[2-9A-HJ-KM-N-P-Za-km-n-p-z]{7}";
+    +++Added (new line 52):   // Exclude characters which can be confusing in some fonts like 0-O or i-I-l.
+    +++Added (new line 53):   private static final String TELE_TAN_ALLOWED_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
+    +++Added (new line 54):   private static final String TELE_TAN_PATTERN = "^[" + TELE_TAN_ALLOWED_CHARS + "]{" + TELE_TAN_LENGTH + "}$";
+    +++Added (new line 74):   /*
+    +++Added (new line 75):    * The random number generator used by this class to create random
+    +++Added (new line 76):    * based UUIDs. In a holder class to defer initialization until needed.
+    +++Added (new line 77):    */
+    +++Added (new line 78):   private static class Holder {
+    +++Added (new line 79):     static final SecureRandom numberGenerator = new SecureRandom();
+    +++Added (new line 80):   }
+    +++Added (new line 81): 
+    ---Removed (old line 127):     boolean validTan = false;
+    ---Removed (old line 128):     String newTan = "";
+    ---Removed (old line 129):     while (!validTan) {
+    ---Removed (old line 130):       newTan = generateTanFromUuid();
+    ---Removed (old line 131):       validTan = hashTanAndCheckAvailability(newTan);
+    ---Removed (old line 132):     }
+    ---Removed (old line 133):     return newTan;
+    +++Added (new line 141):     return IntStream.range(0, TELE_TAN_LENGTH)
+    +++Added (new line 142):       .mapToObj(i -> TELE_TAN_ALLOWED_CHARS.charAt(Holder.numberGenerator.nextInt(TELE_TAN_ALLOWED_CHARS.length())))
+    +++Added (new line 143):       .collect(Collector.of(
+    +++Added (new line 144):         StringBuilder::new,
+    +++Added (new line 145):         StringBuilder::append,
+    +++Added (new line 146):         StringBuilder::append,
+    +++Added (new line 147):         StringBuilder::toString));
+
+File: src/test/java/app/coronawarn/verification/service/TanServiceTest.java ======================
+    - Additions: 120
+    - Deletions: 103
+=======================================================
+
+    ---Removed (old line 1): /*
+    ---Removed (old line 2):  * Corona-Warn-App / cwa-verification
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    ---Removed (old line 10):  * You may obtain a copy of the License at
+    ---Removed (old line 11):  *
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 13):  *
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    ---Removed (old line 20):  */
+    ---Removed (old line 21): 
+    ---Removed (old line 22): package app.coronawarn.verification.service;
+    ---Removed (old line 23): 
+    ---Removed (old line 24): import app.coronawarn.verification.VerificationApplication;
+    ---Removed (old line 25): import app.coronawarn.verification.domain.VerificationTan;
+    ---Removed (old line 26): import java.time.LocalDateTime;
+    ---Removed (old line 27): import java.time.format.DateTimeFormatter;
+    ---Removed (old line 28): import java.util.Optional;
+    ---Removed (old line 29): import java.util.regex.Matcher;
+    ---Removed (old line 30): import java.util.regex.Pattern;
+    ---Removed (old line 31): import org.junit.Assert;
+    ---Removed (old line 32): import static org.junit.Assert.assertTrue;
+    ---Removed (old line 33): import org.junit.Test;
+    ---Removed (old line 34): import org.junit.runner.RunWith;
+    ---Removed (old line 35): import org.springframework.beans.factory.annotation.Autowired;
+    ---Removed (old line 36): import org.springframework.boot.test.context.SpringBootTest;
+    ---Removed (old line 37): import org.springframework.test.context.ContextConfiguration;
+    ---Removed (old line 38): import org.springframework.test.context.junit4.SpringRunner;
+    ---Removed (old line 39): 
+    ---Removed (old line 40): @RunWith(SpringRunner.class)
+    ---Removed (old line 41): @SpringBootTest
+    ---Removed (old line 42): @ContextConfiguration(classes = VerificationApplication.class)
+    ---Removed (old line 43): public class TanServiceTest {
+    ---Removed (old line 44):   public static final String TEST_TAN = "1ea6ce8a-9740-11ea-bb37-0242ac130002";
+    ---Removed (old line 45):   public static final String TEST_TAN_HASH = "8de76b627f0be70ea73c367a9a560d6a987eacec71f57ca3d86b2e4ed5b6f780";
+    ---Removed (old line 46):   public static final String TEST_GUI_HASH = "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b";
+    ---Removed (old line 47):   public static final String TEST_TAN_TYPE = "TAN";
+    ---Removed (old line 48):   private static final String TELETAN_PATTERN = "[2-9A-HJ-KM-N-P-Za-km-n-p-z]{7}";
+    ---Removed (old line 49):   private static final Pattern pattern = Pattern.compile(TELETAN_PATTERN);
+    ---Removed (old line 50):   private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS");
+    ---Removed (old line 51):   private static final LocalDateTime TAN_VALID_UNTIL_IN_DAYS = LocalDateTime.now().plusDays(7);
+    ---Removed (old line 52): 
+    ---Removed (old line 53):   @Autowired
+    ---Removed (old line 54):   TanService tanService;
+    ---Removed (old line 55): 
+    ---Removed (old line 56):   /**
+    ---Removed (old line 57):    * Test saveTan.
+    ---Removed (old line 58):    *
+    ---Removed (old line 59):    * @throws Exception if the test cannot be performed.
+    ---Removed (old line 60):    */
+    ---Removed (old line 61):   @Test
+    ---Removed (old line 62):   public void saveTanTest() throws Exception {
+    ---Removed (old line 63):     VerificationTan tan = new VerificationTan();
+    ---Removed (old line 64):     tan.setCreatedAt(LocalDateTime.now());
+    ---Removed (old line 65):     tan.setUpdatedAt(LocalDateTime.now());
+    ---Removed (old line 66):     tan.setRedeemed(false);
+    ---Removed (old line 67):     tan.setTanHash(TEST_GUI_HASH);
+    ---Removed (old line 68):     tan.setValidFrom(LocalDateTime.now());
+    ---Removed (old line 69):     tan.setValidUntil(TAN_VALID_UNTIL_IN_DAYS);
+    ---Removed (old line 70):     tan.setType(TEST_TAN_TYPE);
+    ---Removed (old line 71):     tan.setSourceOfTrust("");
+    ---Removed (old line 72): 
+    ---Removed (old line 73):     VerificationTan retunedTan = tanService.saveTan(tan);
+    ---Removed (old line 74):     Assert.assertEquals(retunedTan, tan);
+    ---Removed (old line 75):   }
+    ---Removed (old line 76): 
+    ---Removed (old line 77):   @Test
+    ---Removed (old line 78):   public void getEntityByTanTest() {
+    ---Removed (old line 79):     VerificationTan tan = new VerificationTan();
+    ---Removed (old line 80):     LocalDateTime start = LocalDateTime.parse(LocalDateTime.now().format(formatter));
+    ---Removed (old line 81):     tan.setCreatedAt(start);
+    ---Removed (old line 82):     tan.setUpdatedAt(start);
+    ---Removed (old line 83):     tan.setRedeemed(false);
+    ---Removed (old line 84):     tan.setTanHash(TEST_TAN_HASH);
+    ---Removed (old line 85):     
+    ---Removed (old line 86):     tan.setValidFrom(start);
+    ---Removed (old line 87):     tan.setValidUntil(LocalDateTime.parse((TAN_VALID_UNTIL_IN_DAYS.format(formatter))));
+    ---Removed (old line 88):     tan.setType(TEST_TAN_TYPE);
+    ---Removed (old line 89):     tan.setSourceOfTrust("");
+    ---Removed (old line 90):     tanService.saveTan(tan);
+    ---Removed (old line 91): 
+    ---Removed (old line 92):     Optional<VerificationTan> tanFromDB = tanService.getEntityByTan(TEST_TAN);
+    ---Removed (old line 93):     assertTrue(tanFromDB.get().equals(tan));
+    ---Removed (old line 94): 
+    ---Removed (old line 95):   }
+    ---Removed (old line 96): 
+    ---Removed (old line 97):   @Test
+    ---Removed (old line 98):   public void generateTeleTan() {
+    ---Removed (old line 99):     String teleTan = tanService.generateTeleTan();
+    ---Removed (old line 100):     Matcher matcher = pattern.matcher(teleTan);
+    ---Removed (old line 101):     assertTrue(matcher.find());
+    ---Removed (old line 102):   }
+    ---Removed (old line 103): }
+    +++Added (new line 1): /*
+    +++Added (new line 2):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 3):  *
+    +++Added (new line 4):  * (C) 2020, T-Systems International GmbH
+    +++Added (new line 5):  *
+    +++Added (new line 6):  * Deutsche Telekom AG and all other contributors /
+    +++Added (new line 7):  * copyright owners license this file to you under the Apache
+    +++Added (new line 8):  * License, Version 2.0 (the "License"); you may not use this
+    +++Added (new line 9):  * file except in compliance with the License.
+    +++Added (new line 10):  * You may obtain a copy of the License at
+    +++Added (new line 11):  *
+    +++Added (new line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 13):  *
+    +++Added (new line 14):  * Unless required by applicable law or agreed to in writing,
+    +++Added (new line 15):  * software distributed under the License is distributed on an
+    +++Added (new line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    +++Added (new line 17):  * KIND, either express or implied.  See the License for the
+    +++Added (new line 18):  * specific language governing permissions and limitations
+    +++Added (new line 19):  * under the License.
+    +++Added (new line 20):  */
+    +++Added (new line 21): 
+    +++Added (new line 22): package app.coronawarn.verification.service;
+    +++Added (new line 23): 
+    +++Added (new line 24): import app.coronawarn.verification.VerificationApplication;
+    +++Added (new line 25): import app.coronawarn.verification.domain.VerificationTan;
+    +++Added (new line 26): import java.time.LocalDateTime;
+    +++Added (new line 27): import java.time.format.DateTimeFormatter;
+    +++Added (new line 28): import java.util.Optional;
+    +++Added (new line 29): import java.util.regex.Matcher;
+    +++Added (new line 30): import java.util.regex.Pattern;
+    +++Added (new line 31): import org.junit.Assert;
+    +++Added (new line 32): 
+    +++Added (new line 33): import static org.assertj.core.api.Assertions.assertThat;
+    +++Added (new line 34): import static org.junit.Assert.assertTrue;
+    +++Added (new line 35): import org.junit.Test;
+    +++Added (new line 36): import org.junit.runner.RunWith;
+    +++Added (new line 37): import org.springframework.beans.factory.annotation.Autowired;
+    +++Added (new line 38): import org.springframework.boot.test.context.SpringBootTest;
+    +++Added (new line 39): import org.springframework.test.context.ContextConfiguration;
+    +++Added (new line 40): import org.springframework.test.context.junit4.SpringRunner;
+    +++Added (new line 41): 
+    +++Added (new line 42): @RunWith(SpringRunner.class)
+    +++Added (new line 43): @SpringBootTest
+    +++Added (new line 44): @ContextConfiguration(classes = VerificationApplication.class)
+    +++Added (new line 45): public class TanServiceTest {
+    +++Added (new line 46):   public static final String TEST_TAN = "1ea6ce8a-9740-11ea-bb37-0242ac130002";
+    +++Added (new line 47):   public static final String TEST_TAN_HASH = "8de76b627f0be70ea73c367a9a560d6a987eacec71f57ca3d86b2e4ed5b6f780";
+    +++Added (new line 48):   public static final String TEST_GUI_HASH = "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b";
+    +++Added (new line 49):   public static final String TEST_TAN_TYPE = "TAN";
+    +++Added (new line 50):   private static final String TELETAN_PATTERN = "^[2-9A-HJ-KMNP-Za-kmnp-z]{7}$";
+    +++Added (new line 51):   private static final Pattern pattern = Pattern.compile(TELETAN_PATTERN);
+    +++Added (new line 52):   private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS");
+    +++Added (new line 53):   private static final LocalDateTime TAN_VALID_UNTIL_IN_DAYS = LocalDateTime.now().plusDays(7);
+    +++Added (new line 54): 
+    +++Added (new line 55):   @Autowired
+    +++Added (new line 56):   TanService tanService;
+    +++Added (new line 57): 
+    +++Added (new line 58):   /**
+    +++Added (new line 59):    * Test saveTan.
+    +++Added (new line 60):    *
+    +++Added (new line 61):    * @throws Exception if the test cannot be performed.
+    +++Added (new line 62):    */
+    +++Added (new line 63):   @Test
+    +++Added (new line 64):   public void saveTanTest() throws Exception {
+    +++Added (new line 65):     VerificationTan tan = new VerificationTan();
+    +++Added (new line 66):     tan.setCreatedAt(LocalDateTime.now());
+    +++Added (new line 67):     tan.setUpdatedAt(LocalDateTime.now());
+    +++Added (new line 68):     tan.setRedeemed(false);
+    +++Added (new line 69):     tan.setTanHash(TEST_GUI_HASH);
+    +++Added (new line 70):     tan.setValidFrom(LocalDateTime.now());
+    +++Added (new line 71):     tan.setValidUntil(TAN_VALID_UNTIL_IN_DAYS);
+    +++Added (new line 72):     tan.setType(TEST_TAN_TYPE);
+    +++Added (new line 73):     tan.setSourceOfTrust("");
+    +++Added (new line 74): 
+    +++Added (new line 75):     VerificationTan retunedTan = tanService.saveTan(tan);
+    +++Added (new line 76):     Assert.assertEquals(retunedTan, tan);
+    +++Added (new line 77):   }
+    +++Added (new line 78): 
+    +++Added (new line 79):   @Test
+    +++Added (new line 80):   public void getEntityByTanTest() {
+    +++Added (new line 81):     VerificationTan tan = new VerificationTan();
+    +++Added (new line 82):     LocalDateTime start = LocalDateTime.parse(LocalDateTime.now().format(formatter));
+    +++Added (new line 83):     tan.setCreatedAt(start);
+    +++Added (new line 84):     tan.setUpdatedAt(start);
+    +++Added (new line 85):     tan.setRedeemed(false);
+    +++Added (new line 86):     tan.setTanHash(TEST_TAN_HASH);
+    +++Added (new line 87):     
+    +++Added (new line 88):     tan.setValidFrom(start);
+    +++Added (new line 89):     tan.setValidUntil(LocalDateTime.parse((TAN_VALID_UNTIL_IN_DAYS.format(formatter))));
+    +++Added (new line 90):     tan.setType(TEST_TAN_TYPE);
+    +++Added (new line 91):     tan.setSourceOfTrust("");
+    +++Added (new line 92):     tanService.saveTan(tan);
+    +++Added (new line 93): 
+    +++Added (new line 94):     Optional<VerificationTan> tanFromDB = tanService.getEntityByTan(TEST_TAN);
+    +++Added (new line 95):     assertTrue(tanFromDB.get().equals(tan));
+    +++Added (new line 96): 
+    +++Added (new line 97):   }
+    +++Added (new line 98): 
+    +++Added (new line 99):   @Test
+    +++Added (new line 100):   public void generateTeleTan() {
+    +++Added (new line 101):     String teleTan = tanService.generateTeleTan();
+    +++Added (new line 102):     Matcher matcher = pattern.matcher(teleTan);
+    +++Added (new line 103):     assertTrue(matcher.find());
+    +++Added (new line 104):   }
+    +++Added (new line 105): 
+    +++Added (new line 106):   @Test
+    +++Added (new line 107):   public void testTeleTANFormat() {
+    +++Added (new line 108):     assertThat(tanService.isTeleTanValid("29zAE4E")).isTrue();
+    +++Added (new line 109):     assertThat(tanService.isTeleTanValid("29zAE4O")).isFalse();
+    +++Added (new line 110):     assertThat(tanService.isTeleTanValid("29zAE40")).isFalse();
+    +++Added (new line 111):     assertThat(tanService.isTeleTanValid("29zAE41")).isFalse();
+    +++Added (new line 112):     assertThat(tanService.isTeleTanValid("29zAE4I")).isFalse();
+    +++Added (new line 113):     assertThat(tanService.isTeleTanValid("29zAE4L")).isFalse();
+    +++Added (new line 114):     assertThat(tanService.isTeleTanValid("29zAEil")).isFalse();
+    +++Added (new line 115):     assertThat(tanService.isTeleTanValid("29zA?ßö")).isFalse();
+    +++Added (new line 116):     assertThat(tanService.isTeleTanValid("29zAE4EZ")).isFalse();
+    +++Added (new line 117):     assertThat(tanService.isTeleTanValid("29zAE4")).isFalse();
+    +++Added (new line 118):     assertThat(tanService.isTeleTanValid("29zAL4-")).isFalse();
+    +++Added (new line 119):   }
+    +++Added (new line 120): }
+

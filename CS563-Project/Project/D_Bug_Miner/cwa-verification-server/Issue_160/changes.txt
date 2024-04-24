@@ -1,0 +1,77 @@
+Issue #160: fix: minor code quality improvements
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/160
+
+Commit ID: 68b6edeb56c90940b754e007c18da5e0723a24b9
+
+Commit Message: Merge branch 'master' into feat/improvement_code_quality
+
+Files Changed (4):
+File: CONTRIBUTING.md ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 38): * Newly created files must be opened by an instantiated version of the file 'templates/file-header.txt'
+    +++Added (new line 38): * Newly created files must be opened by a *license file header* which can be generated with the command `mvn clean license:update-file-header`.
+
+File: api-docs.json ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 25):         "description":"Get a registration token by providing a SHA-256 hasehd GUID or a TeleTAN",
+    +++Added (new line 25):         "description":"Get a registration token by providing a SHA-256 hashed GUID or a TeleTAN",
+
+File: pom.xml ======================
+    - Additions: 21
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 13):   <organization>
+    +++Added (new line 14):     <name>T-Systems International GmbH</name>
+    +++Added (new line 15):   </organization>
+    +++Added (new line 49):     <license.projectName>Corona-Warn-App / cwa-verification</license.projectName>
+    +++Added (new line 50):     <license.inceptionYear>2020</license.inceptionYear>
+    +++Added (new line 51):     <license.licenseName>apache_v2</license.licenseName>
+    +++Added (new line 281):       <plugin>
+    +++Added (new line 282):         <groupId>org.codehaus.mojo</groupId>
+    +++Added (new line 283):         <artifactId>license-maven-plugin</artifactId>
+    +++Added (new line 284):         <version>2.0.0</version>
+    +++Added (new line 285):         <configuration>
+    +++Added (new line 286):           <includes>**/*.java</includes>
+    +++Added (new line 287):           <copyrightOwners>${project.organization.name} and all other contributors</copyrightOwners>
+    +++Added (new line 288):           <processStartTag>---license-start</processStartTag>
+    +++Added (new line 289):           <processEndTag>---license-end</processEndTag>
+    +++Added (new line 290):           <sectionDelimiter>---</sectionDelimiter>
+    +++Added (new line 291):           <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+    +++Added (new line 292):           <trimHeaderLine>true</trimHeaderLine>
+    +++Added (new line 293):           <emptyLineAfterHeader>true</emptyLineAfterHeader>
+    +++Added (new line 294):         </configuration>
+    +++Added (new line 295):       </plugin>
+
+File: templates/file-header.txt ======================
+    - Additions: 0
+    - Deletions: 20
+=======================================================
+
+    ---Removed (old line 1): /*
+    ---Removed (old line 2):  * Corona-Warn-App / cwa-verification
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, YOUR_NAME, YOUR_COMPANY
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache 
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this 
+    ---Removed (old line 9):  * file except in compliance with the License. 
+    ---Removed (old line 10):  * You may obtain a copy of the License at
+    ---Removed (old line 11):  *
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 13):  *
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    ---Removed (old line 20):  */
+

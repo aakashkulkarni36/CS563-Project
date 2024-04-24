@@ -1,0 +1,16 @@
+Issue #192: Remove the parameters @snapshotTimestamp and @lastEdit from full-history responses
+URL: https://github.com/GIScience/ohsome-api/pull/192
+
+Commit ID: 1a57f43231b49988ecc40f27d493e20575b5db6a
+
+Commit Message: chore: correct typos
+
+Files Changed (1):
+File: CHANGELOG.md ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 14): * remove the parameters `@snapshotTimestamp` and `@lastEdit` from full-history extraction response([#191])
+    +++Added (new line 14): * remove the parameters `@snapshotTimestamp` and `@lastEdit` from full-history extraction responses ([#191])
+

@@ -1,0 +1,24 @@
+Issue #1054: Fix ParamServer DEFAULT_TTL value.
+URL: https://github.com/treasure-data/digdag/pull/1054
+
+Commit ID: b37caea199031f433ae583e1980811c991b9dd83
+
+Commit Message: Use <= instead of <
+
+Files Changed (1):
+File: digdag-tests/src/test/java/acceptance/ParamSetRedisIT.java ======================
+    - Additions: 5
+    - Deletions: 5
+=======================================================
+
+    ---Removed (old line 21):     private static long TTL_90_DAYS_PLUS_1SEC = 60 * 60 * 24 * 90 + 1; // 90days + 1sec
+    +++Added (new line 21):     private static long TTL_90_DAYS = 60 * 60 * 24 * 90; // 90days
+    ---Removed (old line 47):         assertTrue(key1_ttl < TTL_90_DAYS_PLUS_1SEC && key1_ttl > TTL_89_DAYS);
+    ---Removed (old line 48):         assertTrue(key2_ttl < TTL_90_DAYS_PLUS_1SEC && key2_ttl > TTL_89_DAYS);
+    +++Added (new line 47):         assertTrue(key1_ttl <= TTL_90_DAYS && key1_ttl > TTL_89_DAYS);
+    +++Added (new line 48):         assertTrue(key2_ttl <= TTL_90_DAYS && key2_ttl > TTL_89_DAYS);
+    ---Removed (old line 77):         assertTrue(key1_ttl < TTL_90_DAYS_PLUS_1SEC && key1_ttl > TTL_89_DAYS);
+    ---Removed (old line 78):         assertTrue(key2_ttl < TTL_90_DAYS_PLUS_1SEC && key2_ttl > TTL_89_DAYS);
+    +++Added (new line 77):         assertTrue(key1_ttl <= TTL_90_DAYS && key1_ttl > TTL_89_DAYS);
+    +++Added (new line 78):         assertTrue(key2_ttl <= TTL_90_DAYS && key2_ttl > TTL_89_DAYS);
+

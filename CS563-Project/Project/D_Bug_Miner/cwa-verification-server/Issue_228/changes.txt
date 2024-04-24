@@ -1,0 +1,62 @@
+Issue #228: fix/Sample Collection naming
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/228
+
+Commit ID: d38e7a25383c7c69512ca322ec0c2a34c3b6b708
+
+Commit Message: Fixed Sample Collection naming
+
+Files Changed (3):
+File: src/main/java/app/coronawarn/verification/controller/ExternalTestStateController.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 118):             testResult.getCs())));
+    +++Added (new line 118):             testResult.getSc())));
+
+File: src/main/java/app/coronawarn/verification/model/TestResult.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 52):   private long cs;
+    +++Added (new line 52):   private long sc;
+
+File: src/test/java/app/coronawarn/verification/VerificationApplicationExternalTest.java ======================
+    - Additions: 17
+    - Deletions: 15
+=======================================================
+
+    +++Added (new line 24): import static org.junit.jupiter.api.Assertions.*;
+    +++Added (new line 25): import static org.mockito.ArgumentMatchers.any;
+    +++Added (new line 26): import static org.mockito.BDDMockito.given;
+    +++Added (new line 27): import static org.mockito.Mockito.doReturn;
+    +++Added (new line 28): import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+    +++Added (new line 29): import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+    +++Added (new line 30): import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+    +++Added (new line 31): 
+    ---Removed (old line 26): import app.coronawarn.verification.model.*;
+    +++Added (new line 34): import app.coronawarn.verification.model.AppSessionSourceOfTrust;
+    +++Added (new line 35): import app.coronawarn.verification.model.HashedGuid;
+    +++Added (new line 36): import app.coronawarn.verification.model.RegistrationToken;
+    +++Added (new line 37): import app.coronawarn.verification.model.RegistrationTokenKeyType;
+    +++Added (new line 38): import app.coronawarn.verification.model.RegistrationTokenRequest;
+    +++Added (new line 42): import java.util.List;
+    +++Added (new line 43): import java.util.Optional;
+    ---Removed (old line 46): import java.util.List;
+    ---Removed (old line 47): import java.util.Optional;
+    ---Removed (old line 48): 
+    ---Removed (old line 49): import static org.junit.jupiter.api.Assertions.*;
+    ---Removed (old line 50): import static org.mockito.ArgumentMatchers.any;
+    ---Removed (old line 51): import static org.mockito.BDDMockito.given;
+    ---Removed (old line 52): import static org.mockito.Mockito.doReturn;
+    ---Removed (old line 53): import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+    ---Removed (old line 54): import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+    ---Removed (old line 55): import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+    ---Removed (old line 56): 
+    ---Removed (old line 512):     ;
+    ---Removed (old line 563):       .contains("cs");
+    +++Added (new line 565):       .contains("sc");
+    ---Removed (old line 587):       .contains("cs");
+    +++Added (new line 589):       .contains("sc");
+

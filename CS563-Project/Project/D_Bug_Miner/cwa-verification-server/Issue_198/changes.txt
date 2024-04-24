@@ -1,0 +1,32 @@
+Issue #198: fix: added json ignore if null
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/198
+
+Commit ID: 89f6d9d1aa175c945869ed35efd9abb68fc9a540
+
+Commit Message: fix: added json ignore if null
+
+Files Changed (3):
+File: src/main/java/app/coronawarn/verification/model/RegistrationToken.java ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 24): import com.fasterxml.jackson.annotation.JsonInclude;
+    +++Added (new line 52):   @JsonInclude(JsonInclude.Include.NON_NULL)
+
+File: src/main/java/app/coronawarn/verification/model/Tan.java ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 24): import com.fasterxml.jackson.annotation.JsonInclude;
+    +++Added (new line 52):   @JsonInclude(JsonInclude.Include.NON_NULL)
+
+File: src/main/java/app/coronawarn/verification/model/TestResult.java ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 24): import com.fasterxml.jackson.annotation.JsonInclude;
+    +++Added (new line 50):   @JsonInclude(JsonInclude.Include.NON_NULL)
+

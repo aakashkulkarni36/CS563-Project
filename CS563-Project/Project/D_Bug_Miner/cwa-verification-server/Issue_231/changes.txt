@@ -1,0 +1,27 @@
+Issue #231: fix: plausible deniability requests to return time in unit seconds
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/231
+
+Commit ID: 99eb22cbc62980cd0050743d930cf244302c6279
+
+Commit Message: fixed fake to return seconds
+
+Files Changed (2):
+File: src/main/java/app/coronawarn/verification/controller/ExternalTestStateController.java ======================
+    - Additions: 2
+    - Deletions: 1
+=======================================================
+
+    +++Added (new line 19): import java.time.LocalDateTime;
+    ---Removed (old line 144):     return new TestResult(testResult, System.currentTimeMillis(),
+    +++Added (new line 145):     return new TestResult(testResult, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
+
+File: src/main/java/app/coronawarn/verification/service/FakeRequestService.java ======================
+    - Additions: 3
+    - Deletions: 1
+=======================================================
+
+    +++Added (new line 31): import java.time.LocalDateTime;
+    +++Added (new line 32): import java.time.ZoneOffset;
+    ---Removed (old line 111):       .ok(new TestResult(LabTestResult.POSITIVE.getTestResult(), System.currentTimeMillis(),
+    +++Added (new line 113):       .ok(new TestResult(LabTestResult.POSITIVE.getTestResult(), LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
+

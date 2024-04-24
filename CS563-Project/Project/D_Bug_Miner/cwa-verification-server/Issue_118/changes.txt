@@ -1,0 +1,289 @@
+Issue #118: fix: get test state
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/118
+
+Commit ID: 62c8a2c55c0048b724201a5d20896a8928eda16f
+
+Commit Message: Merge branch 'master' into fix-get-test-state
+
+Files Changed (14):
+File: src/main/java/app/coronawarn/verification/VerificationApplication.java ======================
+    - Additions: 7
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 31): /**
+    +++Added (new line 32):  * The Application class.
+    +++Added (new line 33):  */
+    +++Added (new line 40):   /**
+    +++Added (new line 41):    * The main Method.
+    +++Added (new line 42):    * @param args the args for the main method
+    +++Added (new line 43):    */
+
+File: src/main/java/app/coronawarn/verification/client/LabServerClient.java ======================
+    - Additions: 5
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 35):   /**
+    +++Added (new line 36):    * This method gets a testResult from the LabServer.
+    +++Added (new line 37):    * @param guid for Testresult
+    +++Added (new line 38):    * @return Testresult from server
+    +++Added (new line 39):    */
+
+File: src/main/java/app/coronawarn/verification/config/VerificationApplicationConfig.java ======================
+    - Additions: 35
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 41):   /**
+    +++Added (new line 42):    * Configure the TeleValidCfg with build property values.
+    +++Added (new line 43):    *
+    +++Added (new line 44):    * @return the configured paramters
+    +++Added (new line 45):    */
+    +++Added (new line 51):     /**
+    +++Added (new line 52):      * Configure the TeleValidCfg with build property values.
+    +++Added (new line 53):      *
+    +++Added (new line 54):      * @return the configured paramters
+    +++Added (new line 55):      */
+    +++Added (new line 63):   /**
+    +++Added (new line 64):    * Configure the ValidCfg with build property values.
+    +++Added (new line 65):    *
+    +++Added (new line 66):    * @return the configured paramters
+    +++Added (new line 67):    */
+    +++Added (new line 74):   /**
+    +++Added (new line 75):    * Configure the TanCfg with build property values.
+    +++Added (new line 76):    *
+    +++Added (new line 77):    * @return the configured paramters
+    +++Added (new line 78):    */
+    +++Added (new line 88):   /**
+    +++Added (new line 89):    * Configure the AppSessionCfg with build property values.
+    +++Added (new line 90):    *
+    +++Added (new line 91):    * @return the configured paramters
+    +++Added (new line 92):    */
+    +++Added (new line 99):   /**
+    +++Added (new line 100):    * Configure the CleanupCfg with build property values.
+    +++Added (new line 101):    *
+    +++Added (new line 102):    * @return the configured paramters
+    +++Added (new line 103):    */
+    +++Added (new line 110):   /**
+    +++Added (new line 111):    * Configure the CleanupCfg with build property values.
+    +++Added (new line 112):    *
+    +++Added (new line 113):    * @return the configured paramters
+    +++Added (new line 114):    */
+
+File: src/main/java/app/coronawarn/verification/controller/VerificationController.java ======================
+    - Additions: 5
+    - Deletions: 5
+=======================================================
+
+    ---Removed (old line 114):     @ApiResponse(responseCode = "400", description = "GUID/teleTAN already exists."),})
+    +++Added (new line 114):     @ApiResponse(responseCode = "400", description = "GUID/TeleTAN already exists.")})
+    ---Removed (old line 160):     @ApiResponse(responseCode = "400", description = "Registration Token does not exist"),})
+    +++Added (new line 160):     @ApiResponse(responseCode = "400", description = "Registration Token does not exist")})
+    ---Removed (old line 215):     @ApiResponse(responseCode = "200", description = "Testresult retrieved"),})
+    +++Added (new line 215):     @ApiResponse(responseCode = "200", description = "Testresult retrieved")})
+    ---Removed (old line 250):     @ApiResponse(responseCode = "404", description = "Tan could not be verified"),})
+    +++Added (new line 250):     @ApiResponse(responseCode = "404", description = "Tan could not be verified")})
+    ---Removed (old line 278):     @ApiResponse(responseCode = "201", description = "teleTAN created"),})
+    +++Added (new line 278):     @ApiResponse(responseCode = "201", description = "TeleTan created")})
+
+File: src/main/java/app/coronawarn/verification/controller/VerificationExceptionHandler.java ======================
+    - Additions: 22
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 37): /**
+    +++Added (new line 38):  * This class represents the Exception Handler.
+    +++Added (new line 39):  */
+    +++Added (new line 44):   /**
+    +++Added (new line 45):    * This method handles unknown Exceptions and Server Errors.
+    +++Added (new line 46):    * @param ex the thrown exception
+    +++Added (new line 47):    * @param wr the WebRequest
+    +++Added (new line 48):    */
+    +++Added (new line 55):   /**
+    +++Added (new line 56):    * This method handles Bad Requests.
+    +++Added (new line 57):    * @param ex the thrown exception
+    +++Added (new line 58):    * @param wr the WebRequest
+    +++Added (new line 59):    */
+    +++Added (new line 69):   /**
+    +++Added (new line 70):    * This method handles Validation Exceptions.
+    +++Added (new line 71):    * @return ResponseEntity<?> returns Bad Request
+    +++Added (new line 72):    */
+    +++Added (new line 81):   /**
+    +++Added (new line 82):    * This method handles Validation Exceptions.
+    +++Added (new line 83):    * @param exception the thrown exception
+    +++Added (new line 84):    * @return ResponseEntity<?> returns a HTTP Status
+    +++Added (new line 85):    */
+
+File: src/main/java/app/coronawarn/verification/domain/VerificationAppSession.java ======================
+    - Additions: 3
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 83):   /**
+    +++Added (new line 84):    * This method increments the tan counter.
+    +++Added (new line 85):    */
+
+File: src/main/java/app/coronawarn/verification/domain/VerificationTan.java ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 50):   static final long serialVersionUid = 1L;
+    +++Added (new line 51): 
+
+File: src/main/java/app/coronawarn/verification/exception/VerificationServerException.java ======================
+    - Additions: 8
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 27): /**
+    +++Added (new line 28):  * This class represents an Exception of the VerificationServer.
+    +++Added (new line 29):  */
+    +++Added (new line 35):   /**
+    +++Added (new line 36):    * The Constructor for the Exception class.
+    +++Added (new line 37):    * @param httpStatus the state of the server
+    +++Added (new line 38):    * @param message the message
+    +++Added (new line 39):    */
+
+File: src/main/java/app/coronawarn/verification/repository/VerificationAppSessionRepository.java ======================
+    - Additions: 9
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 34):   /**
+    +++Added (new line 35):    * This method looks in the Database for an Appsession with the given registrationTokenHash.
+    +++Added (new line 36):    * @param registrationTokenHash hash to search for
+    +++Added (new line 37):    * @return Optional VerificationAppSession the optional Appsession
+    +++Added (new line 38):    */
+    +++Added (new line 41):   /**
+    +++Added (new line 42):    * This method looks in the Database for Appsessions that are older than the before value and deletes them.
+    +++Added (new line 43):    * @param before the Date to delete by
+    +++Added (new line 44):    */
+
+File: src/main/java/app/coronawarn/verification/repository/VerificationTanRepository.java ======================
+    - Additions: 14
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 34):   /**
+    +++Added (new line 35):    * This method looks in the Database for an if a VerificationTan exists for the tan hash.
+    +++Added (new line 36):    * @param tanHash hash to search for
+    +++Added (new line 37):    * @return Boolean if there is an Entity for the tanHash
+    +++Added (new line 38):    */
+    +++Added (new line 41):   /**
+    +++Added (new line 42):    * This method looks in the Database for an if a VerificationTan exists for the tan hash.
+    +++Added (new line 43):    * @param tanHash hash to search for
+    +++Added (new line 44):    * @return Optional VerificationTan
+    +++Added (new line 45):    */
+    +++Added (new line 48):   /**
+    +++Added (new line 49):    * This method purges Entities from the database that are older than before value.
+    +++Added (new line 50):    * @param before LocalDateTime to delete older entities
+    +++Added (new line 51):    */
+
+File: src/main/java/app/coronawarn/verification/service/EntitiesCleanupService.java ======================
+    - Additions: 3
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 35): /**
+    +++Added (new line 36):  * A Service to delete entities that are older than configured days.
+    +++Added (new line 37):  */
+
+File: src/main/java/app/coronawarn/verification/service/LabServerService.java ======================
+    - Additions: 5
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 43):   /**
+    +++Added (new line 44):    * This method gives an TestResult for a guid.
+    +++Added (new line 45):    * @param guid hashed GUID
+    +++Added (new line 46):    * @return Testresult for GUID
+    +++Added (new line 47):    */
+
+File: src/main/resources/application.yml ======================
+    - Additions: 36
+    - Deletions: 36
+=======================================================
+
+    ---Removed (old line 1): spring:
+    ---Removed (old line 2):   application:
+    ---Removed (old line 3):     name: verification-server
+    ---Removed (old line 4):   datasource:
+    ---Removed (old line 5):     driver-class-name: org.h2.Driver
+    ---Removed (old line 6):     url: jdbc:h2:mem:verification
+    ---Removed (old line 7):     username: sa
+    ---Removed (old line 8):     password: ''
+    ---Removed (old line 9):   jpa:
+    ---Removed (old line 10):     database-platform: org.hibernate.dialect.H2Dialect
+    ---Removed (old line 11):     hibernate:
+    ---Removed (old line 12):       ddl-auto: validate
+    ---Removed (old line 13):   liquibase:
+    ---Removed (old line 14):     change-log: classpath:db/changelog.yml
+    ---Removed (old line 15): feign:
+    ---Removed (old line 16):   client:
+    ---Removed (old line 17):     config:
+    ---Removed (old line 18):       default:
+    ---Removed (old line 19):         connect-timeout: 5000
+    ---Removed (old line 20):         read-timeout: 5000
+    ---Removed (old line 21):         logger-level: basic
+    ---Removed (old line 22): tan:
+    ---Removed (old line 23):   tele:
+    ---Removed (old line 24):     valid:
+    ---Removed (old line 25):       hours: 1
+    ---Removed (old line 26):   valid:
+    ---Removed (old line 27):     days: 14
+    ---Removed (old line 28): appsession:
+    ---Removed (old line 29):   tancountermax: 2
+    ---Removed (old line 30): uri:
+    ---Removed (old line 31):   endpoint:
+    ---Removed (old line 32):     labserver: http://localhost:8088
+    ---Removed (old line 33): entities:
+    ---Removed (old line 34):   cleanup:
+    ---Removed (old line 35):     days: 14
+    ---Removed (old line 36):     rate: 60000
+    +++Added (new line 1): spring:
+    +++Added (new line 2):   application:
+    +++Added (new line 3):     name: verification-server
+    +++Added (new line 4):   datasource:
+    +++Added (new line 5):     driver-class-name: org.h2.Driver
+    +++Added (new line 6):     url: jdbc:h2:mem:verification
+    +++Added (new line 7):     username: sa
+    +++Added (new line 8):     password: ''
+    +++Added (new line 9):   jpa:
+    +++Added (new line 10):     database-platform: org.hibernate.dialect.H2Dialect
+    +++Added (new line 11):     hibernate:
+    +++Added (new line 12):       ddl-auto: validate
+    +++Added (new line 13):   liquibase:
+    +++Added (new line 14):     change-log: classpath:db/changelog.yml
+    +++Added (new line 15): feign:
+    +++Added (new line 16):   client:
+    +++Added (new line 17):     config:
+    +++Added (new line 18):       default:
+    +++Added (new line 19):         connect-timeout: 5000
+    +++Added (new line 20):         read-timeout: 5000
+    +++Added (new line 21):         logger-level: basic
+    +++Added (new line 22): tan:
+    +++Added (new line 23):   tele:
+    +++Added (new line 24):     valid:
+    +++Added (new line 25):       hours: 1
+    +++Added (new line 26):   valid:
+    +++Added (new line 27):     days: 14
+    +++Added (new line 28): appsession:
+    +++Added (new line 29):   tancountermax: 2
+    +++Added (new line 30): uri:
+    +++Added (new line 31):   endpoint:
+    +++Added (new line 32):     labserver: http://localhost:8088
+    +++Added (new line 33): entities:
+    +++Added (new line 34):   cleanup:
+    +++Added (new line 35):     days: 21
+    +++Added (new line 36):     rate: 3600000
+
+File: src/test/java/app/coronawarn/verification/service/EntitiesCleanupServiceTest.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 73):     LocalDateTime testCreationTime = LocalDateTime.now().minus(Period.ofDays(14));
+    +++Added (new line 73):     LocalDateTime testCreationTime = LocalDateTime.now().minus(Period.ofDays(21));
+

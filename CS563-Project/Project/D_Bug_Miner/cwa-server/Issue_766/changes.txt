@@ -1,0 +1,15 @@
+Issue #766: EFGS batch signing hotfix
+URL: https://github.com/corona-warn-app/cwa-server/pull/766
+
+Commit ID: fba225b0c1b844ff999ed177b2dd25e9f26ce36c
+
+Commit Message: sort visited countries
+
+Files Changed (1):
+File: services/upload/src/main/java/app/coronawarn/server/services/federation/upload/payload/signing/BatchSigner.java ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 82):           .stream().sorted(String::compareTo)
+

@@ -1,0 +1,77 @@
+Issue #51: fix additional junit tests, clean code, bugfixes
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/51
+
+Commit ID: 76f2143311be982d1b70b0291f71c1f0725aea5a
+
+Commit Message: fix: typos (codesmells) and jUnit Test for TeleTan
+
+Files Changed (7):
+File: src/main/java/app/coronawarn/verification/controller/VerificationController.java ======================
+    - Additions: 4
+    - Deletions: 4
+=======================================================
+
+    ---Removed (old line 159):         = appSessionService.getAppSessionByToken(registrationToken.getRegistrationToken());
+    +++Added (new line 159):         = appSessionService.getAppSessionByToken(registrationToken.getToken());
+    ---Removed (old line 203):         .getAppSessionByToken(registrationToken.getRegistrationToken());
+    +++Added (new line 203):         .getAppSessionByToken(registrationToken.getToken());
+    ---Removed (old line 232):     boolean syntaxVerified = tanService.syntaxVerification(tan.getTan());
+    +++Added (new line 232):     boolean syntaxVerified = tanService.syntaxVerification(tan.getValue());
+    ---Removed (old line 235):       Optional<VerificationTan> optional = tanService.getEntityByTan(tan.getTan());
+    +++Added (new line 235):       Optional<VerificationTan> optional = tanService.getEntityByTan(tan.getValue());
+
+File: src/main/java/app/coronawarn/verification/model/RegistrationToken.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 40):   private String registrationToken;
+    +++Added (new line 40):   private String token;
+
+File: src/main/java/app/coronawarn/verification/model/Tan.java ======================
+    - Additions: 2
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 39):   private String tan;
+    +++Added (new line 39): 
+    +++Added (new line 40):   private String value;
+
+File: src/main/java/app/coronawarn/verification/model/TeleTan.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 40):   private String teleTan;
+    +++Added (new line 40):   private String value;
+
+File: src/main/java/app/coronawarn/verification/service/TanService.java ======================
+    - Additions: 0
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 37): import net.bytebuddy.utility.RandomString;
+
+File: src/test/java/app/coronawarn/verification/VerificationAppTests.java ======================
+    - Additions: 2
+    - Deletions: 2
+=======================================================
+
+    ---Removed (old line 154):         .andExpect(jsonPath("$.registrationToken").exists());
+    +++Added (new line 154):         .andExpect(jsonPath("$.token").exists());
+    ---Removed (old line 185):         .andExpect(jsonPath("$.registrationToken").exists());
+    +++Added (new line 185):         .andExpect(jsonPath("$.token").exists());
+
+File: src/test/java/app/coronawarn/verification/service/TanServiceTest.java ======================
+    - Additions: 2
+    - Deletions: 5
+=======================================================
+
+    ---Removed (old line 26): import app.coronawarn.verification.model.TanType;
+    ---Removed (old line 101):     assertTrue(tanFromDB.get().equals(tan));
+    +++Added (new line 100):     Assert.assertEquals(tan, tanFromDB.get());
+    ---Removed (old line 113):     String teleTan = tanService.generateTeleTan();
+    ---Removed (old line 114):     VerificationTan tan = tanService.generateVerificationTan(teleTan, TanType.TELETAN, "test");
+    ---Removed (old line 115):     tanService.saveTan(tan);
+    +++Added (new line 112):     String teleTan = tanService.generateVerificationTeleTan();
+

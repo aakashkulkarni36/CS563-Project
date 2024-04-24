@@ -1,0 +1,34 @@
+Issue #176: fix failing getMetadataTest
+URL: https://github.com/GIScience/ohsome-api/pull/176
+
+Commit ID: cda684d0aa7fb748ebe4205610f94b3961de4797
+
+Commit Message: use getter for query timeout
+
+this prevents a possible race-condition during appliation start-up (static class initializer vs. main function), fixes #175
+
+Files Changed (3):
+File: CHANGELOG.md ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 13): * fix a bug where `getMetadataTest` unit test fails in certain setups ([#175])
+
+File: src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java ======================
+    - Additions: 2
+    - Deletions: 1
+=======================================================
+
+    +++Added (new line 6): import org.heigit.ohsome.ohsomeapi.inputprocessing.ProcessingData;
+    ---Removed (old line 27):         Application.API_VERSION, ExtractMetadata.timeout,
+    +++Added (new line 28):         Application.API_VERSION, ProcessingData.getTimeout(),
+
+File: src/main/lombok/org/heigit/ohsome/ohsomeapi/oshdb/ExtractMetadata.java ======================
+    - Additions: 0
+    - Deletions: 2
+=======================================================
+
+    ---Removed (old line 4): import org.heigit.ohsome.ohsomeapi.inputprocessing.ProcessingData;
+    ---Removed (old line 17):   public static double timeout = ProcessingData.getTimeout();
+

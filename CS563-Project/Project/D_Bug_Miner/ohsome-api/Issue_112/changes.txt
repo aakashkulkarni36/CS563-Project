@@ -1,0 +1,22 @@
+Issue #112: drop unused constants, fix syntax error in filter
+URL: https://github.com/GIScience/ohsome-api/pull/112
+
+Commit ID: c712665c6b407852788db6d208644417849b7660
+
+Commit Message: Update CHANGELOG.md
+
+Files Changed (1):
+File: CHANGELOG.md ======================
+    - Additions: 8
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 6): ### Bug Fixes
+    +++Added (new line 7): 
+    +++Added (new line 8): * fix some invalid filters in the default swagger examples ([#111])
+    +++Added (new line 9): 
+    +++Added (new line 10): [#111]: https://github.com/GIScience/ohsome-api/issues/111
+    +++Added (new line 11): 
+    +++Added (new line 15): ### Bug Fixes
+    +++Added (new line 16): 
+

@@ -1,0 +1,24 @@
+Issue #1225: Fix bq output parameter.
+URL: https://github.com/treasure-data/digdag/pull/1225
+
+Commit ID: e56abd2fc2b0f98040cf49f505e834447624d858
+
+Commit Message: Revert the description that was changed by mistake.
+
+Files Changed (2):
+File: digdag-docs/src/operators/bq.md ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 162):   The id of the BigQuery job that performed this export. `bq.last_jobid` will be kept for compatibility and remove in near future release.
+    +++Added (new line 162):   The id of the BigQuery job that executed this query. `bq.last_jobid` will be kept for compatibility and remove in near future release.
+
+File: digdag-docs/src/operators/bq_load.md ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 280):   The id of the BigQuery job that performed this export. `bq.last_jobid` will be kept for compatibility and remove in near future release.
+    +++Added (new line 280):   The id of the BigQuery job that performed this import. `bq.last_jobid` will be kept for compatibility and remove in near future release.
+

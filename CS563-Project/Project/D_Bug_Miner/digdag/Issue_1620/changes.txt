@@ -1,0 +1,59 @@
+Issue #1620: Fix polling (ECS) command executors fail to run tasks on retry
+URL: https://github.com/treasure-data/digdag/pull/1620
+
+Commit ID: 97155202842b6cdd4a8d132c62aca38ab44bde8a
+
+Commit Message: Fix polling (ECS) command executors fail to run tasks on retry
+
+Signed-off-by: Naoto Yokoyama <builtinnya@gmail.com>
+
+Files Changed (2):
+File: digdag-plugin-utils/src/main/java/io/digdag/util/BaseOperator.java ======================
+    - Additions: 3
+    - Deletions: 1
+=======================================================
+
+    +++Added (new line 54):                 // Remove command status so that pollable command executors can run tasks on retry
+    +++Added (new line 55):                 Config nextStateParams = retry.getNextRetryStateParams().remove("commandStatus");
+    ---Removed (old line 56):                         ConfigElement.copyOf(retry.getNextRetryStateParams()));
+    +++Added (new line 58):                         ConfigElement.copyOf(nextStateParams));
+
+File: digdag-plugin-utils/src/test/java/io/digdag/util/BaseOperatorTest.java ======================
+    - Additions: 33
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 4): import com.fasterxml.jackson.databind.node.ObjectNode;
+    +++Added (new line 5): 
+    +++Added (new line 107):     @Test
+    +++Added (new line 108):     public void verifyNonPollingRuntimeExceptionRemovesCommandStatusOnRetry()
+    +++Added (new line 109):             throws Exception
+    +++Added (new line 110):     {
+    +++Added (new line 111):         config.set("_retry", 10);
+    +++Added (new line 112): 
+    +++Added (new line 113):         ObjectNode commandStatus = new ObjectMapper().createObjectNode().put("foo", "bar");
+    +++Added (new line 114):         state.set("commandStatus", commandStatus);
+    +++Added (new line 115): 
+    +++Added (new line 116):         RuntimeException ex = new RuntimeException("Command failed");
+    +++Added (new line 117): 
+    +++Added (new line 118):         BaseOperator op = new BaseOperator(newContext(temporaryFolder.getRoot().toPath(), request))
+    +++Added (new line 119):         {
+    +++Added (new line 120):             @Override
+    +++Added (new line 121):             public TaskResult runTask()
+    +++Added (new line 122):             {
+    +++Added (new line 123):                 throw ex;
+    +++Added (new line 124):             }
+    +++Added (new line 125):         };
+    +++Added (new line 126): 
+    +++Added (new line 127):         try {
+    +++Added (new line 128):             op.run();
+    +++Added (new line 129):             fail();
+    +++Added (new line 130):         }
+    +++Added (new line 131):         catch (TaskExecutionException e) {
+    +++Added (new line 132):             assertThat(e.isError(), is(true));
+    +++Added (new line 133):             assertThat(e.getCause(), is(ex));
+    +++Added (new line 134):             assertThat(e.getStateParams(configFactory).get().has("commandStatus"), is(false));
+    +++Added (new line 135):         }
+    +++Added (new line 136):     }
+    +++Added (new line 137): 
+

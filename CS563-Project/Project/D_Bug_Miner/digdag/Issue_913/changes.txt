@@ -1,0 +1,16 @@
+Issue #913: Fix default argument check on py> operator
+URL: https://github.com/treasure-data/digdag/pull/913
+
+Commit ID: 503c4cfd02fe2a3b65e4033a2d4b54be12ac04f0
+
+Commit Message: Fix default argument check on py> operator
+
+Files Changed (1):
+File: digdag-standards/src/main/resources/digdag/standards/py/runner.py ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 125):             if spec.defaults is None or len(spec.defaults) < idx:
+    +++Added (new line 125):             if spec.defaults is None or idx < len(spec.args) - len(spec.defaults):
+

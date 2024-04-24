@@ -1,0 +1,100 @@
+Issue #286 - BBox request in tracks failing after upgrade from mongodb 3.2 to 3.6 has no associated commits.
+Issue #267 - Remove System.out.println logs has no associated commits.
+Issue #256 - Dev and stable branch should log into different log files has no associated commits.
+Issue #210 - CSVEncodingTest fails with Oracle JDK 8 has no associated commits.
+Issue #204 - com.mongodb.MongoException for higher pages with spatial and temporal filtering has no associated commits.
+Issue #178 - Schema resource redirect loop has no associated commits.
+Issue #153 - Track encoding valiation throws error for additional metadata has no associated commits.
+Issue #95 - Only show things in the activity stream if the friend-connection is bidirectional. has no associated commits.
+Issue #80 - Group Permissions has no associated commits.
+Issue #60 - 500 in FriendActivities has no associated commits.
+Issue #52 - Attempt to create a user with email already in use returns 500 Server Error has no associated commits.
+Issue #50 - Statistics broken has no associated commits.
+Issue #49 - Deleting Groups Error has no associated commits.
+Issue #45 - Deleting Users has no associated commits.
+Issue #36 - Incorrect removal of friends has no associated commits.
+Issue #35 - Delete references to deleted users has no associated commits.
+Issue #34 - /rest/users defect has no associated commits.
+Issue #31 - Server is using to much resources has no associated commits.
+Issue #21 - Seperate Providers and En-/Decoders has no associated commits.
+Issue #2 - Rename the project to car.io has no associated commits.
+Issue #286 - BBox request in tracks failing after upgrade from mongodb 3.2 to 3.6 has no associated commits.
+Issue #267 - Remove System.out.println logs has no associated commits.
+Issue #256 - Dev and stable branch should log into different log files has no associated commits.
+Issue #210 - CSVEncodingTest fails with Oracle JDK 8 has no associated commits.
+Issue #204 - com.mongodb.MongoException for higher pages with spatial and temporal filtering has no associated commits.
+Issue #178 - Schema resource redirect loop has no associated commits.
+Issue #153 - Track encoding valiation throws error for additional metadata has no associated commits.
+Issue #95 - Only show things in the activity stream if the friend-connection is bidirectional. has no associated commits.
+Issue #80 - Group Permissions has no associated commits.
+Issue #60 - 500 in FriendActivities has no associated commits.
+Issue #52 - Attempt to create a user with email already in use returns 500 Server Error has no associated commits.
+Issue #50 - Statistics broken has no associated commits.
+Issue #49 - Deleting Groups Error has no associated commits.
+Issue #45 - Deleting Users has no associated commits.
+Issue #36 - Incorrect removal of friends has no associated commits.
+Issue #35 - Delete references to deleted users has no associated commits.
+Issue #34 - /rest/users defect has no associated commits.
+Issue #31 - Server is using to much resources has no associated commits.
+Issue #21 - Seperate Providers and En-/Decoders has no associated commits.
+Issue #2 - Rename the project to car.io has no associated commits.
+Issue #286 - BBox request in tracks failing after upgrade from mongodb 3.2 to 3.6 has no associated commits.
+Issue #267 - Remove System.out.println logs has no associated commits.
+Issue #256 - Dev and stable branch should log into different log files has no associated commits.
+Issue #210 - CSVEncodingTest fails with Oracle JDK 8 has no associated commits.
+Issue #204 - com.mongodb.MongoException for higher pages with spatial and temporal filtering has no associated commits.
+Issue #178 - Schema resource redirect loop has no associated commits.
+Issue #153 - Track encoding valiation throws error for additional metadata has no associated commits.
+Issue #95 - Only show things in the activity stream if the friend-connection is bidirectional. has no associated commits.
+Issue #80 - Group Permissions has no associated commits.
+Issue #60 - 500 in FriendActivities has no associated commits.
+Issue #52 - Attempt to create a user with email already in use returns 500 Server Error has no associated commits.
+Issue #50 - Statistics broken has no associated commits.
+Issue #49 - Deleting Groups Error has no associated commits.
+Issue #45 - Deleting Users has no associated commits.
+Issue #36 - Incorrect removal of friends has no associated commits.
+Issue #35 - Delete references to deleted users has no associated commits.
+Issue #34 - /rest/users defect has no associated commits.
+Issue #31 - Server is using to much resources has no associated commits.
+Issue #21 - Seperate Providers and En-/Decoders has no associated commits.
+Issue #2 - Rename the project to car.io has no associated commits.
+Issue #286 - BBox request in tracks failing after upgrade from mongodb 3.2 to 3.6 has no associated commits.
+Issue #267 - Remove System.out.println logs has no associated commits.
+Issue #256 - Dev and stable branch should log into different log files has no associated commits.
+Issue #210 - CSVEncodingTest fails with Oracle JDK 8 has no associated commits.
+Issue #204 - com.mongodb.MongoException for higher pages with spatial and temporal filtering has no associated commits.
+Issue #178 - Schema resource redirect loop has no associated commits.
+Issue #153 - Track encoding valiation throws error for additional metadata has no associated commits.
+Issue #95 - Only show things in the activity stream if the friend-connection is bidirectional. has no associated commits.
+Issue #80 - Group Permissions has no associated commits.
+Issue #60 - 500 in FriendActivities has no associated commits.
+Issue #52 - Attempt to create a user with email already in use returns 500 Server Error has no associated commits.
+Issue #50 - Statistics broken has no associated commits.
+Issue #49 - Deleting Groups Error has no associated commits.
+Issue #45 - Deleting Users has no associated commits.
+Issue #36 - Incorrect removal of friends has no associated commits.
+Issue #35 - Delete references to deleted users has no associated commits.
+Issue #34 - /rest/users defect has no associated commits.
+Issue #31 - Server is using to much resources has no associated commits.
+Issue #21 - Seperate Providers and En-/Decoders has no associated commits.
+Issue #2 - Rename the project to car.io has no associated commits.
+Issue #286 - BBox request in tracks failing after upgrade from mongodb 3.2 to 3.6 has no associated commits.
+Issue #267 - Remove System.out.println logs has no associated commits.
+Issue #256 - Dev and stable branch should log into different log files has no associated commits.
+Issue #210 - CSVEncodingTest fails with Oracle JDK 8 has no associated commits.
+Issue #204 - com.mongodb.MongoException for higher pages with spatial and temporal filtering has no associated commits.
+Issue #178 - Schema resource redirect loop has no associated commits.
+Issue #153 - Track encoding valiation throws error for additional metadata has no associated commits.
+Issue #95 - Only show things in the activity stream if the friend-connection is bidirectional. has no associated commits.
+Issue #80 - Group Permissions has no associated commits.
+Issue #60 - 500 in FriendActivities has no associated commits.
+Issue #52 - Attempt to create a user with email already in use returns 500 Server Error has no associated commits.
+Issue #50 - Statistics broken has no associated commits.
+Issue #49 - Deleting Groups Error has no associated commits.
+Issue #45 - Deleting Users has no associated commits.
+Issue #36 - Incorrect removal of friends has no associated commits.
+Issue #35 - Delete references to deleted users has no associated commits.
+Issue #34 - /rest/users defect has no associated commits.
+Issue #31 - Server is using to much resources has no associated commits.
+Issue #21 - Seperate Providers and En-/Decoders has no associated commits.
+Issue #2 - Rename the project to car.io has no associated commits.

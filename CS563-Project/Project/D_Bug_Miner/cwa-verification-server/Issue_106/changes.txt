@@ -1,0 +1,18 @@
+Issue #106: fix: broken maven website links
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/106
+
+Commit ID: 8ce79b82449193807ccdaac2c997573f48030b8c
+
+Commit Message: fix: broken maven website links
+
+Files Changed (1):
+File: README.md ======================
+    - Additions: 2
+    - Deletions: 2
+=======================================================
+
+    ---Removed (old line 57):  - [Maven](https://apache.maven.org)  
+    +++Added (new line 57):  - [Maven](https://maven.apache.org)
+    ---Removed (old line 69): - [Maven](https://apache.maven.org)  
+    +++Added (new line 69): - [Maven](https://maven.apache.org)
+

@@ -1,0 +1,15 @@
+Issue #213: fix: restrict TLS versions for internal and external connections
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/213
+
+Commit ID: 9d19974a297c8183da63d9c2bff86c04911f4ac7
+
+Commit Message: Update application-internal.yml
+
+Files Changed (1):
+File: src/main/resources/application-internal.yml ======================
+    - Additions: 0
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 5):     
+

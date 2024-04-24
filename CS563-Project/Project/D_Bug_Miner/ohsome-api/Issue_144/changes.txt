@@ -1,0 +1,16 @@
+Issue #144: fix issue #141
+URL: https://github.com/GIScience/ohsome-api/pull/144
+
+Commit ID: 6618eb0d2267806eb7bc42ba61fb8be3ad2e50ca
+
+Commit Message: change order of import
+
+Files Changed (1):
+File: src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 32): import org.heigit.bigspatialdata.oshdb.util.celliterator.ContributionType;
+    +++Added (new line 34): import org.heigit.bigspatialdata.oshdb.util.celliterator.ContributionType;
+

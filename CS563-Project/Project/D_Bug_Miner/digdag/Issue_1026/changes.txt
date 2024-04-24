@@ -1,0 +1,17 @@
+Issue #1026: Digdag push validation on the server side.
+URL: https://github.com/treasure-data/digdag/pull/1026
+
+Commit ID: ff9783ad72b7a2e7c33667fa24fe0415779128d7
+
+Commit Message: Remove unused imports
+
+Files Changed (1):
+File: digdag-server/src/main/java/io/digdag/server/rs/ProjectResource.java ======================
+    - Additions: 0
+    - Deletions: 3
+=======================================================
+
+    ---Removed (old line 3): import java.util.HashSet;
+    ---Removed (old line 5): import java.util.Set;
+    ---Removed (old line 94): import io.digdag.spi.Scheduler;
+

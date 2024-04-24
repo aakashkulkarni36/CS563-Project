@@ -1,0 +1,24 @@
+Issue #1083: [WIP] Fix unexpected link on td_run
+URL: https://github.com/treasure-data/digdag/pull/1083
+
+Commit ID: f51ea1dfaab0cc2e270481fd97afca4258d6127c
+
+Commit Message: Fix unexpected link on td_run
+
+Files Changed (1):
+File: digdag-ui/console.jsx ======================
+    - Additions: 5
+    - Deletions: 5
+=======================================================
+
+    ---Removed (old line 171):       const queryId = model().getTDQueryIdFromName(token.valuke)
+    ---Removed (old line 172):       if (queryId) {
+    ---Removed (old line 173):         openTab(DIGDAG_CONFIG.td.queryUrl(queryId))
+    ---Removed (old line 174):       }
+    ---Removed (old line 175):     } else if (token && token.type === TD_RUN_VALUE_TOKEN) {
+    +++Added (new line 172):     } else if (token && token.type === TD_RUN_VALUE_TOKEN) {
+    +++Added (new line 173):       // td_run> can take SAVED_QUERY_ID or SAVED_QUERY_NAME argument
+    +++Added (new line 174):       // If getTDQueryIdFromName() return undefined, token.value is queryId
+    +++Added (new line 175):       const queryId = model().getTDQueryIdFromName(token.value) || token.value
+    +++Added (new line 176):       openTab(DIGDAG_CONFIG.td.queryUrl(queryId))
+

@@ -1,0 +1,16 @@
+Issue #1230: Fix Travis CI error in install OracleJDK8
+URL: https://github.com/treasure-data/digdag/pull/1230
+
+Commit ID: bd5c9b60565237351901f29b89ec8cc8d861437f
+
+Commit Message: Fix distribution for Travis CI.
+
+Files Changed (1):
+File: .travis.yml ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 5): dist: trusty
+    +++Added (new line 6): 
+

@@ -1,0 +1,66 @@
+Issue #1077: [WIP] Fix ConfigEvalEngine.evalObjectRecursive().
+URL: https://github.com/treasure-data/digdag/pull/1077
+
+Commit ID: 8271da5e1f449fc0f4ee97175df4ffcc2c895d78
+
+Commit Message: Add more tests for ConfigEvalEngine and nested variable.
+
+Files Changed (3):
+File: digdag-core/src/test/java/io/digdag/core/workflow/WorkflowExecutorTest.java ======================
+    - Additions: 19
+    - Deletions: 5
+=======================================================
+
+    ---Removed (old line 5): import java.nio.file.Paths;
+    ---Removed (old line 18): import org.junit.After;
+    ---Removed (old line 28): import static io.digdag.core.workflow.WorkflowTestingUtils.setupEmbed;
+    ---Removed (old line 31): import static org.junit.Assert.*;
+    +++Added (new line 29): import static org.junit.Assert.*;
+    ---Removed (old line 184): 
+    +++Added (new line 186): 
+    +++Added (new line 187):     // variables of sibling task should not be referable.
+    +++Added (new line 188):     @Test
+    +++Added (new line 189):     public void unscopedVariableReference()
+    +++Added (new line 190):             throws Exception
+    +++Added (new line 191):     {
+    +++Added (new line 192):         runWorkflow("unscoped_variable_reference", loadYamlResource("/io/digdag/core/workflow/unscoped_variable_ref.dig"));
+    +++Added (new line 193):         assertFalse(folder.getRoot().toPath().resolve("out").toFile().exists()); // workflow failed and no output file generated
+    +++Added (new line 194):     }
+    +++Added (new line 195): 
+    +++Added (new line 196):     // nested variables should be substituted and should be referable from correct scope
+    +++Added (new line 197):     @Test
+    +++Added (new line 198):     public void scopedNestedVariableReference()
+    +++Added (new line 199):             throws Exception
+    +++Added (new line 200):     {
+    +++Added (new line 201):         runWorkflow("scoped_nested_variable_reference", loadYamlResource("/io/digdag/core/workflow/scoped_nested_variable_ref.dig"));
+    +++Added (new line 202):         assertThat(new String(Files.readAllBytes(folder.getRoot().toPath().resolve("out")), UTF_8), is("1970-01-01")); //should be substituted correctly
+    +++Added (new line 203):     }
+
+File: digdag-core/src/test/resources/io/digdag/core/workflow/scoped_nested_variable_ref.dig ======================
+    - Additions: 8
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 1): +task1:
+    +++Added (new line 2):   _export:
+    +++Added (new line 3):     date1: ${moment(0).utc().format('YYYY-MM-DD')}
+    +++Added (new line 4):     nested:
+    +++Added (new line 5):       date2: ${date1}
+    +++Added (new line 6):   +task2:
+    +++Added (new line 7):     echo>: ${nested.date2}
+    +++Added (new line 8):     append_file: out
+
+File: digdag-core/src/test/resources/io/digdag/core/workflow/unscoped_variable_ref.dig ======================
+    - Additions: 8
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 1): +task1:
+    +++Added (new line 2):   _export:
+    +++Added (new line 3):     date1: ${moment(0).utc().format('YYYY-MM-DD')}
+    +++Added (new line 4):     nested:
+    +++Added (new line 5):       date2: ${date1}
+    +++Added (new line 6): +task2:
+    +++Added (new line 7):   echo>: ${nested.date2}
+    +++Added (new line 8):   append_file: out
+

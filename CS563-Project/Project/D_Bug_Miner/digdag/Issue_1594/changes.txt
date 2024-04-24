@@ -1,0 +1,31 @@
+Issue #1594: [V0_11_To_Master] Fix ECS task log lost issue
+URL: https://github.com/treasure-data/digdag/pull/1594
+
+Commit ID: 7ebe0688e0ba2d59e586740abbf13949da152713
+
+Commit Message: Enable `startFromHead` of EcsClient for `nextToken` (#1593)
+
+Files Changed (2):
+File: digdag-standards/src/main/java/io/digdag/standards/command/EcsCommandExecutor.java ======================
+    - Additions: 9
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 63): import java.util.concurrent.TimeUnit;
+    +++Added (new line 333):                 try {
+    +++Added (new line 334):                     // Just to avoid DOS attack to ECS endpoint
+    +++Added (new line 335):                     TimeUnit.SECONDS.sleep(2);
+    +++Added (new line 336):                 }
+    +++Added (new line 337):                 catch (InterruptedException e) {
+    +++Added (new line 338):                     Thread.currentThread().interrupt();
+    +++Added (new line 339):                     throw new RuntimeException(e);
+    +++Added (new line 340):                 }
+
+File: digdag-standards/src/main/java/io/digdag/standards/command/ecs/DefaultEcsClient.java ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 273):                 // This should be true when using `nextToken`. See the doc for details.
+    +++Added (new line 274):                 .withStartFromHead(true)
+

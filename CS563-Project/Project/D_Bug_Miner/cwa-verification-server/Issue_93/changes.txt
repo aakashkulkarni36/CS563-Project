@@ -1,0 +1,14 @@
+Issue #93: fix: readme
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/93
+
+Commit ID: 21404a8666b21c380cf5e491336e183722a939c4
+
+Commit Message: Delete an unnecessary hide file
+
+Files Changed (1):
+File: .THIRD-PARTY-NOTICES.swp ======================
+    - Additions: 0
+    - Deletions: 0
+=======================================================
+
+

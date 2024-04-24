@@ -1,0 +1,59 @@
+Issue #91: fix: add a simple filter which prevents BSI issue #55 (request size limitation)
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/91
+
+Commit ID: 0a58335834467153a68b3ebcf22e771a4b0c258f
+
+Commit Message: feat: Added BSI's Chunked-Encoding test to test suite
+
+Files Changed (1):
+File: src/test/java/app/coronawarn/verification/VerificationApplicationExternalTestHttp.java ======================
+    - Additions: 45
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 1): package app.coronawarn.verification;
+    +++Added (new line 2): 
+    +++Added (new line 3): import java.io.BufferedReader;
+    +++Added (new line 4): import java.io.IOException;
+    +++Added (new line 5): import java.io.InputStreamReader;
+    +++Added (new line 6): import java.io.PrintWriter;
+    +++Added (new line 7): import java.net.InetAddress;
+    +++Added (new line 8): import java.net.Socket;
+    +++Added (new line 9): import org.junit.Assert;
+    +++Added (new line 10): import org.junit.Test;
+    +++Added (new line 11): import org.junit.runner.RunWith;
+    +++Added (new line 12): import org.springframework.boot.test.context.SpringBootTest;
+    +++Added (new line 13): import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+    +++Added (new line 14): import org.springframework.boot.web.server.LocalServerPort;
+    +++Added (new line 15): import org.springframework.test.context.junit4.SpringRunner;
+    +++Added (new line 16): 
+    +++Added (new line 17): @RunWith(SpringRunner.class)
+    +++Added (new line 18): @SpringBootTest(webEnvironment = RANDOM_PORT)
+    +++Added (new line 19): public class VerificationApplicationExternalTestHttp {
+    +++Added (new line 20): 
+    +++Added (new line 21):   @LocalServerPort
+    +++Added (new line 22):   private int port;
+    +++Added (new line 23): 
+    +++Added (new line 24):   @Test
+    +++Added (new line 25):   public void testChunkedModeIsDenied() throws IOException {
+    +++Added (new line 26):     Socket socket = new Socket(InetAddress.getLocalHost(), port);
+    +++Added (new line 27):     PrintWriter writer = new PrintWriter(socket.getOutputStream());
+    +++Added (new line 28): 
+    +++Added (new line 29):     writer.print("POST /version/v1/registrationToken HTTP/1.1\r\n");
+    +++Added (new line 30):     writer.print("Host: 127.0.0.1:" + port + "\r\n");
+    +++Added (new line 31):     writer.print("Content-Type: application/json\r\n");
+    +++Added (new line 32):     writer.print("Transfer-Encoding: Chunked\r\n\r\n");
+    +++Added (new line 33):     writer.flush();
+    +++Added (new line 34): 
+    +++Added (new line 35):     writer.print("{ \"randomBody\": 42 }");
+    +++Added (new line 36):     writer.flush();
+    +++Added (new line 37): 
+    +++Added (new line 38):     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    +++Added (new line 39):     Assert.assertEquals("HTTP/1.1 406", reader.readLine().trim());
+    +++Added (new line 40): 
+    +++Added (new line 41):     reader.close();
+    +++Added (new line 42):     socket.close();
+    +++Added (new line 43):   }
+    +++Added (new line 44): 
+    +++Added (new line 45): }
+

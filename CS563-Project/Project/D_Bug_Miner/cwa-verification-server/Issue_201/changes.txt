@@ -1,0 +1,115 @@
+Issue #201: fix: added delay for all endpoints
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/201
+
+Commit ID: f67388e04243b4212cc702d7f192c533c8339ff2
+
+Commit Message: added delay for all endpoints
+
+Files Changed (5):
+File: src/main/java/app/coronawarn/verification/controller/ExternalTanController.java ======================
+    - Additions: 8
+    - Deletions: 2
+=======================================================
+
+    +++Added (new line 3): import static java.util.concurrent.TimeUnit.MILLISECONDS;
+    +++Added (new line 4): 
+    +++Added (new line 24): import java.util.concurrent.Executors;
+    +++Added (new line 25): import java.util.concurrent.ScheduledExecutorService;
+    ---Removed (old line 40): 
+    +++Added (new line 60):   private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(4);
+    ---Removed (old line 136):         deferredResult.setResult(ResponseEntity.status(HttpStatus.CREATED).body(returnTan));
+    +++Added (new line 140):         scheduledExecutor.schedule(()  -> deferredResult.setResult(
+    +++Added (new line 141):           ResponseEntity.status(HttpStatus.CREATED).body(returnTan)),
+    +++Added (new line 142):           fakeDelayService.realDelayTan(),MILLISECONDS);
+
+File: src/main/java/app/coronawarn/verification/controller/ExternalTestStateController.java ======================
+    - Additions: 10
+    - Deletions: 2
+=======================================================
+
+    +++Added (new line 3): import static java.util.concurrent.TimeUnit.MILLISECONDS;
+    +++Added (new line 4): 
+    +++Added (new line 20): import java.util.concurrent.Executors;
+    +++Added (new line 21): import java.util.concurrent.ScheduledExecutorService;
+    +++Added (new line 40): 
+    +++Added (new line 59):   private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(4);
+    +++Added (new line 60): 
+    ---Removed (old line 113):           deferredResult.setResult(ResponseEntity.ok(
+    ---Removed (old line 114):             generateReturnTestResult(LabTestResult.POSITIVE.getTestResult(), fake)));
+    +++Added (new line 120):           scheduledExecutor.schedule(() -> deferredResult.setResult(ResponseEntity.ok(
+    +++Added (new line 121):             generateReturnTestResult(LabTestResult.POSITIVE.getTestResult(), fake))),
+    +++Added (new line 122):             fakeDelayService.realDelayTest(), MILLISECONDS);
+
+File: src/main/java/app/coronawarn/verification/controller/ExternalTokenController.java ======================
+    - Additions: 8
+    - Deletions: 3
+=======================================================
+
+    +++Added (new line 3): import static java.util.concurrent.TimeUnit.MILLISECONDS;
+    +++Added (new line 4): 
+    ---Removed (old line 8): import app.coronawarn.verification.model.TestResult;
+    +++Added (new line 18): import java.util.concurrent.Executors;
+    +++Added (new line 19): import java.util.concurrent.ScheduledExecutorService;
+    ---Removed (old line 21): import org.apache.commons.lang3.RandomStringUtils;
+    +++Added (new line 53):   private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(4);
+    +++Added (new line 54): 
+    ---Removed (old line 108):           deferredResult.setResult(response);
+    +++Added (new line 112):           scheduledExecutor.schedule(() -> deferredResult.setResult(response),fakeDelayService.realDelayToken(),
+    +++Added (new line 113):             MILLISECONDS);
+
+File: src/main/java/app/coronawarn/verification/service/FakeDelayService.java ======================
+    - Additions: 38
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 116): 
+    +++Added (new line 117):   /**
+    +++Added (new line 118):    * Returns the longest fake delay jittered in milliseconds.
+    +++Added (new line 119):    * @return longest jittered
+    +++Added (new line 120):    */
+    +++Added (new line 121):   public long getLongestJitter() {
+    +++Added (new line 122):     if ((fakeDelayTan > fakeDelayTest) && (fakeDelayTan > fakeDelayToken)) {
+    +++Added (new line 123):       return getJitteredFakeTanDelay();
+    +++Added (new line 124):     } else if ((fakeDelayToken > fakeDelayTest) && (fakeDelayToken > fakeDelayTan)) {
+    +++Added (new line 125):       return getJitteredFakeTokenDelay();
+    +++Added (new line 126):     } else {
+    +++Added (new line 127):       return getJitteredFakeTestDelay();
+    +++Added (new line 128):     }
+    +++Added (new line 129):   }
+    +++Added (new line 130): 
+    +++Added (new line 131):   /**
+    +++Added (new line 132):    * Returns the longest fake delay minus average time for Tan in milliseconds.
+    +++Added (new line 133):    * @return delay for TAN
+    +++Added (new line 134):    */
+    +++Added (new line 135):   public long realDelayTan() {
+    +++Added (new line 136):     return (getLongestJitter() - getJitteredFakeTanDelay());
+    +++Added (new line 137):   }
+    +++Added (new line 138): 
+    +++Added (new line 139):   /**
+    +++Added (new line 140):    * Returns the longest fake delay minus average time for RegistrationToken in milliseconds.
+    +++Added (new line 141):    * @return delay for RegistrationToken
+    +++Added (new line 142):    */
+    +++Added (new line 143):   public long realDelayToken() {
+    +++Added (new line 144):     return (getLongestJitter() - getJitteredFakeTokenDelay());
+    +++Added (new line 145):   }
+    +++Added (new line 146): 
+    +++Added (new line 147):   /**
+    +++Added (new line 148):    * Returns the longest fake delay minus average time for TestResult in milliseconds.
+    +++Added (new line 149):    * @return delay for TestResult
+    +++Added (new line 150):    */
+    +++Added (new line 151):   public long realDelayTest() {
+    +++Added (new line 152):     return (getLongestJitter() - getJitteredFakeTestDelay());
+    +++Added (new line 153):   }
+
+File: src/main/java/app/coronawarn/verification/service/FakeRequestService.java ======================
+    - Additions: 3
+    - Deletions: 3
+=======================================================
+
+    ---Removed (old line 72):     long delay = fakeDelayService.getJitteredFakeTanDelay();
+    +++Added (new line 72):     long delay = fakeDelayService.getLongestJitter();
+    ---Removed (old line 90):     long delay = fakeDelayService.getJitteredFakeTokenDelay();
+    +++Added (new line 90):     long delay = fakeDelayService.getLongestJitter();
+    ---Removed (old line 108):     long delay = fakeDelayService.getJitteredFakeTestDelay();
+    +++Added (new line 108):     long delay = fakeDelayService.getLongestJitter();
+

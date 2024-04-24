@@ -1,0 +1,68 @@
+Issue #1257: Disable TaskQueueServer in CLI
+URL: https://github.com/treasure-data/digdag/pull/1257
+
+Commit ID: f0834975250140e026f0a61e86810ef314eb7cc1
+
+Commit Message: Fix many error logs in CI which is caused by CLI create unused TaskQueueServer.
+
+Files Changed (5):
+File: digdag-cli/src/main/java/io/digdag/cli/client/Archive.java ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 69):                 .withTaskQueueServer(false)
+
+File: digdag-cli/src/main/java/io/digdag/cli/client/Push.java ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 87):                 .withTaskQueueServer(false)
+
+File: digdag-cli/src/main/java/io/digdag/cli/client/Start.java ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 102):             .withTaskQueueServer(false)
+
+File: digdag-core/src/main/java/io/digdag/core/DigdagEmbed.java ======================
+    - Additions: 12
+    - Deletions: 2
+=======================================================
+
+    +++Added (new line 60):         private boolean withTaskQueueServer = true;
+    +++Added (new line 132):         public Bootstrap withTaskQueueServer(boolean v)
+    +++Added (new line 133):         {
+    +++Added (new line 134):             this.withTaskQueueServer = v;
+    +++Added (new line 135):             return this;
+    +++Added (new line 136):         }
+    +++Added (new line 137): 
+    ---Removed (old line 174):                     new DatabaseModule(),
+    +++Added (new line 181):                     new DatabaseModule(withTaskQueueServer),
+    ---Removed (old line 180):                     new QueueModule(),
+    +++Added (new line 214):             if (withTaskQueueServer) {
+    +++Added (new line 215):                 builder.add(new QueueModule());
+    +++Added (new line 216): 
+    +++Added (new line 217):             }
+
+File: digdag-core/src/main/java/io/digdag/core/database/DatabaseModule.java ======================
+    - Additions: 11
+    - Deletions: 2
+=======================================================
+
+    +++Added (new line 19):     private boolean withTaskQueueServer;
+    +++Added (new line 20): 
+    +++Added (new line 21):     public DatabaseModule(boolean withTaskQueueServer)
+    +++Added (new line 22):     {
+    +++Added (new line 23):         this.withTaskQueueServer = withTaskQueueServer;
+    +++Added (new line 24):     }
+    +++Added (new line 25): 
+    ---Removed (old line 33):         binder.bind(DatabaseTaskQueueConfig.class).in(Scopes.SINGLETON);
+    ---Removed (old line 34):         binder.bind(DatabaseTaskQueueServer.class).in(Scopes.SINGLETON);
+    +++Added (new line 40):         if (withTaskQueueServer) {
+    +++Added (new line 41):             binder.bind(DatabaseTaskQueueConfig.class).in(Scopes.SINGLETON);
+    +++Added (new line 42):             binder.bind(DatabaseTaskQueueServer.class).in(Scopes.SINGLETON);
+    +++Added (new line 43):         }
+

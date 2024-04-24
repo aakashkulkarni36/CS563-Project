@@ -1,0 +1,44 @@
+Issue #319: fix timestamp format in ratio/groupBy/boundary endpoint
+URL: https://github.com/GIScience/ohsome-api/pull/319
+
+Commit ID: 560909a67b1d190301ebea5fb0ff8b0af28cac09
+
+Commit Message: fix timestamp format in ratio/groupBy/boundary endpoint, closes #318
+
+Files Changed (3):
+File: CHANGELOG.md ======================
+    - Additions: 6
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 6): ### Bug Fixes
+    +++Added (new line 7): * Fix inconsistent timestamp format in `/elements/(aggregation)/ratio/groupBy/boundary` request responses ([#318])
+    +++Added (new line 8): 
+    +++Added (new line 9): [#318]: https://github.com/GIScience/ohsome-api/issues/318
+    +++Added (new line 10): 
+    +++Added (new line 11): 
+
+File: src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java ======================
+    - Additions: 6
+    - Deletions: 4
+=======================================================
+
+    ---Removed (old line 926):             String time = innerEntry.getKey().getFirstIndex().toString();
+    +++Added (new line 926):             String time = TimestampFormatter.getInstance().isoDateTime(
+    +++Added (new line 927):                 innerEntry.getKey().getFirstIndex());
+    ---Removed (old line 928):               timeArray[timeArrayCount] = innerEntry.getKey().getFirstIndex().toString();
+    +++Added (new line 929):               timeArray[timeArrayCount] = time;
+    ---Removed (old line 1086):             String time = innerEntry.getKey().getFirstIndex().toString();
+    +++Added (new line 1087):             String time = TimestampFormatter.getInstance().isoDateTime(
+    +++Added (new line 1088):                 innerEntry.getKey().getFirstIndex());
+    ---Removed (old line 1088):               timeArray[timeArrayCount] = innerEntry.getKey().getFirstIndex().toString();
+    +++Added (new line 1090):               timeArray[timeArrayCount] = time;
+
+File: src/test/java/org/heigit/ohsome/ohsomeapi/controller/PostControllerTest.java ======================
+    - Additions: 2
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 745):     assertEquals("2017-01-01T00:00:00Z", response.getBody().get("groupByBoundaryResult").get(1)
+    +++Added (new line 746):         .get("ratioResult").get(0).get("timestamp").asText());
+

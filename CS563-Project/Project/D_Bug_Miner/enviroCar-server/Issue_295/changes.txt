@@ -1,0 +1,26 @@
+Issue #295: Update dependencies
+URL: https://github.com/enviroCar/enviroCar-server/pull/295
+
+Commit ID: b42e7dbecf546b105d2e158021b9f855853042d6
+
+Commit Message: update httpclient to v4.5.6
+
+Files Changed (2):
+File: event/pom.xml ======================
+    - Additions: 0
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 43):             <version>4.2.5</version>
+
+File: pom.xml ======================
+    - Additions: 5
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 382):              <dependency>
+    +++Added (new line 383):                 <groupId>org.apache.httpcomponents</groupId>
+    +++Added (new line 384):                 <artifactId>httpclient</artifactId>
+    +++Added (new line 385):                 <version>4.5.6</version>
+    +++Added (new line 386):             </dependency>
+

@@ -1,0 +1,27 @@
+Issue #318 - Inconsistency in timestamps: some with, some without time zone has no associated commits.
+Issue #313 - When entering a list of Grouping Values: Unable to use a value containing a " " space has no associated commits.
+Issue #305 - changeset filter is not usable with `/contributions/geometry` endpoint has no associated commits.
+Issue #289 - Internal Server Error when using `changeset:…` filter in non-contribution views has no associated commits.
+Issue #248 - api.ohsome.org is not working has no associated commits.
+Issue #214 - Wrong error in case of given boundary polygon with invalid coordinates has no associated commits.
+Issue #208 - Confusing error message in case of wrong time parameter in contributions extraction endpoints has no associated commits.
+Issue #201 - No error message if bcircles or bpolys boundaries don't lie within the underlying data-extract polygon has no associated commits.
+Issue #199 - contribution endpoint returns major changeset id instead of contribution changeset id has no associated commits.
+Issue #191 - Full-history endpoints return wrong parameters in the response has no associated commits.
+Issue #175 -  getMetadataTest sometimes fails has no associated commits.
+Issue #154 - Query crashes when using non-existent tag in filter has no associated commits.
+Issue #141 - Nullpointer Exception for /elements/geometry has no associated commits.
+Issue #138 - Return real precision of coordinates has no associated commits.
+Issue #131 - deleted features with geometrycolletion type returned as if they were not deleted has no associated commits.
+Issue #129 - invalid geojson returned for deletions on contributions endpoint has no associated commits.
+Issue #111 - Quotation marks in example values of the field `filter` cause a syntax error in Swagger UI has no associated commits.
+Issue #109 - elementsFullHistory: geometry type filter not applied on all returned features has no associated commits.
+Issue #99 - Filter not set when using groupBy/boundary request has no associated commits.
+Issue #59 - Pipe sign delimiter in boundary parameter for GET requests not working has no associated commits.
+Issue #28 - Unfitting response for missing filter2 parameter has no associated commits.
+Issue #26 - /ratio request gives nullpointer exception on missing filter2 parameter has no associated commits.
+Issue #25 - GroupBy Request with format CSV fails if result is empty has no associated commits.
+Issue #19 - Swagger UI doesn't encode ! has no associated commits.
+Issue #10 - (early) timeouts in data extraction request return HTTP/500 instead of 4xx error code has no associated commits.
+Issue #8 - invalid osm-type parameter doesn't always trigger an exception has no associated commits.
+Issue #2 - error when using format=csv for requests with empty time parameter has no associated commits.

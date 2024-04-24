@@ -1,0 +1,30 @@
+Issue #294: fix error message when changeset filter is used in snapshot query
+URL: https://github.com/GIScience/ohsome-api/pull/294
+
+Commit ID: 5c8d8c2944dd715c188555def1ce528608a38863
+
+Commit Message: Merge branch 'master' into issue-289
+
+Files Changed (1):
+File: docs/group-by.rst ======================
+    - Additions: 11
+    - Deletions: 5
+=======================================================
+
+    ---Removed (old line 28):     :query groupByKeys: OSM key(s) given as a list and combined with the ‘AND’ operator; default: empty;
+    +++Added (new line 28):     :query groupByKeys: OSM key(s) given as a comma separated list (e.g. "key1,key2"), mandatory, no default value
+    +++Added (new line 29): 
+    +++Added (new line 30): The result of this grouping will contain separate results for each key specified in ``groupByKeys`` and - if applicable - a ``remainder`` for all objects that fulfilled the filter but had none of the 'groupByKeys'. Note that if more than one key is defined in ``groupByKeys``, the sum of the result values can be higher than the total result of a simple (not-grouped) aggregation: this is because an element can match none, one, or multiple of the specified ``groupByKeys``.
+    ---Removed (old line 45):     :query groupByKey: OSM key e.g.: 'highway’; mandatory, no default value (only one groupByKey can be defined), non matching objects (if any) will be summarised in a 'remainder' category
+    ---Removed (old line 46):     :query groupByValues: OSM value(s) for the specified key given as a list and combined with the ‘AND’ operator, default: no value
+    +++Added (new line 47):     :query groupByKey: OSM key e.g.: 'highway’; mandatory, no default value, only one groupByKey can be defined
+    +++Added (new line 48):     :query groupByValues: OSM value(s) for the specified key given as a comma separated list (e.g. "value1,value2"), default: no value
+    +++Added (new line 49): 
+    +++Added (new line 50): The result of this grouping will contain separate results for each specified tag having the key defined in ``groupByKey`` and a value as given in ``groupByValue``. A ``remainder`` object contains results for all elements which do not match any of these tags, if there are any. If the ``groupByValues`` parameter is left empty, all occuring tag values which are found in the filtered OSM data will be present in the output.
+    ---Removed (old line 70):     :query groupByKey: OSM key(s) given as a list and combined with the ‘AND’ operator, e.g.: 'highway’, 'building’; (one groupByKey parameter must be defined)
+    ---Removed (old line 71):     :query groupByValues: OSM value(s) given as a list and combined with the ‘AND’ operator, default: no value
+    +++Added (new line 74):     :query groupByKey: OSM key e.g.: 'highway’; mandatory, no default value, only one groupByKey can be defined
+    +++Added (new line 75):     :query groupByValues: OSM value(s) for the specified key given as a comma separated list (e.g. "value1,value2"), default: no value
+    +++Added (new line 76): 
+    +++Added (new line 77): The result of this grouping will contain separate results for each conbination of boundary and OSM tag. The semantics are otherwise the same as for the individual groupings described above.
+

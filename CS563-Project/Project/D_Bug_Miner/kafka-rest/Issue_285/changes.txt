@@ -1,0 +1,336 @@
+Issue #285: CLIENTS-281: Fix KafkaConsumerReadTask's locking, handling of multiple polls, invalid handling of old ConsumerTimeout exceptions, and incorrect generic type parameters.
+URL: https://github.com/confluentinc/kafka-rest/pull/285
+
+Commit ID: 674fdbc4ffb05b2cb065963a21833926e54c06bc
+
+Commit Message: Add basic test of v2 consumer API.
+
+Files Changed (10):
+File: pom.xml ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 44):         <easymock.version>3.0</easymock.version>
+    +++Added (new line 44):         <easymock.version>3.4</easymock.version>
+
+File: src/main/java/io/confluent/kafkarest/KafkaRestApplication.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 95):       kafkaConsumerManager = new KafkaConsumerManager(appConfig, mdObserver);
+    +++Added (new line 95):       kafkaConsumerManager = new KafkaConsumerManager(appConfig);
+
+File: src/main/java/io/confluent/kafkarest/entities/BinaryConsumerRecord.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 51):     public BinaryConsumerRecord(String topic, byte[] key, byte[] value, int partition, long offset) {
+    +++Added (new line 51):   public BinaryConsumerRecord(String topic, byte[] key, byte[] value, int partition, long offset) {
+
+File: src/main/java/io/confluent/kafkarest/entities/ConsumerOffsetCommitRequest.java ======================
+    - Additions: 9
+    - Deletions: 6
+=======================================================
+
+    ---Removed (old line 18): import com.fasterxml.jackson.annotation.JsonIgnore;
+    ---Removed (old line 19): import com.fasterxml.jackson.annotation.*;
+    ---Removed (old line 20): 
+    ---Removed (old line 23): import io.confluent.rest.exceptions.RestConstraintViolationException;
+    +++Added (new line 20): import com.fasterxml.jackson.annotation.JsonCreator;
+    +++Added (new line 21): import com.fasterxml.jackson.annotation.JsonProperty;
+    ---Removed (old line 26):     
+    ---Removed (old line 27):     @JsonProperty    
+    +++Added (new line 24): 
+    +++Added (new line 25):     @JsonCreator
+    +++Added (new line 26):     public ConsumerOffsetCommitRequest(@JsonProperty("offsets") List<TopicPartitionOffsetMetadata> offsets) {
+    +++Added (new line 27):         this.offsets = offsets;
+    +++Added (new line 28):     }
+    +++Added (new line 29): 
+    +++Added (new line 30):     @JsonProperty
+
+File: src/main/java/io/confluent/kafkarest/entities/ConsumerSubscriptionRecord.java ======================
+    - Additions: 17
+    - Deletions: 11
+=======================================================
+
+    ---Removed (old line 18): import com.fasterxml.jackson.annotation.JsonIgnore;
+    ---Removed (old line 19): import com.fasterxml.jackson.annotation.*;
+    +++Added (new line 18): import com.fasterxml.jackson.annotation.JsonCreator;
+    +++Added (new line 19): import com.fasterxml.jackson.annotation.JsonGetter;
+    +++Added (new line 20): import com.fasterxml.jackson.annotation.JsonProperty;
+    +++Added (new line 21): import com.fasterxml.jackson.annotation.JsonSetter;
+    ---Removed (old line 23): import io.confluent.rest.exceptions.RestConstraintViolationException;
+    ---Removed (old line 24): 
+    ---Removed (old line 26):     private String topicPattern; 
+    +++Added (new line 26):     private String topicPattern;
+    +++Added (new line 27): 
+    +++Added (new line 28):     @JsonCreator
+    +++Added (new line 29):     public ConsumerSubscriptionRecord(
+    +++Added (new line 30):             @JsonProperty("topics") List<String> topics,
+    +++Added (new line 31):             @JsonProperty("topic_pattern") String topicPattern
+    +++Added (new line 32):     ) {
+    +++Added (new line 33):         this.topics = topics;
+    +++Added (new line 34):         this.topicPattern = topicPattern;
+    +++Added (new line 35):     }
+    +++Added (new line 36): 
+    +++Added (new line 41): 
+    ---Removed (old line 36):     @JsonProperty    
+    +++Added (new line 47):     @JsonProperty
+    ---Removed (old line 38): 
+    ---Removed (old line 39): 
+    ---Removed (old line 40): 
+    ---Removed (old line 41): 
+    ---Removed (old line 42): 
+
+File: src/main/java/io/confluent/kafkarest/v2/KafkaConsumerManager.java ======================
+    - Additions: 3
+    - Deletions: 13
+=======================================================
+
+    ---Removed (old line 73):   //private final String zookeeperConnect;
+    ---Removed (old line 75):   private final MetadataObserver mdObserver;
+    ---Removed (old line 76):   private final int iteratorTimeoutMs;
+    ---Removed (old line 96):   public KafkaConsumerManager(KafkaRestConfig config, MetadataObserver mdObserver) {
+    +++Added (new line 93):   public KafkaConsumerManager(KafkaRestConfig config) {
+    ---Removed (old line 100):     this.mdObserver = mdObserver;
+    ---Removed (old line 101):     this.iteratorTimeoutMs = config.getInt(KafkaRestConfig.CONSUMER_ITERATOR_TIMEOUT_MS_CONFIG);
+    ---Removed (old line 115):   public KafkaConsumerManager(KafkaRestConfig config, MetadataObserver mdObserver,
+    ---Removed (old line 116):       KafkaConsumerFactory consumerFactory) {
+    ---Removed (old line 117):     this(config, mdObserver);
+    +++Added (new line 110):   KafkaConsumerManager(KafkaRestConfig config, KafkaConsumerFactory consumerFactory) {
+    +++Added (new line 111):     this(config);
+    ---Removed (old line 177):       // To support the old consumer interface with broken peek()/missing poll(timeout)
+    ---Removed (old line 178):       // functionality, we always use a timeout. This can't perfectly guarantee a total request
+    ---Removed (old line 179):       // timeout, but can get as close as this timeout's value
+    ---Removed (old line 180):       props.setProperty("consumer.timeout.ms", ((Integer) iteratorTimeoutMs).toString());
+
+File: src/main/java/io/confluent/kafkarest/v2/KafkaConsumerReadTask.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 65):   public KafkaConsumerReadTask(KafkaConsumerState<KafkaK, KafkaV, ClientK, ClientV> parent, String topic, long timeout,
+    +++Added (new line 65):   public KafkaConsumerReadTask(KafkaConsumerState<KafkaK, KafkaV, ClientK, ClientV> parent, long timeout,
+
+File: src/main/java/io/confluent/kafkarest/v2/KafkaConsumerState.java ======================
+    - Additions: 2
+    - Deletions: 3
+=======================================================
+
+    ---Removed (old line 59):   private Consumer consumer;
+    +++Added (new line 59):   private Consumer<KafkaK, KafkaV> consumer;
+    ---Removed (old line 74):   public KafkaConsumerState(KafkaRestConfig config, ConsumerInstanceId instanceId,
+    ---Removed (old line 75):       Consumer consumer) {
+    +++Added (new line 74):   public KafkaConsumerState(KafkaRestConfig config, ConsumerInstanceId instanceId, Consumer<KafkaK, KafkaV> consumer) {
+
+File: src/main/java/io/confluent/kafkarest/v2/KafkaConsumerWorker.java ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 56):         = new KafkaConsumerReadTask<KafkaK, KafkaV, ClientK, ClientV>(state, null, timeout,
+    +++Added (new line 56):         = new KafkaConsumerReadTask<KafkaK, KafkaV, ClientK, ClientV>(state, timeout,
+
+File: src/test/java/io/confluent/kafkarest/v2/KafkaConsumerManagerTest.java ======================
+    - Additions: 194
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 1): /**
+    +++Added (new line 2):  * Copyright 2015 Confluent Inc.
+    +++Added (new line 3):  *
+    +++Added (new line 4):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 5):  * you may not use this file except in compliance with the License.
+    +++Added (new line 6):  * You may obtain a copy of the License at
+    +++Added (new line 7):  *
+    +++Added (new line 8):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 9):  *
+    +++Added (new line 10):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 11):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 12):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 13):  * See the License for the specific language governing permissions and
+    +++Added (new line 14):  * limitations under the License.
+    +++Added (new line 15):  **/
+    +++Added (new line 16): package io.confluent.kafkarest.v2;
+    +++Added (new line 17): 
+    +++Added (new line 18): import io.confluent.kafkarest.entities.ConsumerOffsetCommitRequest;
+    +++Added (new line 19): import io.confluent.kafkarest.entities.ConsumerRecord;
+    +++Added (new line 20): import io.confluent.kafkarest.entities.ConsumerSubscriptionRecord;
+    +++Added (new line 21): import org.apache.kafka.clients.consumer.ConsumerConfig;
+    +++Added (new line 22): import org.apache.kafka.clients.consumer.MockConsumer;
+    +++Added (new line 23): import org.apache.kafka.clients.consumer.OffsetResetStrategy;
+    +++Added (new line 24): import org.apache.kafka.common.TopicPartition;
+    +++Added (new line 25): import org.easymock.Capture;
+    +++Added (new line 26): import org.easymock.EasyMock;
+    +++Added (new line 27): import org.easymock.EasyMockRunner;
+    +++Added (new line 28): import org.easymock.Mock;
+    +++Added (new line 29): import org.junit.After;
+    +++Added (new line 30): import org.junit.Before;
+    +++Added (new line 31): import org.junit.Test;
+    +++Added (new line 32): 
+    +++Added (new line 33): import java.util.Arrays;
+    +++Added (new line 34): import java.util.Collections;
+    +++Added (new line 35): import java.util.List;
+    +++Added (new line 36): import java.util.Properties;
+    +++Added (new line 37): import java.util.concurrent.ExecutionException;
+    +++Added (new line 38): 
+    +++Added (new line 39): import io.confluent.kafkarest.KafkaRestConfig;
+    +++Added (new line 40): import io.confluent.kafkarest.MetadataObserver;
+    +++Added (new line 41): import io.confluent.kafkarest.entities.BinaryConsumerRecord;
+    +++Added (new line 42): import io.confluent.kafkarest.entities.ConsumerInstanceConfig;
+    +++Added (new line 43): import io.confluent.kafkarest.entities.EmbeddedFormat;
+    +++Added (new line 44): import io.confluent.kafkarest.entities.TopicPartitionOffset;
+    +++Added (new line 45): import io.confluent.kafkarest.mock.MockTime;
+    +++Added (new line 46): import io.confluent.rest.RestConfigException;
+    +++Added (new line 47): import org.junit.runner.RunWith;
+    +++Added (new line 48): 
+    +++Added (new line 49): import static org.junit.Assert.assertEquals;
+    +++Added (new line 50): import static org.junit.Assert.assertNotNull;
+    +++Added (new line 51): import static org.junit.Assert.assertNull;
+    +++Added (new line 52): import static org.junit.Assert.assertTrue;
+    +++Added (new line 53): 
+    +++Added (new line 54): /**
+    +++Added (new line 55):  * Tests basic create/read/commit/delete functionality of ConsumerManager. This only exercises the
+    +++Added (new line 56):  * functionality for binary data because it uses a mock consumer that only works with byte[] data.
+    +++Added (new line 57):  */
+    +++Added (new line 58): @RunWith(EasyMockRunner.class)
+    +++Added (new line 59): public class KafkaConsumerManagerTest {
+    +++Added (new line 60): 
+    +++Added (new line 61):     private KafkaRestConfig config;
+    +++Added (new line 62):     @Mock
+    +++Added (new line 63):     private MetadataObserver mdObserver;
+    +++Added (new line 64):     @Mock
+    +++Added (new line 65):     private KafkaConsumerManager.KafkaConsumerFactory consumerFactory;
+    +++Added (new line 66):     private KafkaConsumerManager consumerManager;
+    +++Added (new line 67): 
+    +++Added (new line 68):     private static final String groupName = "testgroup";
+    +++Added (new line 69):     private static final String topicName = "testtopic";
+    +++Added (new line 70): 
+    +++Added (new line 71):     // Setup holding vars for results from callback
+    +++Added (new line 72):     private boolean sawCallback = false;
+    +++Added (new line 73):     private static Exception actualException = null;
+    +++Added (new line 74):     private static List<? extends ConsumerRecord<byte[], byte[]>> actualRecords = null;
+    +++Added (new line 75):     private static List<TopicPartitionOffset> actualOffsets = null;
+    +++Added (new line 76): 
+    +++Added (new line 77):     private Capture<Properties> capturedConsumerConfig;
+    +++Added (new line 78): 
+    +++Added (new line 79):     private MockConsumer<byte[], byte[]> consumer;
+    +++Added (new line 80): 
+    +++Added (new line 81):     @Before
+    +++Added (new line 82):     public void setUp() throws RestConfigException {
+    +++Added (new line 83):         Properties props = new Properties();
+    +++Added (new line 84):         props.setProperty(KafkaRestConfig.CONSUMER_REQUEST_MAX_BYTES_CONFIG, "1024");
+    +++Added (new line 85):         // This setting supports the testConsumerOverrides test. It is otherwise benign and should
+    +++Added (new line 86):         // not affect other tests.
+    +++Added (new line 87):         props.setProperty("consumer." + ConsumerConfig.EXCLUDE_INTERNAL_TOPICS_CONFIG, "false");
+    +++Added (new line 88):         config = new KafkaRestConfig(props, new MockTime());
+    +++Added (new line 89):         consumerManager = new KafkaConsumerManager(config, consumerFactory);
+    +++Added (new line 90):         consumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
+    +++Added (new line 91):     }
+    +++Added (new line 92): 
+    +++Added (new line 93):     @After
+    +++Added (new line 94):     public void tearDown() {
+    +++Added (new line 95):         consumerManager.shutdown();
+    +++Added (new line 96):     }
+    +++Added (new line 97): 
+    +++Added (new line 98):     private void expectCreate() {
+    +++Added (new line 99):         capturedConsumerConfig = Capture.newInstance();
+    +++Added (new line 100):         EasyMock.expect(consumerFactory.createConsumer(EasyMock.capture(capturedConsumerConfig)))
+    +++Added (new line 101):                 .andReturn(consumer);
+    +++Added (new line 102):     }
+    +++Added (new line 103): 
+    +++Added (new line 104):     @Test
+    +++Added (new line 105):     public void testConsumerOverrides() {
+    +++Added (new line 106):         final Capture<Properties> consumerConfig = Capture.newInstance();
+    +++Added (new line 107):         EasyMock.expect(consumerFactory.createConsumer(EasyMock.capture(consumerConfig)))
+    +++Added (new line 108):                 .andReturn(consumer);
+    +++Added (new line 109): 
+    +++Added (new line 110):         EasyMock.replay(consumerFactory);
+    +++Added (new line 111): 
+    +++Added (new line 112):         consumerManager.createConsumer(groupName, new ConsumerInstanceConfig(EmbeddedFormat.BINARY));
+    +++Added (new line 113):         // The exclude.internal.topics setting is overridden via the constructor when the
+    +++Added (new line 114):         // ConsumerManager is created, and we can make sure it gets set properly here.
+    +++Added (new line 115):         assertEquals("false", consumerConfig.getValue().get(ConsumerConfig.EXCLUDE_INTERNAL_TOPICS_CONFIG));
+    +++Added (new line 116): 
+    +++Added (new line 117):         EasyMock.verify(consumerFactory);
+    +++Added (new line 118):     }
+    +++Added (new line 119): 
+    +++Added (new line 120):     @Test
+    +++Added (new line 121):     public void testConsumerNormalOps() throws InterruptedException, ExecutionException {
+    +++Added (new line 122):         // Tests create instance, read, and delete
+    +++Added (new line 123):         final List<ConsumerRecord<byte[], byte[]>> referenceRecords
+    +++Added (new line 124):                 = Arrays.<ConsumerRecord<byte[], byte[]>>asList(
+    +++Added (new line 125):                 new BinaryConsumerRecord(topicName, "k1".getBytes(), "v1".getBytes(), 0, 0),
+    +++Added (new line 126):                 new BinaryConsumerRecord(topicName, "k2".getBytes(), "v2".getBytes(), 0, 1),
+    +++Added (new line 127):                 new BinaryConsumerRecord(topicName, "k3".getBytes(), "v3".getBytes(), 0, 2)
+    +++Added (new line 128):         );
+    +++Added (new line 129): 
+    +++Added (new line 130):         expectCreate();
+    +++Added (new line 131):         consumer.schedulePollTask(new Runnable() {
+    +++Added (new line 132):             @Override
+    +++Added (new line 133):             public void run() {
+    +++Added (new line 134):                 consumer.addRecord(new org.apache.kafka.clients.consumer.ConsumerRecord<>(topicName, 0, 0, "k1".getBytes(), "v1".getBytes()));
+    +++Added (new line 135):                 consumer.addRecord(new org.apache.kafka.clients.consumer.ConsumerRecord<>(topicName, 0, 1, "k2".getBytes(), "v2".getBytes()));
+    +++Added (new line 136):                 consumer.addRecord(new org.apache.kafka.clients.consumer.ConsumerRecord<>(topicName, 0, 2, "k3".getBytes(), "v3".getBytes()));
+    +++Added (new line 137):             }
+    +++Added (new line 138):         });
+    +++Added (new line 139): 
+    +++Added (new line 140):         EasyMock.replay(mdObserver, consumerFactory);
+    +++Added (new line 141): 
+    +++Added (new line 142):         String cid = consumerManager.createConsumer(
+    +++Added (new line 143):                 groupName, new ConsumerInstanceConfig(EmbeddedFormat.BINARY));
+    +++Added (new line 144):         consumerManager.subscribe(groupName, cid, new ConsumerSubscriptionRecord(Collections.singletonList(topicName), null));
+    +++Added (new line 145):         consumer.rebalance(Collections.singletonList(new TopicPartition(topicName, 0)));
+    +++Added (new line 146):         consumer.updateBeginningOffsets(Collections.singletonMap(new TopicPartition(topicName, 0), 0L));
+    +++Added (new line 147): 
+    +++Added (new line 148):         sawCallback = false;
+    +++Added (new line 149):         actualException = null;
+    +++Added (new line 150):         actualRecords = null;
+    +++Added (new line 151):         consumerManager.readRecords(groupName, cid, BinaryKafkaConsumerState.class, -1, Long.MAX_VALUE,
+    +++Added (new line 152):                 new KafkaConsumerManager.ReadCallback<byte[], byte[]>() {
+    +++Added (new line 153):                     @Override
+    +++Added (new line 154):                     public void onCompletion(List<? extends ConsumerRecord<byte[], byte[]>> records, Exception e) {
+    +++Added (new line 155):                         actualException = e;
+    +++Added (new line 156):                         actualRecords = records;
+    +++Added (new line 157):                         sawCallback = true;
+    +++Added (new line 158):                     }
+    +++Added (new line 159):                 }).get();
+    +++Added (new line 160):         assertTrue("Callback failed to fire", sawCallback);
+    +++Added (new line 161):         assertNull("No exception in callback", actualException);
+    +++Added (new line 162):         assertEquals("Records returned not as expected", referenceRecords, actualRecords);
+    +++Added (new line 163):         // With # of bytes in messages < max bytes per response and with a backoff that divides the timeout evenly,
+    +++Added (new line 164):         // this should finish just at the per-request timeout (because the timeout perfectly coincides with a scheduled
+    +++Added (new line 165):         // iteration when using the default settings).
+    +++Added (new line 166):         assertEquals(config.getInt(KafkaRestConfig.CONSUMER_REQUEST_TIMEOUT_MS_CONFIG),
+    +++Added (new line 167):                 config.getTime().milliseconds());
+    +++Added (new line 168): 
+    +++Added (new line 169):         sawCallback = false;
+    +++Added (new line 170):         actualException = null;
+    +++Added (new line 171):         actualOffsets = null;
+    +++Added (new line 172):         ConsumerOffsetCommitRequest commitRequest = null; // Commit all offsets
+    +++Added (new line 173):         consumerManager.commitOffsets(groupName, cid, null, commitRequest, new KafkaConsumerManager.CommitCallback() {
+    +++Added (new line 174):             @Override
+    +++Added (new line 175):             public void onCompletion(List<TopicPartitionOffset> offsets, Exception e) {
+    +++Added (new line 176):                 sawCallback = true;
+    +++Added (new line 177): 
+    +++Added (new line 178):                 actualException = e;
+    +++Added (new line 179):                 actualOffsets = offsets;
+    +++Added (new line 180):             }
+    +++Added (new line 181):         }).get();
+    +++Added (new line 182):         assertTrue("Callback not called", sawCallback);
+    +++Added (new line 183):         assertNull("Callback exception", actualException);
+    +++Added (new line 184):         // Mock consumer doesn't handle offsets, so we just check we get some output for the
+    +++Added (new line 185):         // right partitions
+    +++Added (new line 186):         assertNotNull("Callback Offsets", actualOffsets);
+    +++Added (new line 187):         // TODO: Currently the values are not actually returned in the callback nor in the response.
+    +++Added (new line 188):         //assertEquals("Callback Offsets Size", 3, actualOffsets.size());
+    +++Added (new line 189): 
+    +++Added (new line 190):         consumerManager.deleteConsumer(groupName, cid);
+    +++Added (new line 191): 
+    +++Added (new line 192):         EasyMock.verify(mdObserver, consumerFactory);
+    +++Added (new line 193):     }
+    +++Added (new line 194): }
+

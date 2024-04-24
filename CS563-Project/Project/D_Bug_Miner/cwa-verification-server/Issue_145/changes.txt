@@ -1,0 +1,46 @@
+Issue #145: fix: find the expected entity
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/145
+
+Commit ID: 418e3df4a1d1db8b108cfe4784db3f01d184995b
+
+Commit Message: fix: find the expected entity
+
+Files Changed (2):
+File: src/main/java/app/coronawarn/verification/repository/VerificationAppSessionRepository.java ======================
+    - Additions: 16
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 42):   /**
+    +++Added (new line 43):    * This method looks in the Database for an Appsession with the given hashedGuid.
+    +++Added (new line 44):    *
+    +++Added (new line 45):    * @param hashedGuid hash to search for
+    +++Added (new line 46):    * @return Optional VerificationAppSession the optional Appsession
+    +++Added (new line 47):    */
+    +++Added (new line 48):   Optional<VerificationAppSession> findByHashedGuid(String hashedGuid);
+    +++Added (new line 49):   
+    +++Added (new line 50):   /**
+    +++Added (new line 51):    * This method looks in the Database for an Appsession with the given teleTanHash.
+    +++Added (new line 52):    *
+    +++Added (new line 53):    * @param teleTanHash hash to search for
+    +++Added (new line 54):    * @return Optional VerificationAppSession the optional Appsession
+    +++Added (new line 55):    */
+    +++Added (new line 56):   Optional<VerificationAppSession> findByTeleTanHash(String teleTanHash);
+    +++Added (new line 57):   
+
+File: src/main/java/app/coronawarn/verification/service/AppSessionService.java ======================
+    - Additions: 2
+    - Deletions: 8
+=======================================================
+
+    ---Removed (old line 35): import org.springframework.data.domain.Example;
+    ---Removed (old line 36): import org.springframework.data.domain.ExampleMatcher;
+    ---Removed (old line 161):     VerificationAppSession appSession = new VerificationAppSession();
+    ---Removed (old line 162):     appSession.setHashedGuid(hashedGuid);
+    ---Removed (old line 163):     return appSessionRepository.exists(Example.of(appSession, ExampleMatcher.matchingAll()));
+    +++Added (new line 159):     return appSessionRepository.findByHashedGuid(hashedGuid).isPresent();
+    ---Removed (old line 175):     VerificationAppSession appSession = new VerificationAppSession();
+    ---Removed (old line 176):     appSession.setTeleTanHash(hashingService.hash(teleTan));
+    ---Removed (old line 177):     return appSessionRepository.exists(Example.of(appSession, ExampleMatcher.matchingAll()));
+    +++Added (new line 171):     return appSessionRepository.findByTeleTanHash(hashingService.hash(teleTan)).isPresent();
+

@@ -1,0 +1,45 @@
+Issue #1753: Add retry of get blob in gcsstorage.
+URL: https://github.com/treasure-data/digdag/pull/1753
+
+Commit ID: 3aeb5d7b20bbda2222bb060fc251a0031d884965
+
+Commit Message: add testReturyGetContent
+
+Files Changed (1):
+File: digdag-storage-gcs/src/test/java/io/digdag/storage/gcs/GCSStorageTest.java ======================
+    - Additions: 31
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 3): import com.google.cloud.storage.Blob;
+    +++Added (new line 15): import org.mockito.Mockito;
+    +++Added (new line 16): 
+    +++Added (new line 30): import static org.junit.Assert.assertEquals;
+    +++Added (new line 31): import static org.mockito.Mockito.doThrow;
+    +++Added (new line 32): import static org.mockito.Mockito.doReturn;
+    +++Added (new line 33): import static org.mockito.Mockito.mock;
+    +++Added (new line 110):     @Test
+    +++Added (new line 111):     public void testRetryGetContent()
+    +++Added (new line 112):             throws Exception
+    +++Added (new line 113):     {
+    +++Added (new line 114):         com.google.cloud.storage.Storage gcsStorage = mock(com.google.cloud.storage.Storage.class);
+    +++Added (new line 115):         Blob blob = mock(Blob.class);
+    +++Added (new line 116): 
+    +++Added (new line 117):         ConfigFactory cf = new ConfigFactory(objectMapper());
+    +++Added (new line 118):         String bucket = UUID.randomUUID().toString();
+    +++Added (new line 119):         Config config = cf.create()
+    +++Added (new line 120):                 .set("bucket", bucket);  // use unique bucket name
+    +++Added (new line 121):         Storage storage = new GCSStorageFactory().newStorage(gcsStorage, config);
+    +++Added (new line 122): 
+    +++Added (new line 123):         doThrow(new NullPointerException())
+    +++Added (new line 124):             .doThrow(new NullPointerException())
+    +++Added (new line 125):             .doReturn(blob)
+    +++Added (new line 126):             .when(gcsStorage).get(Mockito.anyString(), Mockito.anyString());
+    +++Added (new line 127):         
+    +++Added (new line 128):         doReturn("content".getBytes()).when(blob).getContent();
+    +++Added (new line 129): 
+    +++Added (new line 130):         assertEquals("content", readString(storage.open("object").getContentInputStream())); 
+    +++Added (new line 131):         Mockito.verify(gcsStorage, Mockito.times(3)).get(Mockito.anyString(), Mockito.anyString());
+    +++Added (new line 132):     }
+    +++Added (new line 133): 
+

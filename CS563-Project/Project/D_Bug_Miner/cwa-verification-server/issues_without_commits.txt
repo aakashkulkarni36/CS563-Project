@@ -1,0 +1,19 @@
+Issue #248 - bug: possible multiple entries with same hashed_guid has no associated commits.
+Issue #244 - Lombok version upgrade required has no associated commits.
+Issue #210 - fix: Update updated_at upon tan creation has no associated commits.
+Issue #207 - bug: remove additional logging after verification server split has no associated commits.
+Issue #199 - FakeRequestService uses fakeTanDelay for all fake endpoint requests has no associated commits.
+Issue #196 - bug: cwa-fake-header-workaround has no associated commits.
+Issue #153 - [BSI][20200609] Validity of TeleTAN Longer Than One Hour has no associated commits.
+Issue #144 - An attacker can generate unlimited valid TANs has no associated commits.
+Issue #139 - [ATHENE] Create Teletan Authorization has no associated commits.
+Issue #126 - Codespell report for "cwa-verification-server" (on fossies.org) has no associated commits.
+Issue #69 - Pull requests fail during Sonar step has no associated commits.
+Issue #67 - Pull requests fail during deploy step  has no associated commits.
+Issue #55 - [BSI][0.3.1-alpha] Missing request size limitation leads to memory exhaustion has no associated commits.
+Issue #54 - teleTAN generation and spec don't match.  has no associated commits.
+Issue #47 - Entity AppSession table in architecture overview  - content errors has no associated commits.
+Issue #35 - [BSI][0.3.1-alpha] Database Lookup Not Possible After Updating Record has no associated commits.
+Issue #33 - [BSI][0.3.1-alpha] Fields in Request Body not Checked has no associated commits.
+Issue #32 - [BSI][0.3.1-alpha] TAN Counter Off-By-One has no associated commits.
+Issue #15 - API wrong has no associated commits.

@@ -1,0 +1,17 @@
+Issue #1740: Fix docker build environment
+URL: https://github.com/treasure-data/digdag/pull/1740
+
+Commit ID: 5e8eefe140017e69d6c543f7da01cd25d9023a44
+
+Commit Message: Update dependencies.sh
+
+Proposal fix for another failure in docker build
+
+Files Changed (1):
+File: docker/bootstrap/dependencies.sh ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 5): apt-get -y install ca-certificates
+

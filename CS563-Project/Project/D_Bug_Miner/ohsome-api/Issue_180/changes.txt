@@ -1,0 +1,15 @@
+Issue #180: add missing setting for lombok sources directory for sonarlint
+URL: https://github.com/GIScience/ohsome-api/pull/180
+
+Commit ID: 0a63cac62b2aa23d21f54a82002b1802d6d41f9f
+
+Commit Message: add missing setting for lombok sources directory for sonarlint
+
+Files Changed (1):
+File: pom.xml ======================
+    - Additions: 1
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 40):     <sonar.sources>src/main/lombok</sonar.sources>
+

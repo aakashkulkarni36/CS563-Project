@@ -1,0 +1,71 @@
+Issue #74 - British Indian Ocean Territory fla svg error has no associated commits.
+Issue #70 - Incorrect time zone for Portugal  has no associated commits.
+Issue #58 - https://restcountries.eu/rest/v2/all in this API some countries calling codes are missing has no associated commits.
+Issue #51 - Incorrect time zone for Venezuela has no associated commits.
+Issue #47 - CORS issue has no associated commits.
+Issue #46 - Kosovo flag missing has no associated commits.
+Issue #42 - Mistakes in ISO country codes has no associated commits.
+Issue #34 - Negative timezones using diferrent dash/hyphen character has no associated commits.
+Issue #33 - Missing timezones has no associated commits.
+Issue #9 - UK calling code 44 only returns Guernsey has no associated commits.
+Issue #7 - Currency and country error has no associated commits.
+Issue #2 - /callingcode/1 return incorrect has no associated commits.
+Issue #74 - British Indian Ocean Territory fla svg error has no associated commits.
+Issue #70 - Incorrect time zone for Portugal  has no associated commits.
+Issue #58 - https://restcountries.eu/rest/v2/all in this API some countries calling codes are missing has no associated commits.
+Issue #51 - Incorrect time zone for Venezuela has no associated commits.
+Issue #47 - CORS issue has no associated commits.
+Issue #46 - Kosovo flag missing has no associated commits.
+Issue #42 - Mistakes in ISO country codes has no associated commits.
+Issue #34 - Negative timezones using diferrent dash/hyphen character has no associated commits.
+Issue #33 - Missing timezones has no associated commits.
+Issue #9 - UK calling code 44 only returns Guernsey has no associated commits.
+Issue #7 - Currency and country error has no associated commits.
+Issue #74 - British Indian Ocean Territory fla svg error has no associated commits.
+Issue #70 - Incorrect time zone for Portugal  has no associated commits.
+Issue #58 - https://restcountries.eu/rest/v2/all in this API some countries calling codes are missing has no associated commits.
+Issue #51 - Incorrect time zone for Venezuela has no associated commits.
+Issue #47 - CORS issue has no associated commits.
+Issue #46 - Kosovo flag missing has no associated commits.
+Issue #42 - Mistakes in ISO country codes has no associated commits.
+Issue #34 - Negative timezones using diferrent dash/hyphen character has no associated commits.
+Issue #33 - Missing timezones has no associated commits.
+Issue #9 - UK calling code 44 only returns Guernsey has no associated commits.
+Issue #7 - Currency and country error has no associated commits.
+Issue #2 - /callingcode/1 return incorrect has no associated commits.
+Issue #74 - British Indian Ocean Territory fla svg error has no associated commits.
+Issue #70 - Incorrect time zone for Portugal  has no associated commits.
+Issue #58 - https://restcountries.eu/rest/v2/all in this API some countries calling codes are missing has no associated commits.
+Issue #51 - Incorrect time zone for Venezuela has no associated commits.
+Issue #47 - CORS issue has no associated commits.
+Issue #46 - Kosovo flag missing has no associated commits.
+Issue #42 - Mistakes in ISO country codes has no associated commits.
+Issue #34 - Negative timezones using diferrent dash/hyphen character has no associated commits.
+Issue #33 - Missing timezones has no associated commits.
+Issue #9 - UK calling code 44 only returns Guernsey has no associated commits.
+Issue #7 - Currency and country error has no associated commits.
+Issue #2 - /callingcode/1 return incorrect has no associated commits.
+Issue #74 - British Indian Ocean Territory fla svg error has no associated commits.
+Issue #70 - Incorrect time zone for Portugal  has no associated commits.
+Issue #58 - https://restcountries.eu/rest/v2/all in this API some countries calling codes are missing has no associated commits.
+Issue #51 - Incorrect time zone for Venezuela has no associated commits.
+Issue #47 - CORS issue has no associated commits.
+Issue #46 - Kosovo flag missing has no associated commits.
+Issue #42 - Mistakes in ISO country codes has no associated commits.
+Issue #34 - Negative timezones using diferrent dash/hyphen character has no associated commits.
+Issue #33 - Missing timezones has no associated commits.
+Issue #9 - UK calling code 44 only returns Guernsey has no associated commits.
+Issue #7 - Currency and country error has no associated commits.
+Issue #2 - /callingcode/1 return incorrect has no associated commits.
+Issue #74 - British Indian Ocean Territory fla svg error has no associated commits.
+Issue #70 - Incorrect time zone for Portugal  has no associated commits.
+Issue #58 - https://restcountries.eu/rest/v2/all in this API some countries calling codes are missing has no associated commits.
+Issue #51 - Incorrect time zone for Venezuela has no associated commits.
+Issue #47 - CORS issue has no associated commits.
+Issue #46 - Kosovo flag missing has no associated commits.
+Issue #42 - Mistakes in ISO country codes has no associated commits.
+Issue #34 - Negative timezones using diferrent dash/hyphen character has no associated commits.
+Issue #33 - Missing timezones has no associated commits.
+Issue #9 - UK calling code 44 only returns Guernsey has no associated commits.
+Issue #7 - Currency and country error has no associated commits.
+Issue #2 - /callingcode/1 return incorrect has no associated commits.

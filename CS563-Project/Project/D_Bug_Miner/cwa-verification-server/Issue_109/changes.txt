@@ -1,0 +1,16 @@
+Issue #109: fix: set to next snapshot version
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/109
+
+Commit ID: 957956a2507471b70a818a565e1c272981e00caf
+
+Commit Message: fix: set to next snapshot version
+
+Files Changed (1):
+File: pom.xml ======================
+    - Additions: 1
+    - Deletions: 1
+=======================================================
+
+    ---Removed (old line 8):   <version>0.5.1</version>
+    +++Added (new line 8):   <version>0.5.2-SNAPSHOT</version>
+

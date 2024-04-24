@@ -1,0 +1,2065 @@
+Issue #258: Fix: Seperate Unique Constraints for hashed_guid and hashed_guid_dob
+URL: https://github.com/corona-warn-app/cwa-verification-server/pull/258
+
+Commit ID: d562068786926ef37529e02d4006931860980316
+
+Commit Message: Merge branch 'master' into feat/add-seperate-unique-constraints
+
+Files Changed (58):
+File: pom.xml ======================
+    - Additions: 19
+    - Deletions: 23
+=======================================================
+
+    ---Removed (old line 8):   <version>1.5.6-SNAPSHOT</version>
+    +++Added (new line 8):   <version>1.5.7-SNAPSHOT</version>
+    ---Removed (old line 37):     <spring.boot.version>2.5.7</spring.boot.version>
+    ---Removed (old line 38):     <spring-security.version>5.3.10.RELEASE</spring-security.version>
+    ---Removed (old line 39):     <spring.cloud.version>2020.0.4</spring.cloud.version>
+    ---Removed (old line 40):     <lombok.version>1.18.16</lombok.version>
+    ---Removed (old line 41):     <liquibase.version>3.10.0</liquibase.version>
+    ---Removed (old line 42):     <springdoc.version>1.4.2</springdoc.version>
+    +++Added (new line 37):     <spring.boot.version>2.6.2</spring.boot.version>
+    +++Added (new line 38):     <spring-security.version>5.6.1</spring-security.version>
+    +++Added (new line 39):     <spring.cloud.version>2021.0.0</spring.cloud.version>
+    +++Added (new line 40):     <lombok.version>1.18.22</lombok.version>
+    +++Added (new line 41):     <liquibase.version>4.7.1</liquibase.version>
+    +++Added (new line 42):     <springdoc.version>1.6.4</springdoc.version>
+    ---Removed (old line 44):     <hibernate-validator.version>6.1.5.Final</hibernate-validator.version>
+    +++Added (new line 44):     <hibernate-validator.version>6.2.1.Final</hibernate-validator.version>
+    +++Added (new line 45):     <shedlock.version>4.32.0</shedlock.version>
+    +++Added (new line 46):     <reactivex.version>1.3.8</reactivex.version>
+    ---Removed (old line 46):     <plugin.checkstyle.version>3.1.1</plugin.checkstyle.version>
+    ---Removed (old line 47):     <plugin.sonar.version>3.6.1.1688</plugin.sonar.version>
+    ---Removed (old line 48):     <plugin.jacoco.version>0.8.5</plugin.jacoco.version>
+    ---Removed (old line 49):     <plugin.surefire.version>2.22.2</plugin.surefire.version>
+    ---Removed (old line 50):     <guava.version>30.0-jre</guava.version>
+    +++Added (new line 48):     <plugin.checkstyle.version>3.1.2</plugin.checkstyle.version>
+    +++Added (new line 49):     <plugin.sonar.version>3.9.1.2184</plugin.sonar.version>
+    +++Added (new line 50):     <plugin.jacoco.version>0.8.7</plugin.jacoco.version>
+    +++Added (new line 51):     <plugin.surefire.version>3.0.0-M5</plugin.surefire.version>
+    +++Added (new line 52):     <guava.version>31.0.1-jre</guava.version>
+    ---Removed (old line 60):     </sonar.coverage.exclusions>    
+    +++Added (new line 62):     </sonar.coverage.exclusions>
+    ---Removed (old line 94):       <dependency>
+    ---Removed (old line 95):         <groupId>org.apache.logging.log4j</groupId>
+    ---Removed (old line 96):         <artifactId>log4j-bom</artifactId>
+    ---Removed (old line 97):         <version>2.17.0</version>
+    ---Removed (old line 98):         <scope>import</scope>
+    ---Removed (old line 99):       </dependency>
+    ---Removed (old line 242):       <version>1.3.8</version>
+    +++Added (new line 238):       <version>${reactivex.version}</version>
+    ---Removed (old line 247):       <version>4.25.0</version>
+    +++Added (new line 243):       <version>${shedlock.version}</version>
+    ---Removed (old line 252):       <version>4.25.0</version>
+    +++Added (new line 248):       <version>${shedlock.version}</version>
+
+File: src/main/java/app/coronawarn/verification/VerificationApplication.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/client/IamClient.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/client/TestResultServerClient.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/client/TestResultServerClientConfig.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/config/LocalSecurityConfig.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/config/MtlsSecurityConfig.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/config/OpenApiConfig.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/config/RequestSizeLimitFilter.java ======================
+    - Additions: 15
+    - Deletions: 18
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG, SAP AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    ---Removed (old line 29): import liquibase.util.StringUtils;
+    ---Removed (old line 30): import lombok.NonNull;
+    +++Added (new line 30): import org.apache.commons.lang3.StringUtils;
+    ---Removed (old line 46):   @NonNull
+
+File: src/main/java/app/coronawarn/verification/config/VerificationApplicationConfig.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/controller/ExternalTanController.java ======================
+    - Additions: 20
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    +++Added (new line 3):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    +++Added (new line 9):  * You may obtain a copy of the License at
+    +++Added (new line 10):  *
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 12):  *
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 19):  */
+    +++Added (new line 20): 
+
+File: src/main/java/app/coronawarn/verification/controller/ExternalTestStateController.java ======================
+    - Additions: 22
+    - Deletions: 2
+=======================================================
+
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    +++Added (new line 3):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    +++Added (new line 9):  * You may obtain a copy of the License at
+    +++Added (new line 10):  *
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 12):  *
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 19):  */
+    +++Added (new line 20): 
+    ---Removed (old line 139):             generateReturnTestResult(LabTestResult.POSITIVE.getTestResult(),
+    ---Removed (old line 140):               appSession.get().getCreatedAt().toEpochSecond(ZoneOffset.UTC), null))),
+    +++Added (new line 159):               generateReturnTestResult(LabTestResult.POSITIVE.getTestResult(),
+    +++Added (new line 160):                 appSession.get().getCreatedAt().toEpochSecond(ZoneOffset.UTC), null))),
+
+File: src/main/java/app/coronawarn/verification/controller/ExternalTokenController.java ======================
+    - Additions: 20
+    - Deletions: 1
+=======================================================
+
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    +++Added (new line 3):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    +++Added (new line 9):  * You may obtain a copy of the License at
+    +++Added (new line 10):  *
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 12):  *
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 19):  */
+    +++Added (new line 20): 
+    ---Removed (old line 21): import lombok.NonNull;
+
+File: src/main/java/app/coronawarn/verification/controller/InternalTanController.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/controller/InternalTestStateController.java ======================
+    - Additions: 20
+    - Deletions: 2
+=======================================================
+
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    +++Added (new line 3):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    +++Added (new line 9):  * You may obtain a copy of the License at
+    +++Added (new line 10):  *
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 12):  *
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 19):  */
+    +++Added (new line 20): 
+    ---Removed (old line 19): import org.apache.commons.lang3.RandomStringUtils;
+    ---Removed (old line 29): import org.springframework.web.context.request.async.DeferredResult;
+
+File: src/main/java/app/coronawarn/verification/controller/VerificationExceptionHandler.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/domain/VerificationAppSession.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/domain/VerificationTan.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/exception/VerificationServerException.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG, SAP AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/AppSessionSourceOfTrust.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/AuthorizationRole.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG, SAP AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache 
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this 
+    ---Removed (old line 9):  * file except in compliance with the License. 
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/AuthorizationToken.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG, SAP AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache 
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this 
+    ---Removed (old line 9):  * file except in compliance with the License. 
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/Certs.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/HashedGuid.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/InternalTestResult.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/Key.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/LabTestResult.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/RegistrationToken.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/RegistrationTokenKeyType.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/RegistrationTokenRequest.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/Tan.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/TanSourceOfTrust.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/TanType.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/TeleTan.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/TeleTanType.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/model/TestResult.java ======================
+    - Additions: 14
+    - Deletions: 16
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    ---Removed (old line 30): import lombok.RequiredArgsConstructor;
+
+File: src/main/java/app/coronawarn/verification/repository/VerificationAppSessionRepository.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/repository/VerificationTanRepository.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/AppSessionService.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/EntitiesCleanupService.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/FakeDelayService.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/FakeRequestService.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/HashingService.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/JwtService.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/TanService.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/service/TestResultServerService.java ======================
+    - Additions: 14
+    - Deletions: 16
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    ---Removed (old line 27): import lombok.NonNull;
+
+File: src/main/java/app/coronawarn/verification/validator/RegistrationTokenKeyConstraint.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG, SAP AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache 
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this 
+    ---Removed (old line 9):  * file except in compliance with the License. 
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/main/java/app/coronawarn/verification/validator/RegistrationTokenRequestValidator.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG, SAP AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache 
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this 
+    ---Removed (old line 9):  * file except in compliance with the License. 
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/test/java/app/coronawarn/verification/TestUtils.java ======================
+    - Additions: 20
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    +++Added (new line 3):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    +++Added (new line 9):  * You may obtain a copy of the License at
+    +++Added (new line 10):  *
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 12):  *
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 19):  */
+    +++Added (new line 20): 
+
+File: src/test/java/app/coronawarn/verification/VerificationApplicationExternalTest.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/test/java/app/coronawarn/verification/VerificationApplicationExternalTestHttp.java ======================
+    - Additions: 20
+    - Deletions: 0
+=======================================================
+
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    +++Added (new line 3):  * Corona-Warn-App / cwa-verification
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    +++Added (new line 9):  * You may obtain a copy of the License at
+    +++Added (new line 10):  *
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 12):  *
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 19):  */
+    +++Added (new line 20): 
+
+File: src/test/java/app/coronawarn/verification/VerificationApplicationExternalTestWorkaround.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/test/java/app/coronawarn/verification/VerificationApplicationInternalTest.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/test/java/app/coronawarn/verification/service/EntitiesCleanupServiceTest.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
+File: src/test/java/app/coronawarn/verification/service/HashingServiceTest.java ======================
+    - Additions: 16
+    - Deletions: 17
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    ---Removed (old line 24): import org.junit.jupiter.api.Test;
+    ---Removed (old line 25): 
+    +++Added (new line 27): import org.junit.jupiter.api.Test;
+    +++Added (new line 28): 
+
+File: src/test/java/app/coronawarn/verification/service/JwtServiceTest.java ======================
+    - Additions: 35
+    - Deletions: 26
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 20): 
+    +++Added (new line 30): import java.io.IOException;
+    +++Added (new line 31): import java.io.StringWriter;
+    +++Added (new line 32): import java.io.UnsupportedEncodingException;
+    +++Added (new line 33): import java.math.BigInteger;
+    +++Added (new line 34): import java.security.KeyPair;
+    +++Added (new line 35): import java.security.KeyPairGenerator;
+    +++Added (new line 36): import java.security.NoSuchAlgorithmException;
+    +++Added (new line 37): import java.security.PrivateKey;
+    +++Added (new line 38): import java.security.PublicKey;
+    +++Added (new line 39): import java.security.Security;
+    +++Added (new line 40): import java.time.Instant;
+    +++Added (new line 41): import java.time.LocalDate;
+    +++Added (new line 42): import java.time.LocalDateTime;
+    +++Added (new line 43): import java.time.ZoneId;
+    +++Added (new line 44): import java.util.ArrayList;
+    +++Added (new line 45): import java.util.Collections;
+    +++Added (new line 46): import java.util.Date;
+    +++Added (new line 47): import java.util.HashMap;
+    +++Added (new line 48): import java.util.List;
+    +++Added (new line 49): import java.util.Map;
+    ---Removed (old line 44): import java.io.IOException;
+    ---Removed (old line 45): import java.io.StringWriter;
+    ---Removed (old line 46): import java.io.UnsupportedEncodingException;
+    ---Removed (old line 47): import java.math.BigInteger;
+    ---Removed (old line 48): import java.security.*;
+    ---Removed (old line 49): import java.time.Instant;
+    ---Removed (old line 50): import java.time.LocalDate;
+    ---Removed (old line 51): import java.time.LocalDateTime;
+    ---Removed (old line 52): import java.time.ZoneId;
+    ---Removed (old line 53): import java.util.*;
+    ---Removed (old line 54): 
+
+File: src/test/java/app/coronawarn/verification/service/TanServiceTest.java ======================
+    - Additions: 23
+    - Deletions: 25
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+    +++Added (new line 23): import static org.assertj.core.api.Assertions.assertThat;
+    +++Added (new line 24): import static org.junit.jupiter.api.Assertions.assertFalse;
+    +++Added (new line 25): import static org.junit.jupiter.api.Assertions.assertTrue;
+    +++Added (new line 26): 
+    +++Added (new line 34): import java.time.LocalDateTime;
+    +++Added (new line 35): import java.time.format.DateTimeFormatter;
+    +++Added (new line 36): import java.util.Optional;
+    +++Added (new line 37): import java.util.regex.Matcher;
+    +++Added (new line 38): import java.util.regex.Pattern;
+    ---Removed (old line 42): import java.time.LocalDateTime;
+    ---Removed (old line 43): import java.time.format.DateTimeFormatter;
+    ---Removed (old line 44): import java.util.Optional;
+    ---Removed (old line 45): import java.util.regex.Matcher;
+    ---Removed (old line 46): import java.util.regex.Pattern;
+    ---Removed (old line 47): 
+    ---Removed (old line 48): import static org.assertj.core.api.Assertions.assertThat;
+    ---Removed (old line 49): import static org.junit.jupiter.api.Assertions.assertFalse;
+    ---Removed (old line 50): import static org.junit.jupiter.api.Assertions.assertTrue;
+    ---Removed (old line 51): 
+
+File: src/test/java/app/coronawarn/verification/service/TestResultServerServiceTest.java ======================
+    - Additions: 14
+    - Deletions: 15
+=======================================================
+
+    ---Removed (old line 1): /*
+    +++Added (new line 1): /*-
+    +++Added (new line 2):  * ---license-start
+    ---Removed (old line 3):  *
+    ---Removed (old line 4):  * (C) 2020, T-Systems International GmbH
+    ---Removed (old line 5):  *
+    ---Removed (old line 6):  * Deutsche Telekom AG and all other contributors /
+    ---Removed (old line 7):  * copyright owners license this file to you under the Apache
+    ---Removed (old line 8):  * License, Version 2.0 (the "License"); you may not use this
+    ---Removed (old line 9):  * file except in compliance with the License.
+    +++Added (new line 4):  * ---
+    +++Added (new line 5):  * Copyright (C) 2020 - 2022 T-Systems International GmbH and all other contributors
+    +++Added (new line 6):  * ---
+    +++Added (new line 7):  * Licensed under the Apache License, Version 2.0 (the "License");
+    +++Added (new line 8):  * you may not use this file except in compliance with the License.
+    ---Removed (old line 12):  * http://www.apache.org/licenses/LICENSE-2.0
+    +++Added (new line 11):  *      http://www.apache.org/licenses/LICENSE-2.0
+    ---Removed (old line 14):  * Unless required by applicable law or agreed to in writing,
+    ---Removed (old line 15):  * software distributed under the License is distributed on an
+    ---Removed (old line 16):  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    ---Removed (old line 17):  * KIND, either express or implied.  See the License for the
+    ---Removed (old line 18):  * specific language governing permissions and limitations
+    ---Removed (old line 19):  * under the License.
+    +++Added (new line 13):  * Unless required by applicable law or agreed to in writing, software
+    +++Added (new line 14):  * distributed under the License is distributed on an "AS IS" BASIS,
+    +++Added (new line 15):  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    +++Added (new line 16):  * See the License for the specific language governing permissions and
+    +++Added (new line 17):  * limitations under the License.
+    +++Added (new line 18):  * ---license-end
+
