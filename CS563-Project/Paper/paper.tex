@@ -108,31 +108,44 @@ joshish@oregonstate.edu}
 \label{sec:introduction}
 
 \subsection{Problem statement}
-    While fault localization techniques are pivotal in reducing the time and effort required for debugging, their effectiveness in the context of REST APIs—which are crucial in today's distributed systems—is not well understood. The challenge lies in accurately identifying faults within REST APIs using automated techniques, where faults may vary widely in nature and complexity.
-    \todo{What is the problem statement that you plan to solve?}
+    REST APIs (Representational State Transfer) have become backbone of the modern web and cloud applications. They facilitate seamless interactions between client and server through stateless communication, enabling services to be scalable, reliable, and easily integrateable. Basically, REST APIs are a set of rules and standards used to enable communication between different software applications over the internet. They are built around the use of standard HTTP methods such as GET, POST, PUT, and DELETE to interact with resources, which are any kind of data or service that can be named on a network.
+    Given their critical role, the effective identification and resolution of faults within REST APIs remain a significant challenge, prompting the need for research on how fault localization techniques work to their unique structure and functionality.
+
+
+    % \todo{What is the problem statement that you plan to solve?}
 
 \subsection{Motivation}
-    Effective fault localization can significantly expedite the maintenance process of REST APIs, which are integral to modern software ecosystems. Enhancing these techniques can lead to reduced downtime and improved service quality, directly impacting user experience and operational costs. Addressing the efficacy of fault localization in REST APIs is crucial for advancing automated debugging tools and practices in software engineering.
-    \todo{Why should anyone care about solving that problem?}
+    As systems that rely on REST APIs grow in scale and complexity, minor faults can escalate into major disruptions, impacting user experience and business operations. 
+    This research is motivated by the need to evaluate how well current fault localization techniques perform in the unique context of REST APIs. 
+    The goal is to determine if these techniques can indeed be applied effectively to REST APIs and, if so, to explore which types of faults are more amenable to being localized. 
+    This understanding could potentially allow developers to more efficiently diagnose and address issues, thereby enhancing the stability and performance of REST API-based systems.
+
+
+    % \todo{Why should anyone care about solving that problem?}
 
 \subsection{Relation with software engineering research}
-    Fault localization is a well-established area of research within software engineering, focusing primarily on traditional software systems. However, the unique characteristics of REST APIs, such as their stateless nature and network dependency, introduce new challenges that are not fully addressed by existing studies. Previous works have created taxonomies of faults in REST APIs but have not extensively explored the applicability of fault localization techniques to these faults. This research seeks to bridge that gap by applying these techniques to a curated dataset of faults specific to REST APIs.
-    \todo{How is the problem related to software engineering research? What is already known about that problem space, and what is still unknown that you are interested in solving?}
+
+    Fault localization is a well-established area of research within software engineering, traditionally concentrated on more conventional software systems. 
+    REST APIs, however, present distinct challenges that complicate fault localization due to their composition and operational dynamics. 
+    Additionally, the architecture of REST APIs often involves diverse artifacts that are not source code, such as configuration files, API specifications, and database schemas.
+
+
+    % \todo{How is the problem related to software engineering research? What is already known about that problem space, and what is still unknown that you are interested in solving?}
 
 \subsection{Key Insight or Idea}
-    The core of this research is the hypothesis that existing fault localization techniques can be adapted to effectively identify faults in REST APIs. By leveraging a detailed taxonomy of API faults and employing a tool like EvoMaster for automated test case generation, this project aims to systematically assess which fault categories are more amenable to automation. The feasibility of this approach within a 5-week timeframe is supported by the availability of comprehensive datasets and mature tools.
-    \todo{What is the high-level approach that you would like to explore to to solve the problem? Why you feel you can succeed with that approach in 5 weeks?}
+    The primary objective of this research is to evaluate the effectiveness of existing fault localization techniques within the unique context of REST APIs, which feature a mix of code and non-code artifacts. 
+    This study will systematically apply established fault localization methods—Spectrum-Based Fault Localization (SBFL), Information Retrieval Fault Localization (IRFL), and Program Slicing—to a self-created dataset of REST API faults. 
+    This dataset will be meticulously developed to represent a wide range of faults typical in REST APIs and classified according to an existing comprehensive taxonomy derived from previous research.
+
+    This approach will enable us to assess the applicability of these fault localization techniques to REST APIs by determining how effectively they can identify and localize different types of faults. 
+    % Importantly, this research does not assume the prior effectiveness of these techniques in REST API contexts but seeks to establish empirical evidence of their performance. 
+    The analysis will provide insights into whether traditional fault localization methods are suited to the complexities of REST APIs, especially considering their unique structural and functional characteristics.
+
+
+    \todo{What is the high-level approach that you would like to explore to solve the problem? Why you feel you can succeed with that approach in 5 weeks?}
 
 \subsection{Assumptions}
-\begin{itemize}
-    \item \textbf{Homogeneity of Dataset:} Assume that the dataset obtained from REST API projects using Spring Boot or Jersey frameworks is representative of typical real-world scenarios.
-    
-    \item \textbf{Consistency in Bug Documentation:} Assume that the bugs and their fixes documented in the repositories and commit histories of the selected projects are accurate and comprehensive.
-    
-    \item \textbf{Alignment with Taxonomy:} Assume that the established taxonomy of API faults accurately categorizes the identified bugs according to their nature and impact.
-        
-    \item \textbf{Applicability of Fault Localization Techniques:} Assume that the fault localization techniques selected for evaluation are applicable and compatible with the characteristics of REST API projects developed using Spring Boot or Jersey frameworks.
-\end{itemize}
+
     \todo{What kind of assumptions will you need to make for your choice of solution?}
 
 \subsection{Research questions}
@@ -144,23 +157,9 @@ joshish@oregonstate.edu}
     \todo{What research question(s) will you answer?}
 
 \subsection{Evaluation Dataset}
-For the evaluation dataset, we will mine bugs and their fixes from REST API projects that utilize Spring Boot or Jersey frameworks. This dataset will encompass various categories of faults identified in REST APIs. By analyzing repositories and commit histories, we will extract specific instances where bugs have been documented and subsequently fixed. The categorization of these faults will be aligned with an established taxonomy of API faults, ensuring that each bug is classified according to its nature and impact. This rigorous dataset compilation aims to provide a comprehensive basis for testing fault localization techniques within a controlled, relevant environment.
-    \todo{What kind of dataset will you evaluate your solution on? Where and how will you get that dataset?}
 
 \subsection{Evaluation metrics}
-For the project, the evaluation of fault localization techniques using the dataset derived from REST APIs employing Spring Boot and Jersey frameworks will be guided by the following metrics:
 
-\textbf{Precision:} This metric will measure the accuracy of the fault localization techniques in identifying only the actual faults. Precision is calculated as the ratio of true positive results (faults correctly localized) to the total number of faults that the techniques reported as localized (true positives plus false positives). This metric helps assess the exactness of a technique in pinpointing faults.
-
-
-\textbf{Recall:} This metric will evaluate the completeness of the fault localization techniques by measuring the ratio of true positive results to the total number of actual faults present (true positives plus false negatives). High recall indicates that the technique can localize a large percentage of all existing faults.
-
-
-\textbf{F-Measure Score:} Since precision and recall can sometimes present a trade-off, the F-measure Score will be used to find the harmonic mean of precision and recall. This measure balances both metrics and gives a single score to evaluate the overall effectiveness of a fault localization technique.
-
-\textbf{Accuracy:} This metric measures the overall correctness of the fault localization techniques in identifying faults within the REST API projects. It is calculated as the ratio of correctly localized faults to the total number of faults in the dataset. 
-
-These metrics will collectively provide a thorough assessment of each fault localization technique's ability to detect and accurately categorize faults in REST APIs, contributing to a detailed understanding of their practical utility and areas for improvement.
     \todo{How will you know that you have solved the problem successfully? In other words, how will you evaluate your solution?}
 
 
