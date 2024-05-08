@@ -142,11 +142,15 @@ joshish@oregonstate.edu}
     The analysis will provide insights into whether traditional fault localization methods are suited to the complexities of REST APIs, especially considering their unique structural and functional characteristics.
 
 
-    \todo{What is the high-level approach that you would like to explore to solve the problem? Why you feel you can succeed with that approach in 5 weeks?}
+    % \todo{What is the high-level approach that you would like to explore to solve the problem? Why you feel you can succeed with that approach in 5 weeks?}
 
 \subsection{Assumptions}
+    \begin{itemize}
+        \item \textit{Assumption 1:} It is assumed that the faults in the dataset are correctly classified according to the existing comprehensive taxonomy.
+        \item \textit{Assumption 2:} Assume that the selected fault localization techniques are suitable for application to REST APIs, despite their original design for conventional software systems. This includes the assumption that these techniques can handle the unique challenges posed by REST APIs, such as dealing with non-code artifacts.
+    \end{itemize}
 
-    \todo{What kind of assumptions will you need to make for your choice of solution?}
+    % \todo{What kind of assumptions will you need to make for your choice of solution?}
 
 \subsection{Research questions}
     The primary research questions are formulated as follows:
@@ -154,22 +158,55 @@ joshish@oregonstate.edu}
         \item \textbf{RQ1:} What categories of faults (as per the existing taxonomy) are most effectively localized by current techniques?
         \item \textbf{RQ2:} Which fault localization techniques offer the highest accuracy and precision in the context of REST APIs?
     \end{itemize}
-    \todo{What research question(s) will you answer?}
+    % \todo{What research question(s) will you answer?}
 
 \subsection{Evaluation Dataset}
 
 \subsection{Evaluation metrics}
 
-    \todo{How will you know that you have solved the problem successfully? In other words, how will you evaluate your solution?}
+    % \todo{How will you know that you have solved the problem successfully? In other words, how will you evaluate your solution?}
 
 
 \section{Background and Motivation}
 \label{sec:background-and-motivation}
 
+\subsection{Importance of REST APIs}
+
+REST APIs (Representational State Transfer APIs) are central to modern web and cloud applications, serving as critical conduits for data exchange and system integration. 
+They leverage standard HTTP methods like GET, POST, PUT, and DELETE to interact with networked resources, making them integral to the architecture of distributed systems. 
+The scalability, reliability, and ease of integration provided by REST APIs facilitate seamless interactions between clients and servers, thereby enhancing the performance and flexibility of complex software ecosystems. 
+Their widespread adoption underscores their importance in today's technology landscape, where rapid communication and data accessibility are paramount.
+
+\subsection{Challenges of Fault Localization in REST APIs}
+While REST APIs have simplified the development and management of modern applications, they introduce specific challenges that complicate fault localization.
+The architecture often involves non-code artifacts such as API specifications, configuration files, and database schemas, which are not traditionally addresses by fault localization techniques developed for code-centric applications. 
+
+
+\subsection{Gaps in Current Research}
+Fault localization is a well-established research area within software engineering, focusing primarily on identifying the locations of faults in conventional software systems to reduce debugging time and enhance system reliability.
+ However, the unique operational dynamics and architectural complexities of REST APIs pose new challenges that are not fully addressed by existing fault localization techniques.
+Previous studies have developed fault taxonomies for REST APIs which are helpful if the FL techniques can localize faults to understand what categories of faults can be localized.
+There remains a significant knowledge gap regarding the effectiveness of these techniques in accurately identifying and localizing faults in REST APIs, particularly those involving non-code artifacts.
+
+
+\subsection{Need for Targeted Research on Fault Localization in REST APIs}
+This research is motivated by the critical need to evaluate and understand the performance of existing fault localization techniques within the REST API context. 
+By determining how effectively these techniques can identify and localize faults in REST APIs, developers can gain valuable insights that could lead to quicker and more accurate fault diagnosis. This is particularly important as even minor faults can escalate into major disruptions in REST API-dependent systems, affecting user experience and operational efficiency. Addressing this gap will not only contribute to the field by enhancing the robustness and reliability of REST APIs but also by supporting the development of more sophisticated tools and methodologies tailored to the needs of modern software architectures.
+
+
+\subsection{Research Objectives}
+The primary objective of this research is to systematically assess the applicability of established fault localization techniques—namely 
+Spectrum-Based Fault Localization (SBFL), Information Retrieval Fault Localization (IRFL), and Program Slicing—to a curated dataset of REST API faults. 
+This dataset will be developed to encompass a broad spectrum of typical faults in REST APIs and will be classified according to an existing comprehensive taxonomy. 
+The insights gained from this study are expected to reveal whether traditional fault localization methods are suitable for the complex environments of REST APIs and may guide future efforts in refining these techniques or developing new approaches specifically designed for REST API ecosystems.
+
+
+
+
 \section{Related Work}
 \label{sec:relatedwork}
-\todo{R2Fix~\cite{Liu13} and iFixR~\cite{Koyuncu19}, use information retrieval-based fault localization~(IRFL)
-that ranks suspicious program statements based on their similarity with bug reports.}
+% \todo{R2Fix~\cite{Liu13} and iFixR~\cite{Koyuncu19}, use information retrieval-based fault localization~(IRFL)
+% that ranks suspicious program statements based on their similarity with bug reports.}
 
 \section{Approach}
 \label{sec:approach}
@@ -195,7 +232,7 @@ that ranks suspicious program statements based on their similarity with bug repo
 \section{Contributions}
 \label{sec:contributions}
 
-\bibliographystyle{IEEEtran}
-\bibliography{relatedwork}
+% \bibliographystyle{IEEEtran}
+% \bibliography{relatedwork}
 
 \end{document}
