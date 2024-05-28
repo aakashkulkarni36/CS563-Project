@@ -151,6 +151,13 @@ BLUES and LLMAO to a curated dataset of REST API faults.
 This dataset will be developed to encompass a broad spectrum of typical faults in REST APIs and will be classified according to an existing comprehensive taxonomy. 
 The insights gained from this study are expected to reveal whether traditional fault localization methods are suitable for the complex environments of REST APIs and may guide future efforts in refining these techniques or developing new approaches specifically designed for REST API ecosystems.
 
+\begin{figure*}[t] 
+    \centering
+    \includegraphics[width=1.0\textwidth]{fig2.png}
+    \caption{Approach Overview}
+    \label{fig:widefigure}
+  \end{figure*}
+
 \section{Related Work}
 \label{sec:relatedwork}
 
@@ -162,6 +169,9 @@ Information Retrieval Based Fault Localization: The work by Klaus Changsun Youm 
 The Jaguar tool, described by Ribeiro et al, utilizes SBFL technique to identify faulty code excerpts in Java programs ~\cite{8367068}. By employing both control-flow and data-flow spectra and integrating the lightweight ba-dua coverage tool, Jaguar efficiently supports the analysis of large programs. The capability of Jaguar to provide detailed visualizations of suspicious program elements highlights the effectiveness of SFL in traditional software environments. The distinction between data-flow and control-flow spectra offers a nuanced view of fault localization that could be pertinent to analyzing REST APIs, known for their complex interactions and stateless operations.
 
 Debugging in IDEs, particularly using tools like Visual Studio Code for web applications, illustrates the practical aspects of fault localization in real-world scenarios ~\cite{DebuggingCode}. The capabilities of IDEs to facilitate debugging through breakpoints and variable inspections are directly relevant to the challenges faced in REST API development, where faults may not only arise from code but also from API configurations and interactions.
+
+
+
 
 
 \section{Approach}
@@ -199,11 +209,9 @@ Given the unique challenges posed by REST APIs, such as stateless operations and
 
 To conduct this research, a dataset is required for evaluation. The dataset contains REST API faults, their sources, and other relevant information necessary like Bug Reports to evaluate FL techniques.
 
-The dataset we started with had  GitHub APIs from 15 different REST API repositories from 
-% Table ~\ref{tab:repositories}. 
-the services were management-api-for-apache-cassandra, catwatch, cwa-verification-server, digdag, enviroCar-server, features-service,
+The dataset we started with had  GitHub APIs from 15 different REST API repositories from the services were management-api-for-apache-cassandra, catwatch, cwa-verification-server, digdag, enviroCar-server, features-service,
 gravitee-api-management, kafka-rest, ocvn, ohsome-api, proxyprint-kitchen, quartz-manager, restcountries, senzing-api-server, and Ur-Codebin-API.
-The  process of filtering out issues not marked as 'bugs' and 'closed,' leaving only the set of issues that have been fixed details ~\ref{tab:repositories}. Issues involving code changes are collected and then further filtered through manual analysis to select those applicable to this research.
+The  process of filtering out issues not marked as 'bugs' and 'closed,' leaving only the set of issues that have been fixed details ~\ref{tab:repositories}. Issues involving code changes are collected and then further filtered through manual analysis to select those applicable to this research. These services provide us services with bug information we need to create a benchmark on REST API faults.
 
 \begin{table}
     \centering
@@ -222,7 +230,7 @@ The  process of filtering out issues not marked as 'bugs' and 'closed,' leaving 
 \end{table}
     
 
-This dataset provides a benchmark to evaluate FL techniques on REST API faults.
+
 
 
 % The fault taxonomy had 4 Major fault types where each major fault type has sub-categories from ~\cite{automatedTestTaxonomy}, in total we had 19 categories of faults we can divide into. 
