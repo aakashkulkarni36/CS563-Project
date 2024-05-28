@@ -139,3 +139,53 @@
   location={Cáceres, Spain},
   year={2018}
 }
+
+@inproceedings{ManishRestServices,
+author = {Huang, Ruikai and Motwani, Manish and Martinez, Idel and Orso, Alessandro},
+title = {Generating REST API Specifications through Static Analysis},
+year = {2024},
+isbn = {9798400702174},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3597503.3639137},
+doi = {10.1145/3597503.3639137},
+abstract = {Web Application Programming Interfaces (APIs) allow services to be accessed over the network. RESTful (or REST) APIs, which use the REpresentation State Transfer (REST) protocol, are a popular type of web API. To use or test REST APIs, developers use specifications written in standards such as OpenAPI. However, creating and maintaining these specifications is time-consuming and error-prone, especially as software evolves, leading to incomplete or inconsistent specifications that negatively affect the use and testing of the APIs. To address this problem, we present Respector (REST API specification generator), the first technique to employ static and symbolic program analysis to generate specifications for REST APIs from their source code. We evaluated Respector on 15 real-world APIs with promising results in terms of precision and recall in inferring endpoint methods, endpoint parameters, method responses, and parameter attributes, including constraints leading to successful HTTP responses or errors. Furthermore, these results could be further improved with additional engineering. Comparing the Respector-generated specifications with the developer-provided ones shows that Respector was able to identify many missing end-point methods, parameters, constraints, and responses, along with some inconsistencies between developer-provided specifications and API implementations. Finally, Respector outperformed several techniques that infer specifications from annotations within API implementations or by invoking the APIs.},
+booktitle = {Proceedings of the IEEE/ACM 46th International Conference on Software Engineering},
+articleno = {107},
+numpages = {13},
+keywords = {REST APIs, openapi specifications, documentation, static analysis},
+series = {ICSE '24}
+}
+
+
+@inproceedings{ManishBluesFaultLocalization,
+author = {Motwani, Manish and Brun, Yuriy},
+title = {Better Automatic Program Repair by Using Bug Reports and Tests Together},
+year = {2023},
+isbn = {9781665457019},
+publisher = {IEEE Press},
+url = {https://doi.org/10.1109/ICSE48619.2023.00109},
+doi = {10.1109/ICSE48619.2023.00109},
+abstract = {Automated program repair is already deployed in industry, but concerns remain about repair quality. Recent research has shown that one of the main reasons repair tools produce incorrect (but seemingly correct) patches is imperfect fault localization (FL). This paper demonstrates that combining information from natural-language bug reports and test executions when localizing faults can have a significant positive impact on repair quality. For example, existing repair tools with such FL are able to correctly repair 7 defects in the Defects4J benchmark that no prior tools have repaired correctly.We develop, Blues, the first information-retrieval-based, statement-level FL technique that requires no training data. We further develop RAFL, the first unsupervised method for combining multiple FL techniques, which outperforms a supervised method. Using RAFL, we create SBIR by combining Blues with a spectrum-based (SBFL) technique. Evaluated on 815 real-world defects, SBIR consistently ranks buggy statements higher than its underlying techniques.We then modify three state-of-the-art repair tools, Arja, SequenceR, and SimFix, to use SBIR, SBFL, and Blues as their internal FL. We evaluate the quality of the produced patches on 689 real-world defects. Arja and SequenceR significantly benefit from SBIR: Arja using SBIR correctly repairs 28 defects, but only 21 using SBFL, and only 15 using Blues; SequenceR using SBIR correctly repairs 12 defects, but only 10 using SBFL, and only 4 using Blues. SimFix, (which has internal mechanisms to overcome poor FL), correctly repairs 30 defects using SBIR and SBFL, but only 13 using Blues. Our work is the first investigation of simultaneously using multiple software artifacts for automated program repair, and our promising findings suggest future research in this directions is likely to be fruitful.},
+booktitle = {Proceedings of the 45th International Conference on Software Engineering},
+numpages = {13},
+location = {Melbourne, Victoria, Australia},
+series = {ICSE '23}
+}
+
+
+@inproceedings{LLMAOFaultLocalization,
+author = {Yang, Aidan Z. H. and Le Goues, Claire and Martins, Ruben and Hellendoorn, Vincent},
+title = {Large Language Models for Test-Free Fault Localization},
+year = {2024},
+isbn = {9798400702174},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3597503.3623342},
+doi = {10.1145/3597503.3623342},
+abstract = {Fault Localization (FL) aims to automatically localize buggy lines of code, a key first step in many manual and automatic debugging tasks. Previous FL techniques assume the provision of input tests, and often require extensive program analysis, program instrumentation, or data preprocessing. Prior work on deep learning for APR struggles to learn from small datasets and produces limited results on real-world programs. Inspired by the ability of large language models (LLMs) of code to adapt to new tasks based on very few examples, we investigate the applicability of LLMs to line level fault localization. Specifically, we propose to overcome the left-to-right nature of LLMs by fine-tuning a small set of bidirectional adapter layers on top of the representations learned by LLMs to produce LLMAO, the first language model based fault localization approach that locates buggy lines of code without any test coverage information. We fine-tune LLMs with 350 million, 6 billion, and 16 billion parameters on small, manually curated corpora of buggy programs such as the Defects4J corpus. We observe that our technique achieves substantially more confidence in fault localization when built on the larger models, with bug localization performance scaling consistently with the LLM size. Our empirical evaluation shows that LLMAO improves the Top-1 results over the state-of-the-art machine learning fault localization (MLFL) baselines by 2.3\%--54.4\%, and Top-5 results by 14.4\%-35.6\%. LLMAO is also the first FL technique trained using a language model architecture that can detect security vulnerabilities down to the code line level.},
+booktitle = {Proceedings of the IEEE/ACM 46th International Conference on Software Engineering},
+articleno = {17},
+numpages = {12},
+series = {ICSE '24}
+}

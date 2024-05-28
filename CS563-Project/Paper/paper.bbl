@@ -35,6 +35,21 @@ A.~Barbir, C.~Hobbs, E.~Bertino, F.~Hirsch, and L.~Martino, ``Challenges of test
 \bibitem{khare2004}
 R.~Khare and R.~Taylor, ``Extending the representational state transfer (rest) architectural style for decentralized systems,'' in \emph{Proceedings of the 26th International Conference on Software Engineering}, 2004, pp. 428--437.
 
+\bibitem{ManishBluesFaultLocalization}
+\BIBentryALTinterwordspacing
+M.~Motwani and Y.~Brun, ``Better automatic program repair by using bug reports and tests together,'' in \emph{Proceedings of the 45th International Conference on Software Engineering}, ser. ICSE '23.\hskip 1em plus 0.5em minus 0.4em\relax IEEE Press, 2023. [Online]. Available: \url{https://doi.org/10.1109/ICSE48619.2023.00109}
+\BIBentrySTDinterwordspacing
+
+\bibitem{LLMAOFaultLocalization}
+\BIBentryALTinterwordspacing
+A.~Z.~H. Yang, C.~Le~Goues, R.~Martins, and V.~Hellendoorn, ``Large language models for test-free fault localization,'' in \emph{Proceedings of the IEEE/ACM 46th International Conference on Software Engineering}, ser. ICSE '24.\hskip 1em plus 0.5em minus 0.4em\relax New York, NY, USA: Association for Computing Machinery, 2024. [Online]. Available: \url{https://doi.org/10.1145/3597503.3623342}
+\BIBentrySTDinterwordspacing
+
+\bibitem{ManishRestServices}
+\BIBentryALTinterwordspacing
+R.~Huang, M.~Motwani, I.~Martinez, and A.~Orso, ``Generating rest api specifications through static analysis,'' in \emph{Proceedings of the IEEE/ACM 46th International Conference on Software Engineering}, ser. ICSE '24.\hskip 1em plus 0.5em minus 0.4em\relax New York, NY, USA: Association for Computing Machinery, 2024. [Online]. Available: \url{https://doi.org/10.1145/3597503.3639137}
+\BIBentrySTDinterwordspacing
+
 \bibitem{automatedTestTaxonomy}
 B.~Marculescu, M.~Zhang, and A.~Arcuri, ``On the faults found in rest apis by automated test generation,'' \emph{ACM Transactions on Software Engineering and Methodology}, vol.~31, pp. 1--43, 07 2022.
 
