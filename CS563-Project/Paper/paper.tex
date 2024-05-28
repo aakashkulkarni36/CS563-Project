@@ -209,7 +209,7 @@ The  process of filtering out issues not marked as 'bugs' and 'closed,' leaving 
     \centering
     \caption{List of Repositories}
     \label{tab:repositories}
-    \begin{tabular}{|c|l|c}
+    \begin{tabular}{|c|l|c|}
     \hline
         \hline
         \textbf{No.} & \textbf{Repository Name} & \textbf{\# of Faults} \\ \hline
@@ -223,6 +223,37 @@ The  process of filtering out issues not marked as 'bugs' and 'closed,' leaving 
     
 
 This dataset provides a benchmark to evaluate FL techniques on REST API faults.
+
+
+% The fault taxonomy had 4 Major fault types where each major fault type has sub-categories from ~\cite{automatedTestTaxonomy}, in total we had 19 categories of faults we can divide into. 
+
+The fault taxonomy utilized in our study delineates four major fault types, each encompassing various sub-categories as outlined in ~\cite{automatedTestTaxonomy}. Collectively, these categories provide a comprehensive framework, dividing the faults into a total of 19 distinct categories. 
+This detailed classification aids in systematically analyzing and categorizing the faults encountered during the testing of REST APIs to create the Table ~\ref{tab:faultData}
+
+
+\begin{table}[ht]
+    \centering
+    \caption{Fault Data}
+    \label{tab:faultData}
+    \begin{tabular}{|c|p{6cm}|c|}
+    \hline
+        \hline
+        \textbf{No.} & \textbf{Fault Type} & \textbf{\# of Faults} \\ \hline
+        1 & DB Operations/ Optimistic Lock Exception & 1 \\ \hline
+        2 & DB Operations/ Unique Index or Primary Key &  2 \\ \hline
+        3 & Incomplete Specification/Form/Format & 1 \\ \hline
+        4 & Framework Misconfiguration/ Rejected Calls & 2 \\ \hline
+        5 & Harcoded & 1 \\ \hline
+        6 & Incomplete Specification/Custom Constraint/Semantic & 1 \\ \hline
+        7 & Inconsistent Behavior/ Unexpected 500 & 1 \\ \hline
+        8 & Inconsistent Behavior/ Multiple Execution Fault & 1 \\ \hline 
+        9 & Incomplete Specification/Custom Constraint/Invalid Combination & 5 \\ \hline 
+        10 & Incomplete Specification/Form/Missing or Null values & 3 \\ \hline
+        11 & Incomplete Specification/Form/Type & 1 \\ \hline
+        12 & Unsupported Code & 3 \\ \hline
+    \end{tabular}
+\end{table}
+    
 
 
 \subsection{Metrics}
