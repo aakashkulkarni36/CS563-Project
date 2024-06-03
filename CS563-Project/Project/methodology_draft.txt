@@ -1,0 +1,22 @@
+Benchmark
+API services, issues No. link, bug type, consider?, modified file, modifiled line numbers, comments
+
+
+
+1. Collect a set of issues 
+    Script to loop through each API
+        loop through closed issues and label as bug 
+2. Each one of us go through the same issues independtly and identify the bug type
+    Identify the bug type using only the user description, and issue conversation
+    Then identify the modified file, and line number from commit
+    add comment if needed for helping understand the issue during consolidation
+    decide if it is within our scope of REST API fault, and fill up `consider?`
+3. go through the issues one by one 
+    not consider the issue if majority of us not consider the issue in our own separated list
+    check if we have different bug type, modified file, and line numbers
+        if we have different, discuss what would be the bug be
+            if we cannot agree on issues, as it is hard to categories the bug type
+                a) create a new category that fit the bug
+                or
+                b) not consider the issue 
+4. End
