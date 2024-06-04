@@ -1,0 +1,1752 @@
+diff --git a/README.md b/README.md
+index 24661f7607..8c07b534ac 100644
+--- a/README.md
++++ b/README.md
+@@ -36,26 +36,34 @@ the REST Proxy running using the default settings and some topics already create
+       {"value_schema_id":0,"offsets":[{"partition":0,"offset":0}]}
+ 
+     # Create a consumer for binary data, starting at the beginning of the topic's
+-    # log. Then consume some data from a topic.
++    # log. Then consume some data from a topic using the base URL in the first response.
++    # Finally, close the consumer with a DELETE to make it leave the group and clean up
++    # its resources.
+     $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
+-          --data '{"id": "my_instance", "format": "binary", "auto.offset.reset": "smallest"}' \
++          --data '{"format": "binary", "auto.offset.reset": "smallest"}' \
+           http://localhost:8082/consumers/my_binary_consumer
+-      {"instance_id":"my_instance","base_uri":"http://localhost:8082/consumers/my_binary_consumer/instances/my_instance"}
++      {"instance_id":"rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6","base_uri":"http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6"}
+     $ curl -X GET -H "Accept: application/vnd.kafka.binary.v1+json" \
+-          http://localhost:8082/consumers/my_binary_consumer/instances/my_instance/topics/test
+-      [{"value":"S2Fma2E=","partition":0,"offset":0},{"value":"S2Fma2E=","partition":0,"offset":1}]
++          http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6/topics/test
++      [{"key":null,"value":"S2Fma2E=","partition":0,"offset":0}]
++    $ curl -X DELETE \
++          http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6
++      # No content in response
+ 
+     # Create a consumer for Avro data, starting at the beginning of the topic's
+     # log. Then consume some data from a topic, which is decoded, translated to
+     # JSON, and included in the response. The schema used for deserialization is
+-    # fetched automatically from the schema registry.
++    # fetched automatically from the schema registry. Finally, clean up.
+     $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
+-          --data '{"id": "my_instance", "format": "avro", "auto.offset.reset": "smallest"}' \
++          --data '{"format": "avro", "auto.offset.reset": "smallest"}' \
+           http://localhost:8082/consumers/my_avro_consumer
+-      {"instance_id":"my_instance","base_uri":"http://localhost:8082/consumers/my_avro_consumer/instances/my_instance"}
++      {"instance_id":"rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b","base_uri":"http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b"}
+     $ curl -X GET -H "Accept: application/vnd.kafka.avro.v1+json" \
+-          http://localhost:8082/consumers/my_avro_consumer/instances/my_instance/topics/avrotest
+-      [{"value":{"name":"testUser"},"partition":0,"offset":0},{"value":{"name":"testUser2"},"partition":0,"offset":1}]
++          http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b/topics/avrotest
++      [{"key":null,"value":{"name":"testUser"},"partition":0,"offset":0}]
++    $ curl -X DELETE \
++          http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b
++      # No content in response
+ 
+ Installation
+ ------------
+diff --git a/bin/kafka-rest-run-class b/bin/kafka-rest-run-class
+index 98af3ea001..1be0b1f32d 100755
+--- a/bin/kafka-rest-run-class
++++ b/bin/kafka-rest-run-class
+@@ -21,8 +21,8 @@ for dir in $base_dir/target/kafka-rest-*-development; do
+   CLASSPATH=$CLASSPATH:$dir/share/java/kafka-rest/*
+ done
+ 
+-# Production jars, including kafka, rest-utils, and kafka-rest
+-for library in "kafka" "confluent-common" "rest-utils" "kafka-rest"; do
++# Production jars
++for library in "confluent-common" "rest-utils" "kafka-rest"; do
+   CLASSPATH=$CLASSPATH:$base_dir/share/java/$library/*
+ done
+ 
+diff --git a/docs/api.rst b/docs/api.rst
+index 9aae7d24af..19de7457dc 100644
+--- a/docs/api.rst
++++ b/docs/api.rst
+@@ -259,19 +259,21 @@ you produce messages by making ``POST`` requests to specific topics.
+       Content-Type: application/vnd.kafka.binary.v1+json
+       Accept: application/vnd.kafka.v1+json, application/vnd.kafka+json, application/json
+ 
+-      [
+-        {
+-          "key": "a2V5",
+-          "value": "Y29uZmx1ZW50"
+-        },
+-        {
+-          "value": "a2Fma2E=",
+-          "partition": 1
+-        },
+-        {
+-          "value": "bG9ncw=="
+-        }
+-      ]
++      {
++        "records": [
++          {
++            "key": "a2V5",
++            "value": "Y29uZmx1ZW50"
++          },
++          {
++            "value": "a2Fma2E=",
++            "partition": 1
++          },
++          {
++            "value": "bG9ncw=="
++          }
++        ]
++      }
+ 
+    **Example binary response**:
+ 
+@@ -347,7 +349,7 @@ Partitions
+ ----------
+ 
+ The partitions resource provides per-partition metadata, including the current leaders and replicas for each partition.
+-It also allows you to produce messages to single partition using ``POST`` requests.
++It also allows you to consume and produce messages to single partition using ``GET`` and ``POST`` requests.
+ 
+ .. http:get:: /topics/(string:topic_name)/partitions
+ 
+@@ -481,6 +483,91 @@ It also allows you to produce messages to single partition using ``POST`` reques
+         ]
+       }
+ 
++.. http:get:: /topics/(string:topic_name)/partitions/(int:partition_id)/messages?offset=(int)[&count=(int)]
++
++   Consume messages from one partition of the topic.
++
++   :param string topic_name: Topic to consume the messages from
++   :param int partition_id: Partition to consume the messages from
++   :query int offset: Offset to start from
++   :query int count: Number of messages to consume (optional). Default is 1.
++
++   :>jsonarr string key: The message key, formatted according to the embedded format
++   :>jsonarr string value: The message value, formatted according to the embedded format
++   :>jsonarr int partition: Partition of the message
++   :>jsonarr long offset: Offset of the message
++
++   :statuscode 404:
++      * Error code 40401 -- Topic not found
++      * Error code 40402 -- Partition not found
++      * Error code 40404 -- Leader not available
++   :statuscode 500:
++      * Error code 500 -- General consumer error response, caused by an exception during the
++        operation. An error message is included in the standard format which explains the cause.
++   :statuscode 503:
++      * Error code 50301 -- No SimpleConsumer is available at the time in the pool. The request can be retried.
++        You can increase the pool size or the pool timeout to avoid this error in the future.
++
++
++   **Example binary request**:
++
++   .. sourcecode:: http
++
++      GET /topic/test/partitions/1/messages?offset=10&count=2 HTTP/1.1
++      Host: proxy-instance.kafkaproxy.example.com
++      Accept: application/vnd.kafka.binary.v1+json
++
++   **Example binary response**:
++
++   .. sourcecode:: http
++
++      HTTP/1.1 200 OK
++      Content-Type: application/vnd.kafka.binary.v1+json
++
++      [
++        {
++          "key": "a2V5",
++          "value": "Y29uZmx1ZW50",
++          "partition": 1,
++          "offset": 10,
++        },
++        {
++          "key": "a2V5",
++          "value": "a2Fma2E=",
++          "partition": 1,
++          "offset": 11,
++        }
++      ]
++
++   **Example Avro request**:
++
++   .. sourcecode:: http
++
++      GET /topic/test/partitions/1/messages?offset=1 HTTP/1.1
++      Host: proxy-instance.kafkaproxy.example.com
++      Accept: application/vnd.kafka.avro.v1+json
++
++   **Example Avro response**:
++
++   .. sourcecode:: http
++
++      HTTP/1.1 200 OK
++      Content-Type: application/vnd.kafka.avro.v1+json
++
++      [
++        {
++          "key": 1,
++          "value": {
++            "id": 1,
++            "name": "Bill"
++          },
++          "partition": 1,
++          "offset": 1,
++        }
++      ]
++
++
++
+ .. http:post:: /topics/(string:topic_name)/partitions/(int:partition_id)
+ 
+    Produce messages to one partition of the topic. For the ``avro`` embedded
+@@ -656,8 +743,12 @@ error.
+    for this specific REST proxy instance.
+ 
+    :param string group_name: The name of the consumer group to join
+-   :<json string id: Unique ID for the consumer instance in this group. If omitted, one will be automatically generated
+-                     using the REST proxy ID and an auto-incrementing number
++   :<json string id: **DEPRECATED** Unique ID for the consumer instance in this group. If omitted,
++                     one will be automatically generated
++   :<json string name: Name for the consumer instance, which will be used in URLs for the
++                       consumer. This must be unique, at least within the proxy process handling
++                       the request. If omitted, falls back on the automatically generated ID. Using
++                       automatically generated names is recommended for most use cases.
+    :<json string format: The format of consumed messages, which is used to convert messages into
+                          a JSON-compatible form. Valid values: "binary", "avro". If unspecified,
+                          defaults to "binary".
+@@ -669,6 +760,8 @@ error.
+    :>json string base_uri: Base URI used to construct URIs for subsequent requests against this consumer instance. This
+                            will be of the form ``http://hostname:port/consumers/consumer_group/instances/instance_id``.
+ 
++   :statuscode 409:
++          * Error code 40902 -- Consumer instance with the specified name already exists.
+    :statuscode 422:
+           * Error code 42204 -- Invalid consumer configuration. One of the settings specified in
+             the request contained an invalid value.
+@@ -682,7 +775,7 @@ error.
+       Accept: application/vnd.kafka.v1+json, application/vnd.kafka+json, application/json
+ 
+       {
+-        "id": "my_consumer",
++        "name": "my_consumer",
+         "format": "binary",
+         "auto.offset.reset": "smallest",
+         "auto.commit.enable": "false"
+diff --git a/docs/config.rst b/docs/config.rst
+index acea68613d..f7c6dc9fdd 100644
+--- a/docs/config.rst
++++ b/docs/config.rst
+@@ -62,6 +62,13 @@ Java Kafka clients.
+   * Default: ""
+   * Importance: medium
+ 
++``simpleconsumer.pool.size.max``
++  Maximum number of SimpleConsumers that can be instantiated per broker. If 0, then the pool size is not limited.
++
++  * Type: int
++  * Default: 25
++  * Importance: medium
++
+ ``consumer.instance.timeout.ms``
+   Amount of idle time before a consumer instance is automatically destroyed.
+ 
+@@ -156,6 +163,13 @@ Java Kafka clients.
+ ``shutdown.graceful.ms``
+   Amount of time to wait after a shutdown request for outstanding requests to complete.
+ 
++  * Type: int
++  * Default: 1000
++  * Importance: low
++
++``simpleconsumer.pool.timeout.ms``
++  Amount of time to wait for an available SimpleConsumer from the pool before failing. Use 0 for no timeout
++
+   * Type: int
+   * Default: 1000
+   * Importance: low
+\ No newline at end of file
+diff --git a/docs/intro.rst b/docs/intro.rst
+index 80954c24d2..b55fb25979 100644
+--- a/docs/intro.rst
++++ b/docs/intro.rst
+@@ -40,26 +40,34 @@ the REST Proxy running using the default settings and some topics already create
+      {"offsets":[{"partition":0,"offset":0,"error_code":null,"error":null}],"key_schema_id":null,"value_schema_id":21}
+ 
+    # Create a consumer for binary data, starting at the beginning of the topic's
+-   # log. Then consume some data from a topic.
++   # log. Then consume some data from a topic using the base URL in the first response.
++   # Finally, close the consumer with a DELETE to make it leave the group and clean up
++   # its resources.
+    $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
+-         --data '{"id": "my_instance", "format": "binary", "auto.offset.reset": "smallest"}' \
++         --data '{"format": "binary", "auto.offset.reset": "smallest"}' \
+          http://localhost:8082/consumers/my_binary_consumer
+-     {"instance_id":"my_instance","base_uri":"http://localhost:8082/consumers/my_binary_consumer/instances/my_instance"}
++     {"instance_id":"rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6","base_uri":"http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6"}
+    $ curl -X GET -H "Accept: application/vnd.kafka.binary.v1+json" \
+-         http://localhost:8082/consumers/my_binary_consumer/instances/my_instance/topics/test
++         http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6/topics/test
+      [{"key":null,"value":"S2Fma2E=","partition":0,"offset":0}]
++   $ curl -X DELETE \
++         http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6
++     # No content in response
+ 
+    # Create a consumer for Avro data, starting at the beginning of the topic's
+    # log. Then consume some data from a topic, which is decoded, translated to
+    # JSON, and included in the response. The schema used for deserialization is
+-   # fetched automatically from the schema registry.
++   # fetched automatically from the schema registry. Finally, clean up.
+    $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
+-         --data '{"id": "my_instance", "format": "avro", "auto.offset.reset": "smallest"}' \
++         --data '{"format": "avro", "auto.offset.reset": "smallest"}' \
+          http://localhost:8082/consumers/my_avro_consumer
+-     {"instance_id":"my_instance","base_uri":"http://localhost:8082/consumers/my_avro_consumer/instances/my_instance"}
++     {"instance_id":"rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b","base_uri":"http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b"}
+    $ curl -X GET -H "Accept: application/vnd.kafka.avro.v1+json" \
+-         http://localhost:8082/consumers/my_avro_consumer/instances/my_instance/topics/avrotest
++         http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b/topics/avrotest
+      [{"key":null,"value":{"name":"testUser"},"partition":0,"offset":0}]
++   $ curl -X DELETE \
++         http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b
++     # No content in response
+ 
+ 
+ Features
+@@ -101,6 +109,9 @@ what is currently supported:
+   run behind various load balancing mechanisms (e.g. round robin DNS, discovery
+   services, load balancers) as long as instances are
+   :ref:`configured correctly<kafkarest_deployment>`.
++* **Simple Consumer** - The high-level consumer should generally be
++  preferred. However, it is occasionally useful to use low-level read
++  operations, for example to retrieve messages at specific offsets.
+ 
+ Just as important, here's a list of features that *aren't* yet supported:
+ 
+@@ -114,10 +125,6 @@ Just as important, here's a list of features that *aren't* yet supported:
+   and use a single stream (and therefore a single thread). You can still
+   achieve high throughput as you would with the Java clients: run multiple
+   threads locally that each read from a separate consumer stream.
+-* **Simple Consumer** - The high-level consumer should generally be
+-  preferred. However, it is occasionally useful to use low-level read
+-  operations, for example to retrieve messages at specific offsets. The new
+-  consumer implementation will make implementing these operations simpler.
+ * **Most Producer/Consumer Overrides** - Only a few key overrides are exposed in
+   the API (but global overrides can be set by the administrator). The reason is
+   two-fold. First, proxies are multi-tenant and therefore most user-requested
+diff --git a/src/main/java/io/confluent/kafkarest/AvroRestProducer.java b/src/main/java/io/confluent/kafkarest/AvroRestProducer.java
+index 01ccfe3c57..9705ff68d3 100644
+--- a/src/main/java/io/confluent/kafkarest/AvroRestProducer.java
++++ b/src/main/java/io/confluent/kafkarest/AvroRestProducer.java
+@@ -93,7 +93,11 @@ public void produce(ProduceTask task, String topic, Integer partition,
+         Object key = (keySchema != null ? AvroConverter.toAvro(record.getKey(), keySchema) : null);
+         Object value = (valueSchema != null
+                         ? AvroConverter.toAvro(record.getValue(), valueSchema) : null);
+-        kafkaRecords.add(new ProducerRecord(topic, partition, key, value));
++        Integer recordPartition = partition;
++        if (recordPartition == null) {
++          recordPartition = record.partition();
++        }
++        kafkaRecords.add(new ProducerRecord(topic, recordPartition, key, value));
+       }
+     } catch (ConversionException e) {
+       throw Errors.jsonAvroConversionException();
+diff --git a/src/main/java/io/confluent/kafkarest/BinaryRestProducer.java b/src/main/java/io/confluent/kafkarest/BinaryRestProducer.java
+index 06f924f0c3..4120bab86c 100644
+--- a/src/main/java/io/confluent/kafkarest/BinaryRestProducer.java
++++ b/src/main/java/io/confluent/kafkarest/BinaryRestProducer.java
+@@ -44,7 +44,11 @@ public BinaryRestProducer(KafkaProducer<byte[], byte[]> producer,
+   public void produce(ProduceTask task, String topic, Integer partition,
+                       Collection<? extends ProduceRecord<byte[], byte[]>> records) {
+     for (ProduceRecord<byte[], byte[]> record : records) {
+-      producer.send(new ProducerRecord(topic, partition, record.getKey(), record.getValue()),
++      Integer recordPartition = partition;
++      if (recordPartition == null) {
++        recordPartition = record.partition();
++      }
++      producer.send(new ProducerRecord(topic, recordPartition, record.getKey(), record.getValue()),
+                     task.createCallback());
+     }
+   }
+diff --git a/src/main/java/io/confluent/kafkarest/ConsumerManager.java b/src/main/java/io/confluent/kafkarest/ConsumerManager.java
+index ecd02adcef..69ece3f9c7 100644
+--- a/src/main/java/io/confluent/kafkarest/ConsumerManager.java
++++ b/src/main/java/io/confluent/kafkarest/ConsumerManager.java
+@@ -23,6 +23,7 @@
+ import java.util.Map;
+ import java.util.PriorityQueue;
+ import java.util.Properties;
++import java.util.UUID;
+ import java.util.Vector;
+ import java.util.concurrent.CountDownLatch;
+ import java.util.concurrent.ExecutorService;
+@@ -58,7 +59,6 @@ public class ConsumerManager {
+   private final MetadataObserver mdObserver;
+   private final int iteratorTimeoutMs;
+ 
+-  private final AtomicInteger nextId = new AtomicInteger(0);
+   // ConsumerState is generic, but we store them untyped here. This allows many operations to
+   // work without having to know the types for the consumer, only requiring type information
+   // during read operations.
+@@ -110,51 +110,76 @@ public ConsumerManager(KafkaRestConfig config, MetadataObserver mdObserver,
+    * @return Unique consumer instance ID
+    */
+   public String createConsumer(String group, ConsumerInstanceConfig instanceConfig) {
+-    String id = instanceConfig.getId();
+-    if (id == null) {
+-      id = "rest-consumer-";
++    // The terminology here got mixed up for historical reasons, and remaining compatible moving
++    // forward is tricky. To maintain compatibility, if the 'id' field is specified we maintain
++    // the previous behavior of using it's value in both the URLs for the consumer (i.e. the
++    // local name) and the ID (consumer.id setting in the consumer). Otherwise, the 'name' field
++    // only applies to the local name. When we replace with the new consumer, we may want to
++    // provide an alternate app name, or just reuse the name.
++    String name = instanceConfig.getName();
++    if (instanceConfig.getId() != null) { // Explicit ID request always overrides name
++      name = instanceConfig.getId();
++    }
++    if (name == null) {
++      name = "rest-consumer-";
+       String serverId = this.config.getString(KafkaRestConfig.ID_CONFIG);
+       if (!serverId.isEmpty()) {
+-        id += serverId + "-";
++        name += serverId + "-";
+       }
+-      id += ((Integer) nextId.incrementAndGet()).toString();
++      name += UUID.randomUUID().toString();
+     }
+ 
+-    log.debug("Creating consumer " + id + " in group " + group);
+-
+-    // Note the ordering here. We want to allow overrides, but almost all the
+-    // consumer-specific settings don't make sense to override globally (e.g. group ID, consumer
+-    // ID), and others we want to ensure get overridden (e.g. consumer.timeout.ms, which we
+-    // intentionally name differently in our own configs).
+-    Properties props = (Properties) config.getOriginalProperties().clone();
+-    props.setProperty("zookeeper.connect", zookeeperConnect);
+-    props.setProperty("group.id", group);
+-    props.setProperty("consumer.id", id);
+-    // To support the old consumer interface with broken peek()/missing poll(timeout)
+-    // functionality, we always use a timeout. This can't perfectly guarantee a total request
+-    // timeout, but can get as close as this timeout's value
+-    props.setProperty("consumer.timeout.ms", ((Integer) iteratorTimeoutMs).toString());
+-    if (instanceConfig.getAutoCommitEnable() != null) {
+-      props.setProperty("auto.commit.enable", instanceConfig.getAutoCommitEnable());
+-    } else {
+-      props.setProperty("auto.commit.enable", "false");
+-    }
+-    if (instanceConfig.getAutoOffsetReset() != null) {
+-      props.setProperty("auto.offset.reset", instanceConfig.getAutoOffsetReset());
++    ConsumerInstanceId cid = new ConsumerInstanceId(group, name);
++    // Perform this check before
++    synchronized (this) {
++      if (consumers.containsKey(cid)) {
++        throw Errors.consumerAlreadyExistsException();
++      } else {
++        // Placeholder to reserve this ID
++        consumers.put(cid, null);
++      }
+     }
+-    ConsumerConnector consumer;
++
++    // Ensure we clean up the placeholder if there are any issues creating the consumer instance
++    boolean succeeded = false;
+     try {
+-      if (consumerFactory == null) {
+-        consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
++      log.debug("Creating consumer " + name + " in group " + group);
++
++      // Note the ordering here. We want to allow overrides, but almost all the
++      // consumer-specific settings don't make sense to override globally (e.g. group ID, consumer
++      // ID), and others we want to ensure get overridden (e.g. consumer.timeout.ms, which we
++      // intentionally name differently in our own configs).
++      Properties props = (Properties) config.getOriginalProperties().clone();
++      props.setProperty("zookeeper.connect", zookeeperConnect);
++      props.setProperty("group.id", group);
++      // This ID we pass here has to be unique, only pass a value along if the deprecated ID field
++      // was passed in. This generally shouldn't be used, but is maintained for compatibility.
++      if (instanceConfig.getId() != null) {
++        props.setProperty("consumer.id", instanceConfig.getId());
++      }
++      // To support the old consumer interface with broken peek()/missing poll(timeout)
++      // functionality, we always use a timeout. This can't perfectly guarantee a total request
++      // timeout, but can get as close as this timeout's value
++      props.setProperty("consumer.timeout.ms", ((Integer) iteratorTimeoutMs).toString());
++      if (instanceConfig.getAutoCommitEnable() != null) {
++        props.setProperty("auto.commit.enable", instanceConfig.getAutoCommitEnable());
+       } else {
+-        consumer = consumerFactory.createConsumer(new ConsumerConfig(props));
++        props.setProperty("auto.commit.enable", "false");
++      }
++      if (instanceConfig.getAutoOffsetReset() != null) {
++        props.setProperty("auto.offset.reset", instanceConfig.getAutoOffsetReset());
++      }
++      ConsumerConnector consumer;
++      try {
++        if (consumerFactory == null) {
++          consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
++        } else {
++          consumer = consumerFactory.createConsumer(new ConsumerConfig(props));
++        }
++      } catch (InvalidConfigException e) {
++        throw Errors.invalidConsumerConfigException(e);
+       }
+-    } catch (InvalidConfigException e) {
+-      throw Errors.invalidConsumerConfigException(e);
+-    }
+ 
+-    synchronized (this) {
+-      ConsumerInstanceId cid = new ConsumerInstanceId(group, id);
+       ConsumerState state;
+       switch (instanceConfig.getFormat()) {
+         case BINARY:
+@@ -168,14 +193,21 @@ public String createConsumer(String group, ConsumerInstanceConfig instanceConfig
+                                              Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+       }
+ 
+-      consumers.put(cid, state);
+-      consumersByExpiration.add(state);
+-      this.notifyAll();
++      synchronized (this) {
++        consumers.put(cid, state);
++        consumersByExpiration.add(state);
++        this.notifyAll();
++      }
++      succeeded = true;
++      return name;
++    } finally {
++      if (!succeeded) {
++        synchronized (this) {
++          consumers.remove(cid);
++        }
++      }
+     }
+-
+-    return id;
+   }
+-
+   public interface ReadCallback<K, V> {
+ 
+     public void onCompletion(List<? extends ConsumerRecord<K, V>> records, Exception e);
+diff --git a/src/main/java/io/confluent/kafkarest/Context.java b/src/main/java/io/confluent/kafkarest/Context.java
+index 6aa8e8e5e9..3abe142ec5 100644
+--- a/src/main/java/io/confluent/kafkarest/Context.java
++++ b/src/main/java/io/confluent/kafkarest/Context.java
+@@ -24,17 +24,15 @@ public class Context {
+   private final MetadataObserver metadataObserver;
+   private final ProducerPool producerPool;
+   private final ConsumerManager consumerManager;
+-  private final SimpleConsumerFactory simpleConsumerFactory;
+   private final SimpleConsumerManager simpleConsumerManager;
+ 
+   public Context(KafkaRestConfig config, MetadataObserver metadataObserver,
+                  ProducerPool producerPool, ConsumerManager consumerManager,
+-                 SimpleConsumerFactory simpleConsumerFactory, SimpleConsumerManager simpleConsumerManager) {
++                 SimpleConsumerManager simpleConsumerManager) {
+     this.config = config;
+     this.metadataObserver = metadataObserver;
+     this.producerPool = producerPool;
+     this.consumerManager = consumerManager;
+-    this.simpleConsumerFactory = simpleConsumerFactory;
+     this.simpleConsumerManager = simpleConsumerManager;
+   }
+ 
+@@ -54,10 +52,6 @@ public ConsumerManager getConsumerManager() {
+     return consumerManager;
+   }
+ 
+-  public SimpleConsumerFactory getSimpleConsumerFactory() {
+-    return simpleConsumerFactory;
+-  }
+-
+   public SimpleConsumerManager getSimpleConsumerManager() {
+     return simpleConsumerManager;
+   }
+diff --git a/src/main/java/io/confluent/kafkarest/Errors.java b/src/main/java/io/confluent/kafkarest/Errors.java
+index 1d30ab2d7d..155c6d3548 100644
+--- a/src/main/java/io/confluent/kafkarest/Errors.java
++++ b/src/main/java/io/confluent/kafkarest/Errors.java
+@@ -51,12 +51,12 @@ public static RestException consumerInstanceNotFoundException() {
+                                      CONSUMER_INSTANCE_NOT_FOUND_ERROR_CODE);
+   }
+ 
+-  public final static String BROKER_DATA_NOT_FOUND_MESSAGE = "Broker data not found.";
+-  public final static int BROKER_DATA_NOT_FOUND_ERROR_CODE = 40404;
++  public final static String LEADER_NOT_AVAILABLE_MESSAGE = "Leader not available.";
++  public final static int LEADER_NOT_AVAILABLE_ERROR_CODE = 40404;
+ 
+-  public static RestException brokerDataNotFoundException() {
+-    return new RestNotFoundException(BROKER_DATA_NOT_FOUND_MESSAGE,
+-        BROKER_DATA_NOT_FOUND_ERROR_CODE);
++  public static RestException LeaderNotAvailableException() {
++    return new RestNotFoundException(LEADER_NOT_AVAILABLE_MESSAGE,
++        LEADER_NOT_AVAILABLE_ERROR_CODE);
+   }
+ 
+   public final static String CONSUMER_FORMAT_MISMATCH_MESSAGE =
+@@ -82,6 +82,16 @@ public static RestException consumerAlreadySubscribedException() {
+                              CONSUMER_ALREADY_SUBSCRIBED_ERROR_CODE);
+   }
+ 
++  public final static String CONSUMER_ALREADY_EXISTS_MESSAGE =
++      "Consumer with specified consumer ID already exists in the specified consumer group.";
++  public final static int CONSUMER_ALREADY_EXISTS_ERROR_CODE = 40902;
++
++  public static RestException consumerAlreadyExistsException() {
++    return new RestException(CONSUMER_ALREADY_EXISTS_MESSAGE,
++                             Response.Status.CONFLICT.getStatusCode(),
++                             CONSUMER_ALREADY_EXISTS_ERROR_CODE);
++  }
++
+ 
+   public final static String KEY_SCHEMA_MISSING_MESSAGE = "Request includes keys but does not "
+                                                           + "include key schema";
+@@ -144,6 +154,16 @@ public static RestServerErrorException kafkaRetriableErrorException(Throwable e)
+                                         KAFKA_RETRIABLE_ERROR_ERROR_CODE);
+   }
+ 
++  public final static String NO_SIMPLE_CONSUMER_AVAILABLE_ERROR_MESSAGE =
++      "No SimpleConsumer is available at the time in the pool. The request can be retried. " +
++      "You can increase the pool size or the pool timeout to avoid this error in the future.";
++  public final static int NO_SIMPLE_CONSUMER_AVAILABLE_ERROR_CODE = 50301;
++
++  public static RestServerErrorException simpleConsumerPoolTimeoutException() {
++    return new RestServerErrorException(NO_SIMPLE_CONSUMER_AVAILABLE_ERROR_MESSAGE,
++        NO_SIMPLE_CONSUMER_AVAILABLE_ERROR_CODE);
++  }
++
+   public final static String UNEXPECTED_PRODUCER_EXCEPTION
+       = "Unexpected non-Kafka exception returned by Kafka";
+ 
+diff --git a/src/main/java/io/confluent/kafkarest/KafkaRestApplication.java b/src/main/java/io/confluent/kafkarest/KafkaRestApplication.java
+index 6d029b86d0..ae6b460d0b 100644
+--- a/src/main/java/io/confluent/kafkarest/KafkaRestApplication.java
++++ b/src/main/java/io/confluent/kafkarest/KafkaRestApplication.java
+@@ -89,7 +89,7 @@ protected void setupInjectedResources(Configurable<?> config, KafkaRestConfig ap
+     }
+ 
+     this.zkClient = zkClient;
+-    context = new Context(appConfig, mdObserver, producerPool, consumerManager, simpleConsumerFactory, simpleConsumerManager);
++    context = new Context(appConfig, mdObserver, producerPool, consumerManager, simpleConsumerManager);
+     config.register(RootResource.class);
+     config.register(new BrokersResource(context));
+     config.register(new TopicsResource(context));
+diff --git a/src/main/java/io/confluent/kafkarest/KafkaRestConfig.java b/src/main/java/io/confluent/kafkarest/KafkaRestConfig.java
+index 1ce14ff86f..228bd47f8a 100644
+--- a/src/main/java/io/confluent/kafkarest/KafkaRestConfig.java
++++ b/src/main/java/io/confluent/kafkarest/KafkaRestConfig.java
+@@ -115,12 +115,19 @@ public class KafkaRestConfig extends RestConfig {
+       + "is automatically destroyed.";
+   public static final String CONSUMER_INSTANCE_TIMEOUT_MS_DEFAULT = "300000";
+ 
+-  public static final String SIMPLE_CONSUMER_POOL_SIZE_CONFIG = "simpleconsumer.pool.size";
++  public static final String SIMPLE_CONSUMER_MAX_POOL_SIZE_CONFIG = "simpleconsumer.pool.size.max";
+   private static final String
+-      SIMPLE_CONSUMER_POOL_SIZE_DOC =
+-      "maximum number of SimpleConsumers that can be instantiated per broker."
++      SIMPLE_CONSUMER_MAX_POOL_SIZE_DOC =
++      "Maximum number of SimpleConsumers that can be instantiated per broker."
+       + " If 0, then the pool size is not limited.";
+-  public static final String SIMPLE_CONSUMER_POOL_SIZE_DEFAULT = "3";
++  public static final String SIMPLE_CONSUMER_MAX_POOL_SIZE_DEFAULT = "25";
++
++  public static final String SIMPLE_CONSUMER_POOL_TIMEOUT_MS_CONFIG = "simpleconsumer.pool.timeout.ms";
++  private static final String
++      SIMPLE_CONSUMER_POOL_TIMEOUT_MS_DOC =
++      "Amount of time to wait for an available SimpleConsumer from the pool before failing."
++          + " Use 0 for no timeout";
++  public static final String SIMPLE_CONSUMER_POOL_TIMEOUT_MS_DEFAULT = "1000";
+ 
+   private static final int KAFKAREST_PORT_DEFAULT = 8082;
+ 
+@@ -161,8 +168,10 @@ public class KafkaRestConfig extends RestConfig {
+                 Importance.MEDIUM, CONSUMER_THREADS_DOC)
+         .define(CONSUMER_INSTANCE_TIMEOUT_MS_CONFIG, Type.INT, CONSUMER_INSTANCE_TIMEOUT_MS_DEFAULT,
+                 Importance.LOW, CONSUMER_INSTANCE_TIMEOUT_MS_DOC)
+-        .define(SIMPLE_CONSUMER_POOL_SIZE_CONFIG, Type.INT, SIMPLE_CONSUMER_POOL_SIZE_DEFAULT,
+-                Importance.MEDIUM, SIMPLE_CONSUMER_POOL_SIZE_DOC);
++        .define(SIMPLE_CONSUMER_MAX_POOL_SIZE_CONFIG, Type.INT, SIMPLE_CONSUMER_MAX_POOL_SIZE_DEFAULT,
++                Importance.MEDIUM, SIMPLE_CONSUMER_MAX_POOL_SIZE_DOC)
++        .define(SIMPLE_CONSUMER_POOL_TIMEOUT_MS_CONFIG, Type.INT, SIMPLE_CONSUMER_POOL_TIMEOUT_MS_DEFAULT,
++                Importance.LOW, SIMPLE_CONSUMER_POOL_TIMEOUT_MS_DOC);
+   }
+ 
+   private Time time;
+diff --git a/src/main/java/io/confluent/kafkarest/MetadataObserver.java b/src/main/java/io/confluent/kafkarest/MetadataObserver.java
+index 80f76e35bf..a56fd832e3 100644
+--- a/src/main/java/io/confluent/kafkarest/MetadataObserver.java
++++ b/src/main/java/io/confluent/kafkarest/MetadataObserver.java
+@@ -63,16 +63,14 @@ public List<Integer> getBrokerIds() {
+     return brokerIds;
+   }
+ 
+-  public Broker getBrokerById(final int brokerId) {
+-    final Seq<Broker> brokers = ZkUtils.getAllBrokersInCluster(zkClient);
++  private Broker getBrokerById(final int brokerId) {
++    Option<Broker> broker = ZkUtils.getBrokerInfo(zkClient, brokerId);
+ 
+-    for (Broker broker : JavaConversions.asJavaCollection(brokers)) {
+-      if (broker.id() == brokerId) {
+-        return broker;
+-      }
++    if (broker.isDefined()) {
++      return broker.get();
++    } else {
++      throw Errors.LeaderNotAvailableException();
+     }
+-
+-    throw Errors.brokerDataNotFoundException();
+   }
+ 
+   public Broker getLeader(final String topicName, final int partitionId) {
+diff --git a/src/main/java/io/confluent/kafkarest/SimpleConsumerManager.java b/src/main/java/io/confluent/kafkarest/SimpleConsumerManager.java
+index 052af36426..590e669236 100644
+--- a/src/main/java/io/confluent/kafkarest/SimpleConsumerManager.java
++++ b/src/main/java/io/confluent/kafkarest/SimpleConsumerManager.java
+@@ -48,6 +48,9 @@ public class SimpleConsumerManager {
+   private static final Logger log = LoggerFactory.getLogger(SimpleConsumerManager.class);
+ 
+   private final int maxPoolSize;
++  private final int poolInstanceAvailabilityTimeoutMs;
++  private final Time time;
++
+   private final MetadataObserver mdObserver;
+   private final SimpleConsumerFactory simpleConsumerFactory;
+ 
+@@ -65,7 +68,10 @@ public SimpleConsumerManager(final KafkaRestConfig config,
+     this.mdObserver = mdObserver;
+     this.simpleConsumerFactory = simpleConsumerFactory;
+ 
+-    maxPoolSize = config.getInt(KafkaRestConfig.SIMPLE_CONSUMER_POOL_SIZE_CONFIG);
++    maxPoolSize = config.getInt(KafkaRestConfig.SIMPLE_CONSUMER_MAX_POOL_SIZE_CONFIG);
++    poolInstanceAvailabilityTimeoutMs = config.getInt(KafkaRestConfig.SIMPLE_CONSUMER_POOL_TIMEOUT_MS_CONFIG);
++    time = config.getTime();
++
+     simpleConsumersPools = new ConcurrentHashMap<Broker, SimpleConsumerPool>();
+ 
+     // Load decoders
+@@ -78,14 +84,17 @@ public SimpleConsumerManager(final KafkaRestConfig config,
+   }
+ 
+   private SimpleConsumerPool createSimpleConsumerPool() {
+-    return new SimpleConsumerPool(maxPoolSize, simpleConsumerFactory);
++    return new SimpleConsumerPool(maxPoolSize, poolInstanceAvailabilityTimeoutMs, time, simpleConsumerFactory);
+   }
+ 
+   private SimpleFetcher getSimpleFetcher(final Broker broker) {
+-    if (!simpleConsumersPools.containsKey(broker)) {
+-      simpleConsumersPools.put(broker, createSimpleConsumerPool());
++    // When upgrading to Java 1.8, use simpleConsumersPools.computeIfAbsent() instead
++    SimpleConsumerPool pool = simpleConsumersPools.get(broker);
++    if (pool == null) {
++      simpleConsumersPools.putIfAbsent(broker, createSimpleConsumerPool());
++      pool = simpleConsumersPools.get(broker);
+     }
+-    final SimpleConsumerPool pool = simpleConsumersPools.get(broker);
++
+     return pool.get(broker.host(), broker.port());
+   }
+ 
+@@ -97,7 +106,7 @@ public void consume(final String topicName,
+                       final ConsumerManager.ReadCallback callback) {
+ 
+     List<ConsumerRecord> records = null;
+-    Exception exception = null;
++    RestException exception = null;
+     SimpleFetcher simpleFetcher = null;
+ 
+     try {
+@@ -115,6 +124,11 @@ public void consume(final String topicName,
+         final ByteBufferMessageSet messageAndOffsets =
+             fetchRecords(topicName, partitionId, offset, simpleFetcher);
+ 
++        // If there is no more messages available, we break early
++        if (!messageAndOffsets.iterator().hasNext()) {
++          break;
++        }
++
+         for (final MessageAndOffset messageAndOffset : messageAndOffsets) {
+           records.add(createConsumerRecord(messageAndOffset, topicName, partitionId, embeddedFormat));
+           count--;
+@@ -127,8 +141,12 @@ public void consume(final String topicName,
+         }
+       }
+ 
+-    } catch (RestException e) {
+-      exception = e;
++    } catch (Throwable e) {
++      if (e instanceof RestException) {
++        exception = (RestException) e;
++      } else {
++        exception = Errors.kafkaErrorException(e);
++      }
+     } finally {
+ 
+       // When the project migrates to java 1.7, the finally can be replaced with a try-with-resource
+diff --git a/src/main/java/io/confluent/kafkarest/SimpleConsumerPool.java b/src/main/java/io/confluent/kafkarest/SimpleConsumerPool.java
+index ab501cdd1f..b0b8fa55a0 100644
+--- a/src/main/java/io/confluent/kafkarest/SimpleConsumerPool.java
++++ b/src/main/java/io/confluent/kafkarest/SimpleConsumerPool.java
+@@ -19,10 +19,7 @@
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import java.util.HashMap;
+-import java.util.Map;
+-import java.util.PriorityQueue;
+-import java.util.Queue;
++import java.util.*;
+ 
+ /**
+  * The SizeLimitedSimpleConsumerPool keeps a pool of SimpleConsumers
+@@ -33,21 +30,29 @@ public class SimpleConsumerPool {
+ 
+   // maxPoolSize = 0 means unlimited
+   private final int maxPoolSize;
++  // poolInstanceAvailabilityTimeoutMs = 0 means there is no timeout
++  private final int poolInstanceAvailabilityTimeoutMs;
++  private final Time time;
+ 
+   private final SimpleConsumerFactory simpleConsumerFactory;
+   private final Map<String, SimpleConsumer> simpleConsumers;
+   private final Queue<String> availableConsumers;
+ 
+-  public SimpleConsumerPool(int maxPoolSize, SimpleConsumerFactory simpleConsumerFactory) {
++  public SimpleConsumerPool(int maxPoolSize, int poolInstanceAvailabilityTimeoutMs,
++                            Time time, SimpleConsumerFactory simpleConsumerFactory) {
+     this.maxPoolSize = maxPoolSize;
++    this.poolInstanceAvailabilityTimeoutMs = poolInstanceAvailabilityTimeoutMs;
++    this.time = time;
+     this.simpleConsumerFactory = simpleConsumerFactory;
+ 
+     simpleConsumers = new HashMap<String, SimpleConsumer>();
+-    availableConsumers = new PriorityQueue<String>();
++    availableConsumers = new LinkedList<String>();
+   }
+ 
+   synchronized public SimpleFetcher get(final String host, final int port) {
+ 
++    final long expiration = time.milliseconds() + poolInstanceAvailabilityTimeoutMs;
++
+     while (true) {
+       // If there is a SimpleConsumer available
+       if (availableConsumers.size() > 0) {
+@@ -64,9 +69,16 @@ synchronized public SimpleFetcher get(final String host, final int port) {
+ 
+       // If no consumer is available and we reached the limit
+       try {
+-        wait();
++        // The behavior of wait when poolInstanceAvailabilityTimeoutMs=0 is consistent as it won't timeout
++        wait(poolInstanceAvailabilityTimeoutMs);
+       } catch (InterruptedException e) {
+-        log.warn("A thread requesting a SimpleConsumer has been interrupted while waiting");
++        log.warn("A thread requesting a SimpleConsumer has been interrupted while waiting", e);
++      }
++
++      // In some cases ("spurious wakeup", see wait() doc), the thread will resume before the timeout
++      // We have to guard against that and throw only if the timeout has expired for real
++      if (time.milliseconds() > expiration && poolInstanceAvailabilityTimeoutMs != 0) {
++        throw Errors.simpleConsumerPoolTimeoutException();
+       }
+     }
+ 
+diff --git a/src/main/java/io/confluent/kafkarest/entities/AvroTopicProduceRecord.java b/src/main/java/io/confluent/kafkarest/entities/AvroTopicProduceRecord.java
+index 9b62358031..bb1f9dfe34 100644
+--- a/src/main/java/io/confluent/kafkarest/entities/AvroTopicProduceRecord.java
++++ b/src/main/java/io/confluent/kafkarest/entities/AvroTopicProduceRecord.java
+@@ -35,6 +35,12 @@ public AvroTopicProduceRecord(@JsonProperty("key") JsonNode key,
+     this.partition = partition;
+   }
+ 
++  @Override
++  public Integer partition() {
++    return partition;
++  }
++
++  @Override
+   @JsonProperty
+   public Integer getPartition() {
+     return partition;
+diff --git a/src/main/java/io/confluent/kafkarest/entities/BinaryTopicProduceRecord.java b/src/main/java/io/confluent/kafkarest/entities/BinaryTopicProduceRecord.java
+index 0186096eda..83ca87bec2 100644
+--- a/src/main/java/io/confluent/kafkarest/entities/BinaryTopicProduceRecord.java
++++ b/src/main/java/io/confluent/kafkarest/entities/BinaryTopicProduceRecord.java
+@@ -53,6 +53,12 @@ public BinaryTopicProduceRecord(byte[] value) {
+     this(null, value, null);
+   }
+ 
++  @Override
++  public Integer partition() {
++    return partition;
++  }
++
++  @Override
+   @JsonProperty
+   public Integer getPartition() {
+     return partition;
+diff --git a/src/main/java/io/confluent/kafkarest/entities/ConsumerInstanceConfig.java b/src/main/java/io/confluent/kafkarest/entities/ConsumerInstanceConfig.java
+index 7066496e5b..5178e8ff1d 100644
+--- a/src/main/java/io/confluent/kafkarest/entities/ConsumerInstanceConfig.java
++++ b/src/main/java/io/confluent/kafkarest/entities/ConsumerInstanceConfig.java
+@@ -27,6 +27,7 @@ public class ConsumerInstanceConfig {
+   private static final EmbeddedFormat DEFAULT_FORMAT = EmbeddedFormat.BINARY;
+ 
+   private String id;
++  private String name;
+   @NotNull
+   private EmbeddedFormat format;
+   private String autoOffsetReset;
+@@ -38,14 +39,16 @@ public ConsumerInstanceConfig() {
+ 
+   public ConsumerInstanceConfig(EmbeddedFormat format) {
+     // This constructor is only for tests so reparsing the format name is ok
+-    this(null, format.name(), null, null);
++    this(null, null, format.name(), null, null);
+   }
+ 
+   public ConsumerInstanceConfig(@JsonProperty("id") String id,
++                                @JsonProperty("name") String name,
+                                 @JsonProperty("format") String format,
+                                 @JsonProperty("auto.offset.reset") String autoOffsetReset,
+                                 @JsonProperty("auto.commit.enable") String autoCommitEnable) {
+     this.id = id;
++    this.name = name;
+     if (format == null) {
+       this.format = DEFAULT_FORMAT;
+     } else {
+@@ -76,6 +79,16 @@ public void setId(String id) {
+     this.id = id;
+   }
+ 
++  @JsonProperty
++  public String getName() {
++    return name;
++  }
++
++  @JsonProperty
++  public void setName(String name) {
++    this.name = name;
++  }
++
+   @JsonIgnore
+   public EmbeddedFormat getFormat() {
+     return format;
+diff --git a/src/main/java/io/confluent/kafkarest/entities/ProduceRecord.java b/src/main/java/io/confluent/kafkarest/entities/ProduceRecord.java
+index e6e5f01879..dbfd8530fd 100644
+--- a/src/main/java/io/confluent/kafkarest/entities/ProduceRecord.java
++++ b/src/main/java/io/confluent/kafkarest/entities/ProduceRecord.java
+@@ -21,4 +21,9 @@ public interface ProduceRecord<K, V> {
+   public K getKey();
+ 
+   public V getValue();
++
++  // Non-standard naming so we can unify the interfaces of ProduceRecord and TopicProduceRecord,
++  // but get Jackson to behave properly, not serializing the value & triggering errors if the
++  // field is present during deserialization for types where it should always be null.
++  public Integer partition();
+ }
+\ No newline at end of file
+diff --git a/src/main/java/io/confluent/kafkarest/entities/ProduceRecordBase.java b/src/main/java/io/confluent/kafkarest/entities/ProduceRecordBase.java
+index 1da4ef1da5..2cfdb9fcaa 100644
+--- a/src/main/java/io/confluent/kafkarest/entities/ProduceRecordBase.java
++++ b/src/main/java/io/confluent/kafkarest/entities/ProduceRecordBase.java
+@@ -47,6 +47,11 @@ public void setValue(V value) {
+     this.value = value;
+   }
+ 
++  @Override
++  public Integer partition() {
++    return null;
++  }
++
+   /**
+    * Return a JSON-serializable version of the key. This does not need to handle schemas.
+    */
+diff --git a/src/main/java/io/confluent/kafkarest/resources/PartitionsResource.java b/src/main/java/io/confluent/kafkarest/resources/PartitionsResource.java
+index d479145c47..d3fc568fd6 100644
+--- a/src/main/java/io/confluent/kafkarest/resources/PartitionsResource.java
++++ b/src/main/java/io/confluent/kafkarest/resources/PartitionsResource.java
+@@ -48,8 +48,9 @@
+ import io.confluent.rest.annotations.PerformanceMetric;
+ 
+ @Path("/topics/{topic}/partitions")
+-@Produces({Versions.KAFKA_V1_JSON_WEIGHTED, Versions.KAFKA_DEFAULT_JSON_WEIGHTED,
+-           Versions.JSON_WEIGHTED})
++@Produces({Versions.KAFKA_V1_JSON_BINARY_WEIGHTED_LOW, Versions.KAFKA_V1_JSON_AVRO_WEIGHTED_LOW,
++    Versions.KAFKA_V1_JSON_WEIGHTED, Versions.KAFKA_DEFAULT_JSON_WEIGHTED,
++    Versions.JSON_WEIGHTED})
+ @Consumes({Versions.KAFKA_V1_JSON, Versions.KAFKA_DEFAULT_JSON, Versions.JSON,
+            Versions.GENERIC_REQUEST})
+ public class PartitionsResource {
+@@ -88,7 +89,6 @@ public Partition getPartition(final @PathParam("topic") String topic,
+       Versions.KAFKA_V1_JSON_WEIGHTED,
+       Versions.KAFKA_DEFAULT_JSON_WEIGHTED,
+       Versions.JSON_WEIGHTED,
+-      Versions.KAFKA_V1_JSON_BINARY_WEIGHTED_LOW,
+       Versions.ANYTHING})
+   public void consumeBinary(final @Suspended AsyncResponse asyncResponse,
+                             final @PathParam("topic") String topicName,
+@@ -102,7 +102,7 @@ public void consumeBinary(final @Suspended AsyncResponse asyncResponse,
+   @GET
+   @Path("/{partition}/messages")
+   @PerformanceMetric("partition.consume-avro")
+-  @Produces({Versions.KAFKA_V1_JSON_AVRO_WEIGHTED, Versions.KAFKA_V1_JSON_AVRO_WEIGHTED_LOW})
++  @Produces({Versions.KAFKA_V1_JSON_AVRO_WEIGHTED})
+   public void consumeAvro(final @Suspended AsyncResponse asyncResponse,
+                           final @PathParam("topic") String topicName,
+                           final @PathParam("partition") int partitionId,
+diff --git a/src/test/java/io/confluent/kafkarest/TestUtils.java b/src/test/java/io/confluent/kafkarest/TestUtils.java
+index 7fb48794b4..f15640e6ac 100644
+--- a/src/test/java/io/confluent/kafkarest/TestUtils.java
++++ b/src/test/java/io/confluent/kafkarest/TestUtils.java
+@@ -175,6 +175,14 @@ public static JsonNode jsonTree(String jsonData) {
+     }
+   }
+ 
++  public static void assertPartitionsEqual(List<PartitionOffset> a, List<PartitionOffset> b) {
++    assertEquals(a.size(), b.size());
++    for (int i = 0; i < a.size(); i++) {
++      PartitionOffset aOffset = a.get(i), bOffset = b.get(i);
++      assertEquals(aOffset.getPartition(), bOffset.getPartition());
++    }
++  }
++
+   public static void assertPartitionOffsetsEqual(List<PartitionOffset> a, List<PartitionOffset> b) {
+     // We can't be sure these will be exactly equal since they may be random. Instead verify that
+     // exception vs. non-exception responses match up
+diff --git a/src/test/java/io/confluent/kafkarest/integration/AbstractConsumerTest.java b/src/test/java/io/confluent/kafkarest/integration/AbstractConsumerTest.java
+index 387b6a5a20..2935eae2f7 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/AbstractConsumerTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/AbstractConsumerTest.java
+@@ -21,6 +21,8 @@
+ import org.apache.kafka.clients.producer.ProducerRecord;
+ import org.apache.kafka.common.serialization.ByteArraySerializer;
+ 
++import java.net.MalformedURLException;
++import java.net.URL;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+@@ -100,11 +102,31 @@ protected void produceAvroMessages(List<ProducerRecord<Object, Object>> records)
+     producer.close();
+   }
+ 
++  protected Response createConsumerInstance(String groupName, String id,
++                                            String name, EmbeddedFormat format) {
++    ConsumerInstanceConfig config = null;
++    if (id != null || name != null || format != null) {
++      config = new ConsumerInstanceConfig(
++          id, name, (format != null ? format.toString() : null), null, null);
++    }
++    return request("/consumers/" + groupName)
++        .post(Entity.entity(config, Versions.KAFKA_MOST_SPECIFIC_DEFAULT));
++  }
++
++  protected String consumerNameFromInstanceUrl(String url) {
++    try {
++      String[] pathComponents = new URL(url).getPath().split("/");
++      return pathComponents[pathComponents.length-1];
++    } catch (MalformedURLException e) {
++      throw new RuntimeException(e);
++    }
++  }
++
+   // Need to start consuming before producing since consumer is instantiated internally and
+   // starts at latest offset
+   protected String startConsumeMessages(String groupName, String topic, EmbeddedFormat format,
+-                                        String accept, String expectedMediatype) {
+-    return startConsumeMessages(groupName, topic, format, accept, expectedMediatype, false);
++                                        String expectedMediatype) {
++    return startConsumeMessages(groupName, topic, format, expectedMediatype, false);
+   }
+ 
+   /**
+@@ -115,21 +137,18 @@ protected String startConsumeMessages(String groupName, String topic, EmbeddedFo
+    * @param topic             topic to consume
+    * @param format            embedded format to use. If null, an null ConsumerInstanceConfig is
+    *                          sent, resulting in default settings
+-   * @param accept            mediatype for Accept header, or null to omit the header
+    * @param expectedMediatype expected Content-Type of response
+    * @param expectFailure     if true, expect the initial read request to generate a 404
+    * @return the new consumer instance's base URI
+    */
+   protected String startConsumeMessages(String groupName, String topic, EmbeddedFormat format,
+-                                        String accept, String expectedMediatype,
++                                        String expectedMediatype,
+                                         boolean expectFailure) {
+-    ConsumerInstanceConfig config = null;
+-    if (format != null) {
+-      config = new ConsumerInstanceConfig(format);
+-    }
+-    CreateConsumerInstanceResponse instanceResponse = request("/consumers/" + groupName)
+-        .post(Entity.entity(config, Versions.KAFKA_MOST_SPECIFIC_DEFAULT),
+-              CreateConsumerInstanceResponse.class);
++    Response createResponse = createConsumerInstance(groupName, null, null, format);
++    assertOKResponse(createResponse, Versions.KAFKA_MOST_SPECIFIC_DEFAULT);
++
++    CreateConsumerInstanceResponse instanceResponse =
++        createResponse.readEntity(CreateConsumerInstanceResponse.class);
+     assertNotNull(instanceResponse.getInstanceId());
+     assertTrue(instanceResponse.getInstanceId().length() > 0);
+     assertTrue("Base URI should contain the consumer instance ID",
+diff --git a/src/test/java/io/confluent/kafkarest/integration/AbstractProducerTest.java b/src/test/java/io/confluent/kafkarest/integration/AbstractProducerTest.java
+index a7eb3aac4b..9a19c4db75 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/AbstractProducerTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/AbstractProducerTest.java
+@@ -37,13 +37,17 @@ public class AbstractProducerTest extends ClusterTestHarness {
+   protected <K, V> void testProduceToTopic(String topicName,
+                                            List<? extends TopicProduceRecord> records,
+                                            Decoder<K> keyDecoder, Decoder<K> valueDecoder,
+-                                           List<PartitionOffset> offsetResponses) {
++                                           List<PartitionOffset> offsetResponses,
++                                           boolean matchPartitions) {
+     TopicProduceRequest payload = new TopicProduceRequest();
+     payload.setRecords(records);
+     Response response = request("/topics/" + topicName)
+         .post(Entity.entity(payload, Versions.KAFKA_MOST_SPECIFIC_DEFAULT));
+     assertOKResponse(response, Versions.KAFKA_MOST_SPECIFIC_DEFAULT);
+     final ProduceResponse produceResponse = response.readEntity(ProduceResponse.class);
++    if (matchPartitions) {
++      TestUtils.assertPartitionsEqual(offsetResponses, produceResponse.getOffsets());
++    }
+     TestUtils.assertPartitionOffsetsEqual(offsetResponses, produceResponse.getOffsets());
+     TestUtils.assertTopicContains(zkConnect, topicName,
+                                   payload.getRecords(), null,
+diff --git a/src/test/java/io/confluent/kafkarest/integration/ConsumerAvroTest.java b/src/test/java/io/confluent/kafkarest/integration/ConsumerAvroTest.java
+index 6b84489bc0..e21e78ae2b 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/ConsumerAvroTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/ConsumerAvroTest.java
+@@ -107,7 +107,6 @@ public void setUp() throws Exception {
+   @Test
+   public void testConsumeOnlyValues() {
+     String instanceUri = startConsumeMessages(groupName, topicName, EmbeddedFormat.AVRO,
+-                                              Versions.KAFKA_V1_JSON_AVRO,
+                                               Versions.KAFKA_V1_JSON_AVRO);
+     produceAvroMessages(recordsOnlyValues);
+     consumeMessages(instanceUri, topicName, recordsOnlyValues,
+@@ -119,7 +118,6 @@ public void testConsumeOnlyValues() {
+   @Test
+   public void testConsumeWithKeys() {
+     String instanceUri = startConsumeMessages(groupName, topicName, EmbeddedFormat.AVRO,
+-                                              Versions.KAFKA_V1_JSON_AVRO,
+                                               Versions.KAFKA_V1_JSON_AVRO);
+     produceAvroMessages(recordsWithKeys);
+     consumeMessages(instanceUri, topicName, recordsWithKeys,
+@@ -131,13 +129,12 @@ public void testConsumeWithKeys() {
+   @Test
+   public void testConsumeInvalidTopic() {
+     startConsumeMessages(groupName, "nonexistenttopic", EmbeddedFormat.AVRO,
+-                         Versions.KAFKA_V1_JSON_AVRO, Versions.KAFKA_V1_JSON_AVRO, true);
++                         Versions.KAFKA_V1_JSON_AVRO, true);
+   }
+ 
+   @Test
+   public void testConsumeTimeout() {
+     String instanceUri = startConsumeMessages(groupName, topicName, EmbeddedFormat.AVRO,
+-                                              Versions.KAFKA_V1_JSON_AVRO,
+                                               Versions.KAFKA_V1_JSON_AVRO);
+     produceAvroMessages(recordsWithKeys);
+     consumeMessages(instanceUri, topicName, recordsWithKeys,
+@@ -151,7 +148,6 @@ public void testConsumeTimeout() {
+   @Test
+   public void testDeleteConsumer() {
+     String instanceUri = startConsumeMessages(groupName, topicName, EmbeddedFormat.AVRO,
+-                                              Versions.KAFKA_V1_JSON_AVRO,
+                                               Versions.KAFKA_V1_JSON_AVRO);
+     produceAvroMessages(recordsWithKeys);
+     consumeMessages(instanceUri, topicName, recordsWithKeys,
+diff --git a/src/test/java/io/confluent/kafkarest/integration/ConsumerBinaryTest.java b/src/test/java/io/confluent/kafkarest/integration/ConsumerBinaryTest.java
+index dcb7030cba..de9d170900 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/ConsumerBinaryTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/ConsumerBinaryTest.java
+@@ -86,7 +86,7 @@ public void testConsumeOnlyValues() {
+     // Between these tests we either leave the config null or request the binary embedded format
+     // so we can test that both will result in binary consumers. We also us varying accept
+     // parameters to test that we default to Binary for various values.
+-    String instanceUri = startConsumeMessages(groupName, topicName, null, null,
++    String instanceUri = startConsumeMessages(groupName, topicName, null,
+                                               Versions.KAFKA_V1_JSON_BINARY);
+     produceBinaryMessages(recordsOnlyValues);
+     consumeMessages(instanceUri, topicName, recordsOnlyValues,
+@@ -98,7 +98,6 @@ public void testConsumeOnlyValues() {
+   @Test
+   public void testConsumeWithKeys() {
+     String instanceUri = startConsumeMessages(groupName, topicName, EmbeddedFormat.BINARY,
+-                                              Versions.KAFKA_V1_JSON_BINARY,
+                                               Versions.KAFKA_V1_JSON_BINARY);
+     produceBinaryMessages(recordsWithKeys);
+     consumeMessages(instanceUri, topicName, recordsWithKeys,
+@@ -110,13 +109,12 @@ public void testConsumeWithKeys() {
+   @Test
+   public void testConsumeInvalidTopic() {
+     startConsumeMessages(groupName, "nonexistenttopic", null,
+-                         Versions.KAFKA_V1_JSON_BINARY, Versions.KAFKA_V1_JSON_BINARY, true);
++                         Versions.KAFKA_V1_JSON_BINARY, true);
+   }
+ 
+   @Test
+   public void testConsumeTimeout() {
+     String instanceUri = startConsumeMessages(groupName, topicName, EmbeddedFormat.BINARY,
+-                                              Versions.KAFKA_V1_JSON,
+                                               Versions.KAFKA_V1_JSON_BINARY);
+     produceBinaryMessages(recordsWithKeys);
+     consumeMessages(instanceUri, topicName, recordsWithKeys,
+@@ -131,7 +129,6 @@ public void testConsumeTimeout() {
+   @Test
+   public void testDeleteConsumer() {
+     String instanceUri = startConsumeMessages(groupName, topicName, null,
+-                                              Versions.KAFKA_DEFAULT_JSON,
+                                               Versions.KAFKA_V1_JSON_BINARY);
+     produceBinaryMessages(recordsWithKeys);
+     consumeMessages(instanceUri, topicName, recordsWithKeys,
+@@ -145,7 +142,8 @@ public void testDeleteConsumer() {
+   // that isn't specific to the type of embedded data, but since they need
+   @Test
+   public void testInvalidKafkaConsumerConfig() {
+-    ConsumerInstanceConfig config = new ConsumerInstanceConfig("id", "binary", "bad-config", null);
++    ConsumerInstanceConfig config = new ConsumerInstanceConfig("id", "name", "binary",
++                                                               "bad-config", null);
+     Response response = request("/consumers/" + groupName)
+         .post(Entity.entity(config, Versions.KAFKA_V1_JSON));
+     assertErrorResponse(ConstraintViolationExceptionMapper.UNPROCESSABLE_ENTITY, response,
+@@ -153,4 +151,20 @@ public void testInvalidKafkaConsumerConfig() {
+                         Errors.INVALID_CONSUMER_CONFIG_MESSAGE,
+                         Versions.KAFKA_V1_JSON);
+   }
++
++
++  @Test
++  public void testDuplicateConsumerID() {
++    String instanceUrl = startConsumeMessages(groupName, topicName, null,
++                                              Versions.KAFKA_V1_JSON_BINARY);
++    produceBinaryMessages(recordsWithKeys);
++
++    // Duplicate the same instance, which should cause a conflict
++    String name = consumerNameFromInstanceUrl(instanceUrl);
++    Response createResponse = createConsumerInstance(groupName, null, name, null);
++    assertErrorResponse(Response.Status.CONFLICT, createResponse,
++                        Errors.CONSUMER_ALREADY_EXISTS_ERROR_CODE,
++                        Errors.CONSUMER_ALREADY_EXISTS_MESSAGE,
++                        Versions.KAFKA_MOST_SPECIFIC_DEFAULT);
++  }
+ }
+diff --git a/src/test/java/io/confluent/kafkarest/integration/ConsumerTimeoutTest.java b/src/test/java/io/confluent/kafkarest/integration/ConsumerTimeoutTest.java
+index 06695b3a88..71727cb57e 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/ConsumerTimeoutTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/ConsumerTimeoutTest.java
+@@ -55,7 +55,6 @@ public void setUp() throws Exception {
+   @Test
+   public void testConsumerTimeout() throws InterruptedException {
+     String instanceUri = startConsumeMessages(groupName, topicName, EmbeddedFormat.BINARY,
+-                                              Versions.KAFKA_V1_JSON_BINARY,
+                                               Versions.KAFKA_V1_JSON_BINARY);
+     // Even with identical timeouts, should be able to consume multiple times without the
+     // instance timing out
+diff --git a/src/test/java/io/confluent/kafkarest/integration/ProducerTest.java b/src/test/java/io/confluent/kafkarest/integration/ProducerTest.java
+index 76b84dd1a2..870daaa94b 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/ProducerTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/ProducerTest.java
+@@ -71,7 +71,7 @@ public class ProducerTest extends AbstractProducerTest {
+   private final List<BinaryTopicProduceRecord> topicRecordsWithPartitions = Arrays.asList(
+       new BinaryTopicProduceRecord("value".getBytes(), 0),
+       new BinaryTopicProduceRecord("value2".getBytes(), 1),
+-      new BinaryTopicProduceRecord("value3".getBytes(), 0),
++      new BinaryTopicProduceRecord("value3".getBytes(), 1),
+       new BinaryTopicProduceRecord("value4".getBytes(), 2)
+   );
+ 
+@@ -118,6 +118,13 @@ public class ProducerTest extends AbstractProducerTest {
+       new PartitionOffset(0, 3L, null, null)
+   );
+ 
++  private final List<PartitionOffset> producePartitionedOffsets = Arrays.asList(
++      new PartitionOffset(0, 0L, null, null),
++      new PartitionOffset(1, 0L, null, null),
++      new PartitionOffset(1, 1L, null, null),
++      new PartitionOffset(2, 0L, null, null)
++  );
++
+   private boolean sawCallback;
+ 
+   @Override
+@@ -179,25 +186,25 @@ public void onCompletion(
+   @Test
+   public void testProduceToTopicWithKeys() {
+     testProduceToTopic(topicName, topicRecordsWithKeys, binaryDecoder, binaryDecoder,
+-                       produceOffsets);
++                       produceOffsets, false);
+   }
+ 
+   @Test
+   public void testProduceToTopicWithPartitions() {
+     testProduceToTopic(topicName, topicRecordsWithPartitions, binaryDecoder, binaryDecoder,
+-                       produceOffsets);
++                       producePartitionedOffsets, true);
+   }
+ 
+   @Test
+   public void testProduceToTopicWithPartitionsAndKeys() {
+     testProduceToTopic(topicName, topicRecordsWithPartitionsAndKeys, binaryDecoder, binaryDecoder,
+-                       produceOffsets);
++                       producePartitionedOffsets, true);
+   }
+ 
+   @Test
+   public void testProduceToTopicWithNullValues() {
+     testProduceToTopic(topicName, topicRecordsWithNullValues, binaryDecoder, binaryDecoder,
+-                       produceOffsets);
++                       produceOffsets, false);
+   }
+ 
+   @Test
+diff --git a/src/test/java/io/confluent/kafkarest/integration/ProducerTopicAutoCreationTest.java b/src/test/java/io/confluent/kafkarest/integration/ProducerTopicAutoCreationTest.java
+index d211a78818..ea68e1cecc 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/ProducerTopicAutoCreationTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/ProducerTopicAutoCreationTest.java
+@@ -55,6 +55,7 @@ public Properties overrideBrokerProperties(int i, Properties props) {
+   @Test
+   public void testProduceToMissingTopic() {
+     // Should create topic
+-    testProduceToTopic(topicName, topicRecords, binaryDecoder, binaryDecoder, partitionOffsets);
++    testProduceToTopic(topicName, topicRecords, binaryDecoder, binaryDecoder, partitionOffsets,
++                       false);
+   }
+ }
+diff --git a/src/test/java/io/confluent/kafkarest/integration/SimpleConsumerBinaryTest.java b/src/test/java/io/confluent/kafkarest/integration/SimpleConsumerBinaryTest.java
+index 284c5baad0..f5934e24b2 100644
+--- a/src/test/java/io/confluent/kafkarest/integration/SimpleConsumerBinaryTest.java
++++ b/src/test/java/io/confluent/kafkarest/integration/SimpleConsumerBinaryTest.java
+@@ -129,6 +129,22 @@ public void testConsumeWithKeysByOffsetAndCount() {
+     );
+   }
+ 
++  @Test(timeout = 1000)
++  public void testConsumeMoreMessagesThanAvailable() {
++    produceBinaryMessages(recordsOnlyValues);
++
++    simpleConsumeMessages(
++        topicName,
++        0,
++        recordsOnlyValues.size()+1, // Ask for more than there is
++        recordsOnlyValues,
++        Versions.KAFKA_V1_JSON_BINARY,
++        Versions.KAFKA_V1_JSON_BINARY,
++        binaryConsumerRecordType,
++        null
++    );
++  }
++
+   @Test
+   public void testConsumeInvalidTopic() {
+ 
+diff --git a/src/test/java/io/confluent/kafkarest/unit/AbstractConsumerResourceTest.java b/src/test/java/io/confluent/kafkarest/unit/AbstractConsumerResourceTest.java
+index f6dfe18f7b..ad46521845 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/AbstractConsumerResourceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/AbstractConsumerResourceTest.java
+@@ -60,7 +60,7 @@ public class AbstractConsumerResourceTest
+   public AbstractConsumerResourceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     consumerManager = EasyMock.createMock(ConsumerManager.class);
+-    ctx = new Context(config, mdObserver, null, consumerManager, null, null);
++    ctx = new Context(config, mdObserver, null, consumerManager, null);
+ 
+     addResource(new ConsumersResource(ctx));
+   }
+diff --git a/src/test/java/io/confluent/kafkarest/unit/BrokersResourceTest.java b/src/test/java/io/confluent/kafkarest/unit/BrokersResourceTest.java
+index d313510bc7..f4d1b48c25 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/BrokersResourceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/BrokersResourceTest.java
+@@ -49,7 +49,7 @@ public class BrokersResourceTest
+   public BrokersResourceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     producerPool = EasyMock.createMock(ProducerPool.class);
+-    ctx = new Context(config, mdObserver, producerPool, null, null, null);
++    ctx = new Context(config, mdObserver, producerPool, null, null);
+     addResource(new BrokersResource(ctx));
+   }
+ 
+diff --git a/src/test/java/io/confluent/kafkarest/unit/ConsumerManagerTest.java b/src/test/java/io/confluent/kafkarest/unit/ConsumerManagerTest.java
+index 9e6777b6da..1a09bf4e9b 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/ConsumerManagerTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/ConsumerManagerTest.java
+@@ -53,6 +53,7 @@
+ import static org.junit.Assert.assertNull;
+ import static org.junit.Assert.assertThat;
+ import static org.junit.Assert.assertTrue;
++import static org.junit.Assert.fail;
+ 
+ /**
+  * Tests basic create/read/commit/delete functionality of ConsumerManager. This only exercises the
+@@ -71,6 +72,8 @@ public class ConsumerManagerTest {
+ 
+   private boolean sawCallback = false;
+ 
++  private Capture<ConsumerConfig> capturedConsumerConfig;
++
+   @Before
+   public void setUp() throws RestConfigException {
+     Properties props = new Properties();
+@@ -86,23 +89,40 @@ public void setUp() throws RestConfigException {
+ 
+   private ConsumerConnector expectCreate(
+       Map<String, List<Map<Integer, List<ConsumerRecord<byte[], byte[]>>>>> schedules) {
+-    return expectCreate(schedules, false);
++    return expectCreate(schedules, false, null);
+   }
+ 
+   private ConsumerConnector expectCreate(
+       Map<String, List<Map<Integer, List<ConsumerRecord<byte[], byte[]>>>>> schedules,
+-      boolean allowMissingSchedule) {
++      boolean allowMissingSchedule, String requestedId) {
+     ConsumerConnector
+         consumer =
+         new MockConsumerConnector(
+             config.getTime(), "testclient", schedules,
+             Integer.parseInt(KafkaRestConfig.CONSUMER_ITERATOR_TIMEOUT_MS_DEFAULT),
+             allowMissingSchedule);
+-    EasyMock.expect(consumerFactory.createConsumer(EasyMock.<ConsumerConfig>anyObject()))
+-        .andReturn(consumer);
++    capturedConsumerConfig = new Capture<ConsumerConfig>();
++    EasyMock.expect(consumerFactory.createConsumer(EasyMock.capture(capturedConsumerConfig)))
++                        .andReturn(consumer);
+     return consumer;
+   }
+ 
++  // Expect a Kafka consumer to be created, but return it with no data in its queue. Used to test
++  // functionality that doesn't rely on actually consuming the data.
++  private ConsumerConnector expectCreateNoData(String requestedId) {
++    Map<Integer, List<ConsumerRecord<byte[], byte[]>>> referenceSchedule
++        = new HashMap<Integer, List<ConsumerRecord<byte[], byte[]>>>();
++    Map<String, List<Map<Integer, List<ConsumerRecord<byte[], byte[]>>>>> schedules
++        = new HashMap<String, List<Map<Integer, List<ConsumerRecord<byte[], byte[]>>>>>();
++    schedules.put(topicName, Arrays.asList(referenceSchedule));
++
++    return expectCreate(schedules, true, requestedId);
++  }
++
++  private ConsumerConnector expectCreateNoData() {
++    return expectCreateNoData(null);
++  }
++
+   @Test
+   public void testConsumerOverrides() {
+     ConsumerConnector consumer =
+@@ -254,14 +274,48 @@ public void onCompletion(List<? extends ConsumerRecord<byte[], byte[]>> records,
+   }
+ 
+   @Test
+-  public void testMultipleTopicSubscriptionsFail() throws InterruptedException, ExecutionException {
+-    Map<Integer, List<ConsumerRecord<byte[], byte[]>>> referenceSchedule
+-        = new HashMap<Integer, List<ConsumerRecord<byte[], byte[]>>>();
+-    Map<String, List<Map<Integer, List<ConsumerRecord<byte[], byte[]>>>>> schedules
+-        = new HashMap<String, List<Map<Integer, List<ConsumerRecord<byte[], byte[]>>>>>();
+-    schedules.put(topicName, Arrays.asList(referenceSchedule));
++  public void testIDOverridesName() {
++    // We should remain compatible with the original use of consumer IDs, even if it shouldn't
++    // really be used. Specifying any ID should override any naming to ensure the same behavior
++    expectCreateNoData("id");
++    EasyMock.replay(mdObserver, consumerFactory);
++
++    String cid = consumerManager.createConsumer(
++        groupName,
++        new ConsumerInstanceConfig("id", "name", EmbeddedFormat.BINARY.toString(), null, null)
++    );
++    assertEquals("id", cid);
++    assertEquals("id", capturedConsumerConfig.getValue().consumerId().getOrElse(null));
++    EasyMock.verify(mdObserver, consumerFactory);
++  }
++
++  @Test
++  public void testDuplicateConsumerName() {
++    expectCreateNoData();
++    EasyMock.replay(mdObserver, consumerFactory);
+ 
+-    expectCreate(schedules, true);
++    consumerManager.createConsumer(
++        groupName,
++        new ConsumerInstanceConfig(null, "name", EmbeddedFormat.BINARY.toString(), null, null)
++    );
++
++    try {
++      consumerManager.createConsumer(
++          groupName,
++          new ConsumerInstanceConfig(null, "name", EmbeddedFormat.BINARY.toString(), null, null)
++      );
++      fail("Expected to see exception because consumer already exists");
++    } catch (RestException e) {
++      // expected
++      assertEquals(Errors.CONSUMER_ALREADY_EXISTS_ERROR_CODE, e.getErrorCode());
++    }
++
++    EasyMock.verify(mdObserver, consumerFactory);
++  }
++
++  @Test
++  public void testMultipleTopicSubscriptionsFail() throws InterruptedException, ExecutionException {
++    expectCreateNoData();
+     EasyMock.expect(mdObserver.topicExists(topicName)).andReturn(true);
+     EasyMock.expect(mdObserver.topicExists(secondTopicName)).andReturn(true);
+     EasyMock.replay(mdObserver, consumerFactory);
+diff --git a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAbstractConsumeTest.java b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAbstractConsumeTest.java
+index 0e90b56d57..c05bfedf5c 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAbstractConsumeTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAbstractConsumeTest.java
+@@ -43,7 +43,7 @@ public PartitionsResourceAbstractConsumeTest() throws RestConfigException {
+     super();
+     simpleConsumerManager = EasyMock.createMock(SimpleConsumerManager.class);
+ 
+-    final Context ctx = new Context(config, null, null, null, null, simpleConsumerManager);
++    final Context ctx = new Context(config, null, null, null, simpleConsumerManager);
+     addResource(new PartitionsResource(ctx));
+   }
+ 
+diff --git a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAvroProduceTest.java b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAvroProduceTest.java
+index ba75c4abfc..600876ad47 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAvroProduceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceAvroProduceTest.java
+@@ -84,7 +84,7 @@ public class PartitionsResourceAvroProduceTest
+   public PartitionsResourceAvroProduceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     producerPool = EasyMock.createMock(ProducerPool.class);
+-    ctx = new Context(config, mdObserver, producerPool, null, null, null);
++    ctx = new Context(config, mdObserver, producerPool, null, null);
+ 
+     addResource(new TopicsResource(ctx));
+     addResource(new PartitionsResource(ctx));
+diff --git a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceBinaryProduceTest.java b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceBinaryProduceTest.java
+index 50eefdf54b..340503528b 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceBinaryProduceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceBinaryProduceTest.java
+@@ -74,7 +74,7 @@ public class PartitionsResourceBinaryProduceTest
+   public PartitionsResourceBinaryProduceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     producerPool = EasyMock.createMock(ProducerPool.class);
+-    ctx = new Context(config, mdObserver, producerPool, null, null, null);
++    ctx = new Context(config, mdObserver, producerPool, null, null);
+ 
+     addResource(new TopicsResource(ctx));
+     addResource(new PartitionsResource(ctx));
+diff --git a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceTest.java b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceTest.java
+index 7efbf3930b..12ca899f0f 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/PartitionsResourceTest.java
+@@ -65,7 +65,7 @@ public class PartitionsResourceTest
+   public PartitionsResourceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     producerPool = EasyMock.createMock(ProducerPool.class);
+-    ctx = new Context(config, mdObserver, producerPool, null, null, null);
++    ctx = new Context(config, mdObserver, producerPool, null, null);
+ 
+     addResource(new TopicsResource(ctx));
+     addResource(new PartitionsResource(ctx));
+diff --git a/src/test/java/io/confluent/kafkarest/unit/RootResourceTest.java b/src/test/java/io/confluent/kafkarest/unit/RootResourceTest.java
+index 887eb71298..f6a0897452 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/RootResourceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/RootResourceTest.java
+@@ -43,7 +43,7 @@ public class RootResourceTest
+   private Context ctx;
+ 
+   public RootResourceTest() throws RestConfigException {
+-    ctx = new Context(config, null, null, null, null, null);
++    ctx = new Context(config, null, null, null, null);
+     addResource(RootResource.class);
+   }
+ 
+diff --git a/src/test/java/io/confluent/kafkarest/unit/SimpleConsumerPoolTest.java b/src/test/java/io/confluent/kafkarest/unit/SimpleConsumerPoolTest.java
+index f122a464b3..9f18d93b72 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/SimpleConsumerPoolTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/SimpleConsumerPoolTest.java
+@@ -15,25 +15,26 @@
+  **/
+ package io.confluent.kafkarest.unit;
+ 
+-import io.confluent.kafkarest.SimpleConsumerFactory;
+-import io.confluent.kafkarest.SimpleFetcher;
+-import io.confluent.kafkarest.SimpleConsumerPool;
++import io.confluent.kafkarest.*;
+ import io.confluent.rest.RestConfigException;
++import io.confluent.rest.exceptions.RestServerErrorException;
+ import kafka.javaapi.consumer.SimpleConsumer;
+ import org.easymock.EasyMock;
+ import org.easymock.IAnswer;
+ import org.junit.Before;
+ import org.junit.Test;
+ 
+-import java.util.concurrent.ExecutorService;
+-import java.util.concurrent.Executors;
+-import java.util.concurrent.TimeUnit;
++import java.util.ArrayList;
++import java.util.concurrent.*;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import static org.junit.Assert.*;
+ 
+ public class SimpleConsumerPoolTest {
+ 
++  private final int AWAIT_TERMINATION_TIMEOUT = 2000;
++  private final int POOL_CALLER_SLEEP_TIME = 50;
++
+   private SimpleConsumerFactory simpleConsumerFactory;
+ 
+   public SimpleConsumerPoolTest() throws RestConfigException {
+@@ -65,7 +66,9 @@ public SimpleConsumer answer() throws Throwable {
+   public void testPoolWhenOneSingleThreadedCaller() throws Exception {
+ 
+     final int maxPoolSize = 3;
+-    final SimpleConsumerPool pool = new SimpleConsumerPool(maxPoolSize, simpleConsumerFactory);
++    final int poolTimeout = 1000;
++    final SimpleConsumerPool pool =
++        new SimpleConsumerPool(maxPoolSize, poolTimeout, new SystemTime(), simpleConsumerFactory);
+ 
+     for (int i = 0; i < 10; i++) {
+       SimpleFetcher fetcher = pool.get("", 0);
+@@ -88,7 +91,7 @@ public void run() {
+       SimpleFetcher fetcher = pool.get("", 0);
+       try {
+         // Waiting to simulate data fetching from kafka
+-        Thread.sleep(50);
++        Thread.sleep(POOL_CALLER_SLEEP_TIME);
+         fetcher.close();
+       } catch (Exception e) {
+         fail(e.getMessage());
+@@ -100,8 +103,9 @@ public void run() {
+   public void testPoolWhenMultiThreadedCaller() throws Exception {
+ 
+     final int maxPoolSize = 3;
++    final int poolTimeout = 1000;
+     final SimpleConsumerPool consumersPool =
+-        new SimpleConsumerPool(maxPoolSize, simpleConsumerFactory);
++        new SimpleConsumerPool(maxPoolSize, poolTimeout, new SystemTime(), simpleConsumerFactory);
+ 
+     final ExecutorService executorService = Executors.newFixedThreadPool(10);
+     for (int i = 0; i < 10; i++) {
+@@ -109,7 +113,8 @@ public void testPoolWhenMultiThreadedCaller() throws Exception {
+     }
+     executorService.shutdown();
+ 
+-    final boolean allThreadTerminated = executorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
++    final boolean allThreadTerminated =
++        executorService.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.MILLISECONDS);
+     assertTrue(allThreadTerminated);
+     assertEquals(maxPoolSize, consumersPool.size());
+   }
+@@ -118,8 +123,9 @@ public void testPoolWhenMultiThreadedCaller() throws Exception {
+   public void testUnlimitedPoolWhenMultiThreadedCaller() throws Exception {
+ 
+     final int maxPoolSize = 0; // 0 meaning unlimited
++    final int poolTimeout = 1000;
+     final SimpleConsumerPool consumersPool =
+-        new SimpleConsumerPool(maxPoolSize, simpleConsumerFactory);
++        new SimpleConsumerPool(maxPoolSize, poolTimeout, new SystemTime(), simpleConsumerFactory);
+ 
+     final ExecutorService executorService = Executors.newFixedThreadPool(10);
+     for (int i = 0; i < 10; i++) {
+@@ -127,12 +133,66 @@ public void testUnlimitedPoolWhenMultiThreadedCaller() throws Exception {
+     }
+     executorService.shutdown();
+ 
+-    final boolean allThreadTerminated = executorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
++    final boolean allThreadTerminated =
++        executorService.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.MILLISECONDS);
+     assertTrue(allThreadTerminated);
+     // Most of time, the size of the consumers pool will be 10 in the end, but we don't have any guarantee on that,
+     // so we limit the test to checking the pool is not empty
+     assertTrue(consumersPool.size() > 0);
+   }
+ 
++  @Test
++  public void testPoolTimeoutError() throws Exception {
++
++    final int maxPoolSize = 1; // Only one SimpleConsumer instance
++    final int poolTimeout = 1; // And we don't allow allow to wait a lot to get it
++    final SimpleConsumerPool consumersPool =
++        new SimpleConsumerPool(maxPoolSize, poolTimeout, new SystemTime(), simpleConsumerFactory);
++
++    final ExecutorService executorService = Executors.newFixedThreadPool(10);
++    final ArrayList<Future<?>> futures = new ArrayList<Future<?>>();
++    for (int i = 0; i < 10; i++) {
++      futures.add(executorService.submit(new PoolCaller(consumersPool)));
++    }
++    executorService.shutdown();
++
++    final boolean allThreadTerminated =
++        executorService.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.MILLISECONDS);
++    assertTrue(allThreadTerminated);
++
++    boolean poolTimeoutErrorEncountered = false;
++    try {
++      for (Future<?> future : futures) {
++        future.get();
++      }
++    } catch (ExecutionException e) {
++      if (((RestServerErrorException)e.getCause()).getErrorCode() == Errors.NO_SIMPLE_CONSUMER_AVAILABLE_ERROR_CODE) {
++        poolTimeoutErrorEncountered = true;
++      }
++    }
++    assertTrue(poolTimeoutErrorEncountered);
++  }
++
++  @Test
++  public void testPoolNoTimeout() throws Exception {
++
++    final int maxPoolSize = 1; // Only one SimpleConsumer instance
++    final int poolTimeout = 0; // No timeout. A request will wait as long as needed to get a SimpleConsumer instance
++    final SimpleConsumerPool consumersPool =
++        new SimpleConsumerPool(maxPoolSize, poolTimeout, new SystemTime(), simpleConsumerFactory);
++
++    final ExecutorService executorService = Executors.newFixedThreadPool(10);
++    for (int i = 0; i < 10; i++) {
++      executorService.submit(new PoolCaller(consumersPool));
++    }
++    executorService.shutdown();
++
++    final boolean allThreadTerminated =
++        executorService.awaitTermination(POOL_CALLER_SLEEP_TIME*5, TimeUnit.MILLISECONDS);
++
++    // We simulate 10 concurrent requests taking each POOL_CALLER_SLEEP_TIME using the single SimpleConsumer instance
++    // We check that after POOL_CALLER_SLEEP_TIME * 5, there are still requests that are not finished
++    assertFalse(allThreadTerminated);
++  }
+ 
+ }
+diff --git a/src/test/java/io/confluent/kafkarest/unit/TopicsResourceAvroProduceTest.java b/src/test/java/io/confluent/kafkarest/unit/TopicsResourceAvroProduceTest.java
+index e707730169..16d6a400dd 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/TopicsResourceAvroProduceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/TopicsResourceAvroProduceTest.java
+@@ -106,7 +106,7 @@ public class TopicsResourceAvroProduceTest
+   public TopicsResourceAvroProduceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     producerPool = EasyMock.createMock(ProducerPool.class);
+-    ctx = new Context(config, mdObserver, producerPool, null, null, null);
++    ctx = new Context(config, mdObserver, producerPool, null, null);
+ 
+     addResource(new TopicsResource(ctx));
+ 
+diff --git a/src/test/java/io/confluent/kafkarest/unit/TopicsResourceBinaryProduceTest.java b/src/test/java/io/confluent/kafkarest/unit/TopicsResourceBinaryProduceTest.java
+index 5bb080542a..75896dd181 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/TopicsResourceBinaryProduceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/TopicsResourceBinaryProduceTest.java
+@@ -88,7 +88,7 @@ public class TopicsResourceBinaryProduceTest
+   public TopicsResourceBinaryProduceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     producerPool = EasyMock.createMock(ProducerPool.class);
+-    ctx = new Context(config, mdObserver, producerPool, null, null, null);
++    ctx = new Context(config, mdObserver, producerPool, null, null);
+ 
+     addResource(new TopicsResource(ctx));
+ 
+diff --git a/src/test/java/io/confluent/kafkarest/unit/TopicsResourceTest.java b/src/test/java/io/confluent/kafkarest/unit/TopicsResourceTest.java
+index 34e926e89d..390a5b2a03 100644
+--- a/src/test/java/io/confluent/kafkarest/unit/TopicsResourceTest.java
++++ b/src/test/java/io/confluent/kafkarest/unit/TopicsResourceTest.java
+@@ -54,7 +54,7 @@ public class TopicsResourceTest
+   public TopicsResourceTest() throws RestConfigException {
+     mdObserver = EasyMock.createMock(MetadataObserver.class);
+     producerPool = EasyMock.createMock(ProducerPool.class);
+-    ctx = new Context(config, mdObserver, producerPool, null, null, null);
++    ctx = new Context(config, mdObserver, producerPool, null, null);
+ 
+     addResource(new TopicsResource(ctx));
+   }

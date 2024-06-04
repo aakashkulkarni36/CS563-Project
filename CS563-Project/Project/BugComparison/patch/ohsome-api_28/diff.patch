@@ -1,0 +1,578 @@
+diff --git a/README.md b/README.md
+index 1582c037..2e2c3d38 100644
+--- a/README.md
++++ b/README.md
+@@ -1,11 +1,16 @@
+ # ohsome API
+ 
++[![Build Status](http://jenkins.ohsome.org/buildStatus/icon?job=ohsome-api/master)](http://jenkins.ohsome.org/blue/organizations/jenkins/ohsome-api/activity)
++[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.heigit.ohsome/ohsome-api/badge.svg)](https://search.maven.org/artifact/org.heigit.ohsome/ohsome-api)
++[![LICENSE](https://img.shields.io/github/license/GIScience/ohsome-api)](LICENSE)
++[![API docs](https://img.shields.io/badge/API-docs-blue.svg)](https://docs.ohsome.org/ohsome-api/stable)
++[![JavaDocs](https://img.shields.io/badge/Java-docs-blue.svg)](https://docs.ohsome.org/java/ohsome-api)
++[![status: active](https://github.com/GIScience/badges/raw/master/status/active.svg)](https://github.com/GIScience/badges#active)
++
+ The ohsome API is a generic web API for in-depth analysis of OpenStreetMap (OSM) data with a focus on it's history. It allows to get aggregated statistics about the evolution of OSM data itself and about the contributors behind the data. Furthermore, data extraction methods are provided to access the historic development of individual OSM features.
+ 
+ The functionalities of the ohsome API can be accessed via HTTP requests. As a basis underneath serves the [OSHDB API](https://github.com/GIScience/oshdb). The current stable version is [v1.0.0](https://github.com/GIScience/ohsome-api/releases/tag/1.0.0). Developed and maintained by [HeiGIT](https://heigit.org/).
+ 
+-[![](http://jenkins.ohsome.org/buildStatus/icon?job=ohsome-api/master)](http://jenkins.ohsome.org/blue/organizations/jenkins/ohsome-api/activity)
+-
+ ## Using the ohsome API
+ 
+ To make your life easier, we already have a running ohsome API instance on our servers, where you can send your requests to analyze the history of the OpenStreetMap data. This instance is publicly accessible under the following URL:
+@@ -14,7 +19,7 @@ https://api.ohsome.org/v1 (current stable version)
+ 
+ This URL automatically redirects you to the documentation page, where you find explanations and examples for all the different parameters and endpoints that we have implemented in the API. We also have a blog post series called [how to become ohsome](http://k1z.blog.uni-heidelberg.de/tag/become-ohsome/), which gives diverse example analysis and updates on new features. Through the [swagger UI](https://api.ohsome.org/v1/swagger-ui.html) page of the ohsome API you can send simple GET requests and test the individual endpoints.
+ 
+-If you want to contribute to the code base of the ohsome API, please follow the guidline and hints in the upcoming sections.
++If you want to contribute to the code base of the ohsome API, please follow the guideline and hints in the upcoming sections.
+ 
+ ## Getting Started
+ 
+diff --git a/docs/endpoints.rst b/docs/endpoints.rst
+index e76dcb86..81ef4b5d 100644
+--- a/docs/endpoints.rst
++++ b/docs/endpoints.rst
+@@ -27,7 +27,7 @@ Aggregation Endpoints
+    :query keys: Deprecated! Use **filter** parameter instead! Old parameter which allowed to specify OSM key(s) given as a list and combined with the 'AND' operator; default: empty
+    :query values: Deprecated! Use **filter** parameter instead! Old parameter which allowed to specify OSM value(s) given as a list and combined with the 'AND' operator; values(n) MUST fit to keys(n); default: empty
+ .. _bboxes: boundaries.html#bounding-boxes
+-.. _bcircles: boundarices.html#circles
++.. _bcircles: boundaries.html#circles
+ .. _bpolys: boundaries.html#polygons
+ .. _boundaries: boundaries.html#boundaries
+ .. _time: time.html#time
+@@ -1030,7 +1030,9 @@ Extraction Endpoints
+ 
+    :query time: required; format same as described in time_
+    :query properties: specifies what properties should be included for each feature representing an OSM element: ‘tags’ and/or 'metadata’; multiple values can be delimited by commas; default: empty
++   :query clipGeometry: boolean operator to specify whether the returned geometries of the features should be clipped to the query's spatial boundary (‘true’), or not (‘false’); default: ‘true’
+    :query <other>: see above_ (except **format**)
++   
+ 
+ .. note:: The extraction endpoints always return a .geojson file.
+ 
+@@ -1091,9 +1093,11 @@ Get all the bike rental stations in Heidelberg.
+    This endpoint supports the same ``geometryType`` options as the ``/elements`` endpoint.
+ 
+    :query time: required; must consist of two ISO-8601 conform timestrings defining a time interval; no default value
+-   :query properties: specifies what properties should be included for each feature representing an OSM element: ‘tags’ and/or 'metadata’; multiple values can be delimited by commas; default: empty
++   :query properties: same as for generic-extraction_
++   :query clipGeometry: same as for generic-extraction_
+    :query <other>: see above_ (except **format**)
+ 
++.. _generic-extraction: endpoints.html#post--elements-(geometryType)
+ .. _above: endpoints.html#post--elements-(aggregation)
+ .. _time: time.html#time
+ 
+diff --git a/docs/filter.rst b/docs/filter.rst
+index 3e2534b7..b019d9f2 100644
+--- a/docs/filter.rst
++++ b/docs/filter.rst
+@@ -33,9 +33,22 @@ Selectors
+     |                        | | have any tag with the given key  |                        |
+     |                        | |                                  |                        |
+     +------------------------+------------------------------------+------------------------+
++    | ``key in (value list)``| | matches all entities which do    | ``highway in           |
++    |                        | | have any tag with the given key  | (residential,          |
++    |                        | | and one of the given values      | living_street)``       |
++    +------------------------+------------------------------------+------------------------+
+     | ``type:osm-type``      | | matches all entities of the      | ``type:node``          |
+     |                        | | given osm type                   |                        |
+     +------------------------+------------------------------------+------------------------+
++    | ``id:osm-id``          | | matches all entities with the    | ``id:1234``            |
++    |                        | | given osm id                     |                        |
++    +------------------------+------------------------------------+------------------------+
++    | ``id:(id list)``       | | matches all entities with the    | ``id:(1, 42, 1234)``   |
++    |                        | | given osm ids                    |                        |
++    +------------------------+------------------------------------+------------------------+
++    | ``id:(id range)``      | | matches all entities with an id  | ``id:(1 .. 9999)``     |
++    |                        | | matching the given id range      |                        |
++    +------------------------+------------------------------------+------------------------+
+     | ``geometry:geom-type`` | | matches anything which has a     | ``geometry:polygon``   |
+     |                        | | geometry of the given type       |                        |
+     |                        | | (point, line, polygon, or other) |                        |
+@@ -124,18 +137,16 @@ Here's some useful examples for querying some OSM features:
+     |                  |                                                        | | source), but is in reality |
+     |                  |                                                        | | not one.                   |
+     +------------------+--------------------------------------------------------+------------------------------+
+-    | | highways       | | ``type:way and (highway=motorway or``                | | The list of used tags      |
+-    |                  | | ``highway=motorway_link or highway=trunk or``        | | depends on the exact       |
+-    |                  | | ``highway=trunk_link or highway=primary or``         | | definition of a            |
+-    |                  | | ``highway=primary_link or highway=secondary or``     | | "highway". In a            |
+-    |                  | | ``highway=secondary_link or highway=tertiary or``    | | different context, it may  |
+-    |                  | | ``highway=tertiary_link or highway=unclassified or`` | | also include less or even  |
+-    |                  | | ``highway=residential or highway=living_street or``  | | more tags                  |
+-    |                  | | ``highway=pedestrian or (highway=service and``       | | (``highway=footway``,      |
+-    |                  | | ``service=alley))``                                  | | ``highway=cycleway``,      |
+-    |                  | |                                                      | | ``highway=track``,         |
+-    |                  | |                                                      | | ``highway=path``, all      |
+-    |                  | |                                                      | | ``highway=service``, etc.).|
++    | | highways       | | ``type:way and (highway in (motorway,``              | | The list of used tags      |
++    |                  | | ``motorway_link, trunk, trunk_link, primary,``       | | depends on the exact       |
++    |                  | | ``primary_link, secondary, secondary_link,``         | | definition of a            |
++    |                  | | ``tertiary, tertiary_link, unclassified,``           | | "highway". In a            |
++    |                  | | ``residential, living_street, pedestrian) or``       | | different context, it may  |
++    |                  | | ``(highway=service and service=alley))``             | | also include less or even  |
++    |                  |                                                        | | more tags                  |
++    |                  |                                                        | | (``footway``, ``cycleway``,|
++    |                  |                                                        | | ``track``, ``path``, all   |
++    |                  |                                                        | | ``highway=service``, etc.) |
+     +------------------+--------------------------------------------------------+------------------------------+
+     | | residential    | | ``type:way and highway=residential and``             | | Note that some roads       |
+     | | roads missing  | | ``name!=* and noname!=yes``                          | | might be actually          |
+diff --git a/pom.xml b/pom.xml
+index 2e238fe8..995890ea 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -28,7 +28,7 @@
+     <jsonpath.version>2.2.0</jsonpath.version>
+     <jts2geojson.version>0.13.0</jts2geojson.version>
+     <mavenjar.version>3.2.0</mavenjar.version>
+-    <ohsome-filter.version>1.1.4</ohsome-filter.version>
++    <ohsome-filter.version>1.2.0</ohsome-filter.version>
+     <opencsv.version>4.0</opencsv.version>
+     <oshdb.version>0.5.9</oshdb.version>
+     <springboot.version>2.0.3.RELEASE</springboot.version>
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java b/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java
+index 9d490fcf..550baa46 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java
+@@ -155,6 +155,9 @@ private List<Parameter> defineGlobalOperationParams(boolean isDataExtraction) {
+       globalOperationParams.add(new ParameterBuilder().name("properties")
+           .description(ParameterDescriptions.PROPERTIES).modelRef(new ModelRef(string))
+           .parameterType(query).defaultValue("tags").required(false).build());
++      globalOperationParams.add(new ParameterBuilder().name("clipGeometry")
++          .description(ParameterDescriptions.CLIP_GEOMETRY).modelRef(new ModelRef(string))
++          .parameterType(query).defaultValue("true").required(false).build());
+     }
+     globalOperationParams.add(
+         new ParameterBuilder().name("showMetadata").description(ParameterDescriptions.SHOW_METADATA)
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java b/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java
+index 76fa478c..17b07562 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java
+@@ -41,6 +41,9 @@ public class ParameterDescriptions {
+       + "v1.0. We encourage you to use the new parameter 'filter' instead.";
+   public static final String DEPRECATED_USE_FILTER2 = "This parameter has been deprecated since "
+       + "v1.0. We encourage you to use the new parameter 'filter2' instead.";
++  public static final String CLIP_GEOMETRY = "Boolean operator to specify whether the returned "
++      + "geometries of the features should be clipped to the query's spatial boundary (‘true’), "
++      + "or not (‘false’); default: ‘true’";
+ 
+   private ParameterDescriptions() {
+     throw new IllegalStateException("Utility class");
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+index 97363b5a..095e1d2a 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+@@ -99,9 +99,10 @@ public static void extract(ElementsGeometry elemGeom, HttpServletRequest servlet
+     InputProcessor inputProcessor = new InputProcessor(servletRequest, true, false);
+     MapReducer<OSMEntitySnapshot> mapRed = null;
+     inputProcessor.processPropertiesParam();
++    inputProcessor.processIsUnclippedParam();
+     final boolean includeTags = inputProcessor.includeTags();
+     final boolean includeOSMMetadata = inputProcessor.includeOSMMetadata();
+-    final boolean unclippedGeometries = inputProcessor.isUnclipped();
++    final boolean clipGeometries = inputProcessor.isClipGeometry();
+     if (DbConnData.db instanceof OSHDBIgnite) {
+       // on ignite: Use AffinityCall backend, which is the only one properly supporting streaming
+       // of result data, without buffering the whole result in memory before returning the result.
+@@ -131,7 +132,7 @@ public static void extract(ElementsGeometry elemGeom, HttpServletRequest servlet
+       properties.put("@snapshotTimestamp",
+           TimestampFormatter.getInstance().isoDateTime(snapshot.getTimestamp()));
+       Geometry geom = snapshot.getGeometry();
+-      if (unclippedGeometries) {
++      if (!clipGeometries) {
+         geom = snapshot.getGeometryUnclipped();
+       }
+       return exeUtils.createOSMFeature(snapshot.getEntity(), geom, properties, keysInt, includeTags,
+@@ -204,10 +205,11 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+     MapReducer<Feature> contributionPreResult = null;
+     ExecutionUtils exeUtils = new ExecutionUtils(processingData);
+     inputProcessor.processPropertiesParam();
++    inputProcessor.processIsUnclippedParam();
+     InputProcessingUtils utils = inputProcessor.getUtils();
+     final boolean includeTags = inputProcessor.includeTags();
+     final boolean includeOSMMetadata = inputProcessor.includeOSMMetadata();
+-    final boolean unclippedGeometries = inputProcessor.isUnclipped();
++    final boolean clipGeometries = inputProcessor.isClipGeometry();
+     final Set<SimpleFeatureType> simpleFeatureTypes = processingData.getSimpleFeatureTypes();
+     Optional<FilterExpression> filter = processingData.getFilterExpression();
+     final boolean requiresGeometryTypeCheck =
+@@ -233,7 +235,7 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+       } else {
+         // if not "creation": take "before" as starting "row" (geom, tags), valid_from = t_start
+         currentEntity = contributions.get(0).getEntityBefore();
+-        currentGeom = exeUtils.getGeometry(contributions.get(0), unclippedGeometries, true);
++        currentGeom = exeUtils.getGeometry(contributions.get(0), clipGeometries, true);
+         validFrom = startTimestamp;
+       }
+       // then for each contribution:
+@@ -268,7 +270,7 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+         } else {
+           // else: take "after" as next row
+           currentEntity = contribution.getEntityAfter();
+-          currentGeom = exeUtils.getGeometry(contribution, unclippedGeometries, false);
++          currentGeom = exeUtils.getGeometry(contribution, clipGeometries, false);
+           validFrom = TimestampFormatter.getInstance().isoDateTime(contribution.getTimestamp());
+         }
+       }
+@@ -312,7 +314,7 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+             properties.put("@lastEdit", entity.getTimestamp().toString());
+           }
+           Geometry geom = snapshot.getGeometry();
+-          if (unclippedGeometries) {
++          if (!clipGeometries) {
+             geom = snapshot.getGeometryUnclipped();
+           }
+           properties.put("@snapshotTimestamp",
+@@ -984,8 +986,7 @@ public static Response aggregateBasicFiltersRatio(RequestResource requestResourc
+         assert false : "MatchType matches none.";
+         return MatchType.MATCHESNONE;
+       }
+-    }, Arrays.asList(MatchType.MATCHESBOTH, MatchType.MATCHES1, MatchType.MATCHES2,
+-        MatchType.MATCHESNONE));
++    }, EnumSet.allOf(MatchType.class));
+     SortedMap<OSHDBCombinedIndex<OSHDBTimestamp, MatchType>, ? extends Number> result = null;
+     ExecutionUtils exeUtils = new ExecutionUtils(processingData);
+     result = exeUtils.computeResult(requestResource, preResult);
+@@ -1055,7 +1056,7 @@ public static Response aggregateRatio(RequestResource requestResource,
+     ProcessingData processingData = inputProcessor.getProcessingData();
+     ExecutionUtils exeUtils = new ExecutionUtils(processingData);
+     String filter1 = inputProcessor.getProcessingData().getRequestParameters().getFilter();
+-    String filter2 = servletRequest.getParameter("filter2");
++    String filter2 = inputProcessor.createEmptyStringIfNull(servletRequest.getParameter("filter2"));
+     String combinedFilter = exeUtils.combineFiltersWithOr(filter1, filter2);
+     FilterParser fp = new FilterParser(DbConnData.tagTranslator);
+     FilterExpression filterExpr1 = inputProcessor.getUtils().parseFilter(fp, filter1);
+@@ -1090,8 +1091,7 @@ public static Response aggregateRatio(RequestResource requestResource,
+         assert false : "MatchType matches none.";
+         return MatchType.MATCHESNONE;
+       }
+-    }, Arrays.asList(MatchType.MATCHESBOTH, MatchType.MATCHES1, MatchType.MATCHES2,
+-        MatchType.MATCHESNONE));
++    }, EnumSet.allOf(MatchType.class));
+     SortedMap<OSHDBCombinedIndex<OSHDBTimestamp, MatchType>, ? extends Number> result = null;
+     result = exeUtils.computeResult(requestResource, preResult);
+     int resultSize = result.size();
+@@ -1227,13 +1227,6 @@ public static <P extends Geometry & Polygonal> Response aggregateBasicFiltersRat
+     }
+     mapRed = mapRed.osmType(osmTypes);
+     ArrayList<Geometry> arrGeoms = new ArrayList<>(processingData.getBoundaryList());
+-    ArrayList<MatchType> zeroFill = new ArrayList<>();
+-    for (int j = 0; j < arrGeoms.size(); j++) {
+-      zeroFill.add(MatchType.MATCHESBOTH);
+-      zeroFill.add(MatchType.MATCHES1);
+-      zeroFill.add(MatchType.MATCHES2);
+-      zeroFill.add(MatchType.MATCHESNONE);
+-    }
+     MapAggregator<OSHDBCombinedIndex<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, MatchType>, Geometry> preResult =
+         null;
+     // intentionally as check for P on Polygonal is already performed
+@@ -1261,7 +1254,7 @@ public static <P extends Geometry & Polygonal> Response aggregateBasicFiltersRat
+             assert false : "MatchType matches none.";
+           }
+           return MatchType.MATCHESNONE;
+-        }, zeroFill).map(x -> x.getGeometry());
++        }, EnumSet.allOf(MatchType.class)).map(x -> x.getGeometry());
+     switch (requestResource) {
+       case COUNT:
+         result = preResult.count();
+@@ -1374,7 +1367,7 @@ public static <P extends Geometry & Polygonal> Response aggregateRatioGroupByBou
+     }
+     ExecutionUtils exeUtils = new ExecutionUtils(processingData);
+     String filter1 = inputProcessor.getProcessingData().getRequestParameters().getFilter();
+-    String filter2 = servletRequest.getParameter("filter2");
++    String filter2 = inputProcessor.createEmptyStringIfNull(servletRequest.getParameter("filter2"));
+     String combinedFilter = exeUtils.combineFiltersWithOr(filter1, filter2);
+     FilterParser fp = new FilterParser(DbConnData.tagTranslator);
+     FilterExpression filterExpr1 = inputProcessor.getUtils().parseFilter(fp, filter1);
+@@ -1399,13 +1392,6 @@ public static <P extends Geometry & Polygonal> Response aggregateRatioGroupByBou
+     SortedMap<OSHDBCombinedIndex<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, MatchType>, ? extends Number> result =
+         null;
+     ArrayList<Geometry> arrGeoms = new ArrayList<>(processingData.getBoundaryList());
+-    ArrayList<MatchType> zeroFill = new ArrayList<>();
+-    for (int j = 0; j < arrGeoms.size(); j++) {
+-      zeroFill.add(MatchType.MATCHESBOTH);
+-      zeroFill.add(MatchType.MATCHES1);
+-      zeroFill.add(MatchType.MATCHES2);
+-      zeroFill.add(MatchType.MATCHESNONE);
+-    }
+     // intentionally as check for P on Polygonal is already performed
+     @SuppressWarnings({"unchecked"})
+     Map<Integer, P> geoms = arrGeoms.stream()
+@@ -1429,7 +1415,7 @@ public static <P extends Geometry & Polygonal> Response aggregateRatioGroupByBou
+             assert false : "MatchType matches none.";
+           }
+           return MatchType.MATCHESNONE;
+-        }, zeroFill).map(x -> x.getGeometry());
++        }, EnumSet.allOf(MatchType.class)).map(x -> x.getGeometry());
+     switch (requestResource) {
+       case COUNT:
+         result = preResult.count();
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+index f4454fc7..aa2f7c32 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+@@ -291,11 +291,17 @@ public void writeCsvResponse(GroupByObject[] resultSet, HttpServletResponse serv
+       CSVWriter writer = writeComments(servletResponse, comments);
+       Pair<List<String>, List<String[]>> rows;
+       if (resultSet instanceof GroupByResult[]) {
+-        GroupByResult result = (GroupByResult) resultSet[0];
+-        if (result.getResult() instanceof UsersResult[]) {
+-          rows = createCsvResponseForUsersGroupBy(resultSet);
++        if (resultSet.length == 0) {
++          writer.writeNext(new String[] {"timestamp"}, false);
++          writer.close();
++          return;
+         } else {
+-          rows = createCsvResponseForElementsGroupBy(resultSet);
++          GroupByResult result = (GroupByResult) resultSet[0];
++          if (result.getResult() instanceof UsersResult[]) {
++            rows = createCsvResponseForUsersGroupBy(resultSet);
++          } else {
++            rows = createCsvResponseForElementsGroupBy(resultSet);
++          }
+         }
+       } else {
+         rows = createCsvResponseForElementsRatioGroupBy(resultSet);
+@@ -823,20 +829,20 @@ public Map<String, Object> addContribType(OSMContribution contribution,
+    * Extracts and returns a geometry out of the given contribution. The boolean values specify if it
+    * should be clipped/unclipped and if the geometry before/after a contribution should be taken.
+    */
+-  public Geometry getGeometry(OSMContribution contribution, boolean unclippedGeometries,
++  public Geometry getGeometry(OSMContribution contribution, boolean clipGeometries,
+       boolean before) {
+     Geometry geom = null;
+-    if (unclippedGeometries) {
++    if (clipGeometries) {
+       if (before) {
+-        geom = contribution.getGeometryUnclippedBefore();
++        geom = contribution.getGeometryBefore();
+       } else {
+-        geom = contribution.getGeometryUnclippedAfter();
++        geom = contribution.getGeometryAfter();
+       }
+     } else {
+       if (before) {
+-        geom = contribution.getGeometryBefore();
++        geom = contribution.getGeometryUnclippedBefore();
+       } else {
+-        geom = contribution.getGeometryAfter();
++        geom = contribution.getGeometryUnclippedAfter();
+       }
+     }
+     return geom;
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+index 73914c88..f8417d52 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+@@ -76,7 +76,7 @@ public class InputProcessor {
+   private Map<String, String[]> requestParameters;
+   private boolean includeTags;
+   private boolean includeOSMMetadata;
+-  private boolean unclipped;
++  private boolean clipGeometry = true;
+ 
+   public InputProcessor(HttpServletRequest servletRequest, boolean isSnapshot, boolean isDensity) {
+     if (DbConnData.db instanceof OSHDBIgnite) {
+@@ -212,18 +212,8 @@ public <T extends OSHDBMapReducible> MapReducer<T> processParameters(ComputeMode
+       mapRed = mapRed.areaOfInterest((Geometry & Polygonal) boundary);
+     }
+ 
+-    if (showMetadata == null) {
+-      processingData.setShowMetadata(false);
+-    } else if ("true".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))
+-        || "yes".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))) {
+-      processingData.setShowMetadata(true);
+-    } else if ("false".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))
+-        || "".equals(showMetadata.replaceAll("\\s", ""))
+-        || "no".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))) {
+-      processingData.setShowMetadata(false);
+-    } else {
+-      throw new BadRequestException(ExceptionMessages.SHOWMETADATA_PARAM);
+-    }
++    processShowMetadata(showMetadata);
++
+     checkFormat(processingData.getFormat());
+     if ("geojson".equalsIgnoreCase(processingData.getFormat())) {
+       GeoJSONWriter writer = new GeoJSONWriter();
+@@ -467,18 +457,32 @@ public void processPropertiesParam() throws BadRequestException {
+       throw new BadRequestException(ExceptionMessages.PROPERTIES_PARAM);
+     }
+     for (String property : properties) {
++      @Deprecated
++      boolean oldUnclippedParameter = "unclipped".equalsIgnoreCase(property);
+       if ("tags".equalsIgnoreCase(property)) {
+         this.includeTags = true;
+       } else if ("metadata".equalsIgnoreCase(property)) {
+         this.includeOSMMetadata = true;
+-      } else if ("unclipped".equalsIgnoreCase(property)) {
+-        this.unclipped = true;
++      } else if (oldUnclippedParameter) {
++        this.clipGeometry = false;
+       } else {
+         throw new BadRequestException(ExceptionMessages.PROPERTIES_PARAM);
+       }
+     }
+   }
+ 
++  /**
++   * Processes the clipGeometry parameter used in data-extraction ressources and sets the respective
++   * boolean value 'clipGeometry'. Note: this method is called after processPropertiesParam() so it
++   * could overwrite the previously defined value of 'clipGeometry'.
++   */
++  public void processIsUnclippedParam() throws BadRequestException {
++    if (null != requestParameters.get("clipGeometry")) {
++      this.clipGeometry =
++          processBooleanParam("clipGeometry", requestParameters.get("clipGeometry")[0]);
++    }
++  }
++
+   /** Returns the request URL if a GET request was sent. */
+   public String getRequestUrlIfGetRequest(HttpServletRequest servletRequest) {
+     if (!"post".equalsIgnoreCase(servletRequest.getMethod())) {
+@@ -499,21 +503,21 @@ public <T extends Mappable<? extends OSHDBMapReducible>> T filterOnSimpleFeature
+     return (T) mapRed.filter(data -> {
+       if (data instanceof OSMEntitySnapshot) {
+         Geometry snapshotGeom;
+-        if (unclipped) {
+-          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+-        } else {
++        if (clipGeometry) {
+           snapshotGeom = ((OSMEntitySnapshot) data).getGeometry();
++        } else {
++          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+         }
+         return utils.checkGeometryOnSimpleFeatures(snapshotGeom, simpleFeatureTypes);
+       } else if (data instanceof OSMContribution) {
+         Geometry contribGeomBefore;
+         Geometry contribGeomAfter;
+-        if (unclipped) {
+-          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
+-          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+-        } else {
++        if (clipGeometry) {
+           contribGeomBefore = ((OSMContribution) data).getGeometryBefore();
+           contribGeomAfter = ((OSMContribution) data).getGeometryAfter();
++        } else {
++          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
++          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+         }
+         return contribGeomBefore != null
+             && utils.checkGeometryOnSimpleFeatures(contribGeomBefore, simpleFeatureTypes)
+@@ -542,10 +546,10 @@ public <T extends Mappable<? extends OSHDBMapReducible>> T filterOnGeometryType(
+       if (data instanceof OSMEntitySnapshot) {
+         OSMEntity snapshotEntity = ((OSMEntitySnapshot) data).getEntity();
+         Geometry snapshotGeom;
+-        if (unclipped) {
+-          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+-        } else {
++        if (clipGeometry) {
+           snapshotGeom = ((OSMEntitySnapshot) data).getGeometry();
++        } else {
++          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+         }
+         return filterExpr.applyOSMGeometry(snapshotEntity, snapshotGeom);
+       } else if (data instanceof OSMContribution) {
+@@ -553,12 +557,12 @@ public <T extends Mappable<? extends OSHDBMapReducible>> T filterOnGeometryType(
+         OSMEntity entityAfter = ((OSMContribution) data).getEntityAfter();
+         Geometry contribGeomBefore;
+         Geometry contribGeomAfter;
+-        if (unclipped) {
+-          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
+-          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+-        } else {
++        if (clipGeometry) {
+           contribGeomBefore = ((OSMContribution) data).getGeometryBefore();
+           contribGeomAfter = ((OSMContribution) data).getGeometryAfter();
++        } else {
++          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
++          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+         }
+         return contribGeomBefore != null
+             && filterExpr.applyOSMGeometry(entityBefore, contribGeomBefore)
+@@ -817,6 +821,35 @@ private void checkParameters(HttpServletRequest servletRequest) {
+     }
+   }
+ 
++  /**
++   * Processes the given showMetadata parameter and sets the respective value in the processingData
++   * object.
++   */
++  private void processShowMetadata(String showMetadata) {
++    processingData.setShowMetadata(processBooleanParam("showMetadata", showMetadata));
++  }
++
++  /**
++   * Tries to extract and set a boolean value out of the given parameter. Assumes that the default
++   * value of the parameter is false. Throws a 400 - BadRequestException if the content is invalid.
++   */
++  private boolean processBooleanParam(String paramName, String paramValue)
++      throws BadRequestException {
++    if (paramValue == null) {
++      return false;
++    } else if ("true".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))
++        || "yes".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))) {
++      return true;
++    } else if ("false".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))
++        || "".equals(paramValue.replaceAll("\\s", ""))
++        || "no".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))) {
++      return false;
++    } else {
++      throw new BadRequestException("The given parameter " + paramName + " can only contain the "
++          + "values 'true', 'yes', 'false', or 'no'.");
++    }
++  }
++
+   /**
+    * Gets the geometry from the currently in-use boundary object(s).
+    * 
+@@ -864,7 +897,7 @@ public boolean includeOSMMetadata() {
+     return includeOSMMetadata;
+   }
+ 
+-  public boolean isUnclipped() {
+-    return unclipped;
++  public boolean isClipGeometry() {
++    return clipGeometry;
+   }
+ }
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+index 4134ce06..a94d12f2 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+@@ -45,6 +45,7 @@ public static List<String> getResourceSpecificParams(HttpServletRequest servletR
+       return possibleParams;
+     } else if (uri.contains("/bbox") || uri.contains("/centroid") || uri.contains("/geometry")) {
+       possibleParams.add("properties");
++      possibleParams.add("clipGeometry");
+       return possibleParams;
+     } else {
+       return possibleParams;
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java
+index efeef3f4..fc648984 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java
+@@ -172,6 +172,19 @@ public void getElementsCentroidTest() {
+         .findFirst().get().get("geometry").get("coordinates").size());
+   }
+ 
++  @Test
++  public void getElementsClipGeometryParamTrueFalseTest() {
++    TestRestTemplate restTemplate = new TestRestTemplate();
++    String uri = "/elements/geometry?bboxes=8.700582,49.4143039,8.701247,49.414994&types=other,"
++        + "line&keys=building&showMetadata=true&time=2018-01-02";
++    ResponseEntity<JsonNode> emptyFeatureResponse =
++        restTemplate.getForEntity(server + port + uri + "&clipGeometry=false", JsonNode.class);
++    ResponseEntity<JsonNode> featureResponse =
++        restTemplate.getForEntity(server + port + uri + "&clipGeometry=true", JsonNode.class);
++    assertTrue(emptyFeatureResponse.getBody().get("features").size() == 0);
++    assertTrue(featureResponse.getBody().get("features").size() == 1);
++  }
++
+   /*
+    * ./elementsFullHistory/geometry|bbox|centroid tests
+    */

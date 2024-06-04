@@ -1,0 +1,242 @@
+diff --git a/.github/workflows/docker-release.yaml b/.github/workflows/docker-release.yaml
+index e7687e47..c0bcfc4b 100644
+--- a/.github/workflows/docker-release.yaml
++++ b/.github/workflows/docker-release.yaml
+@@ -45,37 +45,25 @@ jobs:
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@master
+-      - name: Build Management API in docker
+-        run: |
+-          mkdir -p ~/.m2
+-          cat <<EOF > ~/.m2/settings.xml
+-          <settings>
+-            <servers>
+-              <server>
+-                <id>artifactory-snapshots</id>
+-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+-              </server>
+-              <server>
+-                <id>artifactory-releases</id>
+-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+-             </server>
+-           </servers>
+-          </settings>
+-          EOF
+-          cp ~/.m2/settings.xml settings.xml
+-      - name: Get Release Version
+-        id: get_version
+-        run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+-      - name: Publish 4.0 to Registry
+-        uses: elgohr/Publish-Docker-Github-Action@master
++      - name: Set up QEMU
++        uses: docker/setup-qemu-action@v1
++      - name: Setup Buildx
++        id: buildx
++        uses: docker/setup-buildx-action@v1
+         with:
+-          name: k8ssandra/cass-management-api
+-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+-          tags: '4.0.0,4.0.0-${{ env.RELEASE_VERSION }}'
+-          dockerfile: Dockerfile-4_0
++          version: latest
++      - name: Login to Docker Hub
++        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
++      - name: Publish 3.11.7 to Registry
++        run: |
++          RELEASE_VERSION="${GITHUB_REF##*/}"
++          docker buildx build --push \
++            --build-arg CASSANDRA_VERSION=4.0 \
++            --tag k8ssandra/cass-management-api:4.0.0 \
++            --tag k8ssandra/cass-management-api:4.0.0-$RELEASE_VERSION \
++            --file Dockerfile-4_0 \
++            --target oss40 \
++            --platform linux/amd64,linux/arm64 .
+   build-oss-3_11_7:
+     runs-on: ubuntu-latest
+     steps:
+@@ -167,4 +155,4 @@ jobs:
+             --tag k8ssandra/cass-management-api:3.11.10-$RELEASE_VERSION \
+             --file Dockerfile-oss \
+             --target oss311 \
+-            --platform linux/amd64 .
++            --platform linux/amd64,linux/arm64 .
+diff --git a/Dockerfile-4_0 b/Dockerfile-4_0
+index eeb15c4e..4aceaab8 100644
+--- a/Dockerfile-4_0
++++ b/Dockerfile-4_0
+@@ -1,6 +1,6 @@
+-ARG CASSANDRA_VERSION=4.0-beta4
++ARG CASSANDRA_VERSION=4.0
+ 
+-FROM maven:3.6.3-jdk-8-slim as builder
++FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
+ 
+ ARG METRICS_COLLECTOR_VERSION=0.2.0
+ 
+@@ -29,7 +29,9 @@ RUN mkdir ${MCAC_PATH} && \
+     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
+     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
+ 
+-FROM cassandra:${CASSANDRA_VERSION}
++FROM cassandra:${CASSANDRA_VERSION} as oss40
++
++ARG TARGETARCH
+ 
+ ENV CASSANDRA_PATH /opt/cassandra
+ ENV MAAC_PATH /opt/management-api
+@@ -54,7 +56,7 @@ RUN mkdir ${USER_HOME_PATH} && \
+     chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
+ 
+ ENV TINI_VERSION v0.18.0
+-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
++ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
+ RUN chmod +x /tini
+ 
+ RUN set -eux; \
+diff --git a/management-api-server/src/test/java/com/datastax/mgmtapi/helpers/DockerHelper.java b/management-api-server/src/test/java/com/datastax/mgmtapi/helpers/DockerHelper.java
+index 30b845b8..9095df48 100644
+--- a/management-api-server/src/test/java/com/datastax/mgmtapi/helpers/DockerHelper.java
++++ b/management-api-server/src/test/java/com/datastax/mgmtapi/helpers/DockerHelper.java
+@@ -100,26 +100,9 @@ public String getIpAddressOfContainer()
+ 
+     public void startManagementAPI(String version, List<String> envVars)
+     {
+-        File baseDir = new File(System.getProperty("dockerFileRoot","."));
+-        File dockerFile;
+-        String target;
+-        boolean useBuildx;
+-
+-        if ("3_11".equals(version))
+-        {
+-            dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-oss").toFile();
+-            target = "oss311";
+-            useBuildx = true;
+-        }
+-        else
+-        {
+-            dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-" + version).toFile();
+-            target = null;
+-            useBuildx = false;
+-        }
+-
+-        if (!dockerFile.exists())
+-            throw new RuntimeException("Missing " + dockerFile.getAbsolutePath());
++        DockerBuildConfig config = DockerBuildConfig.getConfig(version);
++        if (!config.dockerFile.exists())
++            throw new RuntimeException("Missing " + config.dockerFile.getAbsolutePath());
+ 
+         String name = "mgmtapi";
+         List<Integer> ports = Arrays.asList(9042, 8080);
+@@ -130,7 +113,7 @@ public void startManagementAPI(String version, List<String> envVars)
+         if (envVars != null)
+             envList.addAll(envVars);
+ 
+-        this.container = startDocker(dockerFile, baseDir, target, name, ports, volumeDescList, envList, cmdList, useBuildx);
++        this.container = startDocker(config, name, ports, volumeDescList, envList, cmdList);
+ 
+         waitForPort("localhost",8080, Duration.ofMillis(50000), logger, false);
+     }
+@@ -210,15 +193,15 @@ public boolean started()
+         return container != null;
+     }
+ 
+-    private void buildImageWithBuildx(File dockerFile, File baseDir, String target, String name) throws Exception {
++    private void buildImageWithBuildx(DockerBuildConfig config, String name) throws Exception {
+         ProcessBuilder pb = new ProcessBuilder("docker", "buildx", "build",
+             "--load",
+             "--progress", "plain",
+             "--tag", name,
+-            "--file", dockerFile.getPath(),
+-            "--target", target,
++            "--file", config.dockerFile.getPath(),
++            "--target", config.target,
+             "--platform", "linux/amd64",
+-            baseDir.getPath());
++            config.baseDir.getPath());
+ 
+         Process p = pb.inheritIO().start();
+         int exitCode = p.waitFor();
+@@ -229,7 +212,7 @@ private void buildImageWithBuildx(File dockerFile, File baseDir, String target,
+         }
+     }
+ 
+-    private String startDocker(File dockerFile, File baseDir, String target, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList, boolean useBuildx)
++    private String startDocker(DockerBuildConfig config, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
+     {
+         ListContainersCmd listContainersCmd = dockerClient.listContainersCmd();
+         listContainersCmd.getFilters().put("name", Arrays.asList(name));
+@@ -260,7 +243,7 @@ private String startDocker(File dockerFile, File baseDir, String target, String
+         }
+ 
+         // see if we have the image already built
+-        final String imageName = String.format("%s-%s-test", name, dockerFile.getName()).toLowerCase();
++        final String imageName = String.format("%s-%s-test", name, config.dockerFile.getName()).toLowerCase();
+         Image image = searchImages(imageName, dockerClient);
+         if (image == null)
+         {
+@@ -276,12 +259,12 @@ public void onNext(BuildResponseItem item)
+                 }
+             };
+ 
+-            logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", name, dockerFile.getPath(), imageName));
+-            if (useBuildx)
++            logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", name, config.dockerFile.getPath(), imageName));
++            if (config.useBuildx)
+             {
+                 try
+                 {
+-                    buildImageWithBuildx(dockerFile, baseDir, target, imageName);
++                    buildImageWithBuildx(config, imageName);
+                 }
+                 catch (Exception e)
+                 {
+@@ -292,8 +275,8 @@ public void onNext(BuildResponseItem item)
+             else
+             {
+                 dockerClient.buildImageCmd()
+-                    .withBaseDirectory(baseDir)
+-                    .withDockerfile(dockerFile)
++                    .withBaseDirectory(config.baseDir)
++                    .withDockerfile(config.dockerFile)
+                     .withTags(Sets.newHashSet(imageName))
+                     .exec(callback)
+                     .awaitImageId();
+@@ -420,4 +403,34 @@ public void stopManagementAPI()
+             container = null;
+         }
+     }
++
++    private static class DockerBuildConfig
++    {
++        static final File baseDir = new File(System.getProperty("dockerFileRoot","."));
++
++        File dockerFile;
++        String target = null;
++        boolean useBuildx = false;
++
++        static DockerBuildConfig getConfig(String version)
++        {
++            DockerBuildConfig config = new DockerBuildConfig();
++            switch (version) {
++              case "3_11" :
++                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-oss").toFile();
++                  config.target = "oss311";
++                  config.useBuildx = true;
++                  break;
++              case "4_0" :
++                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-4_0").toFile();
++                  config.target = "oss40";
++                  config.useBuildx = true;
++                  break;
++              default : // DSE 6.8
++                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-dse-68").toFile();
++                  break;
++            }
++            return config;
++        }
++    }
+ }

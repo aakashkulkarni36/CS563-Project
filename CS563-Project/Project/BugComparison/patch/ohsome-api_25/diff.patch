@@ -1,0 +1,909 @@
+diff --git a/Jenkinsfile b/Jenkinsfile
+index 57736beb..2e425bed 100644
+--- a/Jenkinsfile
++++ b/Jenkinsfile
+@@ -201,11 +201,10 @@ pipeline {
+           }
+ 
+           // warnings plugin
+-          rtMaven.run pom: 'pom.xml', goals: '--batch-mode -V -e compile checkstyle:checkstyle pmd:pmd pmd:cpd findbugs:findbugs com.github.spotbugs:spotbugs-maven-plugin:3.1.7:spotbugs -Dmaven.repo.local=.m2'
++          rtMaven.run pom: 'pom.xml', goals: '--batch-mode -V -e compile checkstyle:checkstyle pmd:pmd pmd:cpd com.github.spotbugs:spotbugs-maven-plugin:3.1.7:spotbugs -Dmaven.repo.local=.m2'
+ 
+           recordIssues enabledForFailure: true, tools: [mavenConsole(),  java(), javaDoc()]
+           recordIssues enabledForFailure: true, tool: checkStyle()
+-          recordIssues enabledForFailure: true, tool: findBugs()
+           recordIssues enabledForFailure: true, tool: spotBugs()
+           recordIssues enabledForFailure: true, tool: cpd(pattern: '**/target/cpd.xml')
+           recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
+diff --git a/README.md b/README.md
+index b02f1022..1582c037 100644
+--- a/README.md
++++ b/README.md
+@@ -1,17 +1,28 @@
+ # ohsome API
+ 
+-This REST-based API aims to leverage the tools of the [OSHDB-API](https://github.com/GIScience/oshdb) through allowing to access some of its functionalities via HTTP requests.
+-The current stable version is [v1.0.0](https://github.com/GIScience/ohsome-api/releases/tag/1.0.0).
++The ohsome API is a generic web API for in-depth analysis of OpenStreetMap (OSM) data with a focus on it's history. It allows to get aggregated statistics about the evolution of OSM data itself and about the contributors behind the data. Furthermore, data extraction methods are provided to access the historic development of individual OSM features.
++
++The functionalities of the ohsome API can be accessed via HTTP requests. As a basis underneath serves the [OSHDB API](https://github.com/GIScience/oshdb). The current stable version is [v1.0.0](https://github.com/GIScience/ohsome-api/releases/tag/1.0.0). Developed and maintained by [HeiGIT](https://heigit.org/).
+ 
+ [![](http://jenkins.ohsome.org/buildStatus/icon?job=ohsome-api/master)](http://jenkins.ohsome.org/blue/organizations/jenkins/ohsome-api/activity)
+ 
++## Using the ohsome API
++
++To make your life easier, we already have a running ohsome API instance on our servers, where you can send your requests to analyze the history of the OpenStreetMap data. This instance is publicly accessible under the following URL:
++
++https://api.ohsome.org/v1 (current stable version)
++
++This URL automatically redirects you to the documentation page, where you find explanations and examples for all the different parameters and endpoints that we have implemented in the API. We also have a blog post series called [how to become ohsome](http://k1z.blog.uni-heidelberg.de/tag/become-ohsome/), which gives diverse example analysis and updates on new features. Through the [swagger UI](https://api.ohsome.org/v1/swagger-ui.html) page of the ohsome API you can send simple GET requests and test the individual endpoints.
++
++If you want to contribute to the code base of the ohsome API, please follow the guidline and hints in the upcoming sections.
++
+ ## Getting Started
+ 
+ These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+ 
+ ### Prerequisites
+ 
+-* [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) or higher
++* [Java 11](https://openjdk.java.net/projects/jdk/11/) or higher
+ * [Apache Maven 3.5](https://maven.apache.org/download.cgi) or higher
+ * data: [download](http://downloads.ohsome.org/) it directly, or work through a guide on [how to prepare a new OSHDB extract](https://github.com/GIScience/oshdb/blob/master/oshdb-tool/etl/README.md)
+ 
+@@ -49,19 +60,30 @@ To run the tests locally, you need the following:
+ * You can disable the integration and/or junit tests via the following properties: `-Dintegration="no" -Djunit="no"`
+ * If you do not define the -Dport_xyz property, the corresponding test class will not be executed
+ 
++## Examples
++
++This section gives you an overview on analysis and services, that were/are using the ohsome API, as well as a JSON response example.<p>
+ <p>
+-To be able to test this API with your own requests, you can take a look at the description of the parameters and available resources given in the [Swagger2](http://localhost:8080/swagger-ui.html) documentation, which can be accessed while your local copy is running.
+-It lists all available resources and gives detailled information about the individual input parameters and JSON responses.
+ 
+-## Examples
+ 
+-This section gives you some example JSON responses that also contain the respective request URL.<p>
+-Please also take a look at our blog posts, where we provide more information about this API and show possible use-cases:
+-* [How to build a request URL](http://k1z.blog.uni-heidelberg.de/2018/04/26/the-ohsome-api-dynamic-osm-statistics-for-real-world-applications/) 
+-* [Background info about the documentation](http://k1z.blog.uni-heidelberg.de/2018/09/03/documentation-of-the-ohsome-api/) 
++<p>
++The following blog posts describe analysis, which were using the ohsome API:
++   
++* [Farm shops are ohsome](http://k1z.blog.uni-heidelberg.de/2019/07/05/farm-shops-are-ohsome/)
++* [Plausible Parrots - HeiGIT’s OSHDB Supports Research in Citizen Science Data Quality](http://k1z.blog.uni-heidelberg.de/2019/02/27/plausible-parrots-heigits-oshdb-supports-research-in-citizen-science-data-quality/)
+ * [Visualizing the historical OSM evolution of your city](http://k1z.blog.uni-heidelberg.de/2018/12/14/how-to-become-ohsome-part-1-visualizing-the-historical-evolution-of-osm-buildings-of-your-city/) 
++* [Exploring OSM history: the example of health related amenities](http://k1z.blog.uni-heidelberg.de/2019/05/16/exploring-osm-history-the-example-of-health-realted-amenities/)
++* several posts of the [how to become ohsome](http://k1z.blog.uni-heidelberg.de/tag/become-ohsome/) series
++
+ <p>
++These services are using the ohsome API:
++   
++* [ohsomeHeX](https://ohsome.org/apps/osm-history-explorer/#/amenity_clinic_healthcare_clinic_ptpl/2020-06-01T00:00:00Z/2/0/0)
++* [ohsome dashboard](https://ohsome.org/apps/dashboard/)
++* [ohsome2label](https://github.com/GIScience/ohsome2label)
++
+ 
++Here you see an example response giving the length of residential roads for a bounding box around the german city Heidelberg.
+ 
+ ```json
+ {
+@@ -95,59 +117,6 @@ Please also take a look at our blog posts, where we provide more information abo
+     ]
+ }
+ ```
+-<p>
+-
+-
+-```json
+-{
+-    "attribution": {
+-        "url": "https://ohsome.org/copyrights",
+-        "text": "© OpenStreetMap contributors"
+-    },
+-    "apiVersion": "1.0.0",
+-    "metadata": {
+-        "executionTime": 670,
+-        "description": "Total count of items in absolute values, aggregated on the boundary.",
+-        "requestUrl": "http://localhost:8080/elements/count/groupBy/boundary?filter=building=%2A%20and%20type:way&time=2015-01/2017-01-01/P1Y&showMetadata=true&bpolys=%7B%22type%22:%22FeatureCollection%22,%22features%22:%5B%7B%22type%22:%22Feature%22,%22properties%22:%7B%22id%22:%22Heidelberg%22%7D,%22geometry%22:%7B%22type%22:%22Polygon%22,%22coordinates%22:%5B%5B%5B8.684692,49.442905%5D,%5B8.613625,49.43688%5D,%5B8.613968,49.366726%5D,%5B8.699455,49.356216%5D,%5B8.731728,49.40427%5D,%5B8.684692,49.442905%5D%5D%5D%7D%7D,%7B%22type%22:%22Feature%22,%22properties%22:%7B%22id%22:%22Weinheim%22%7D,%22geometry%22:%7B%22type%22:%22Polygon%22,%22coordinates%22:%5B%5B%5B8.656197,49.571762%5D,%5B8.611565,49.543034%5D,%5B8.675766,49.516518%5D,%5B8.698769,49.55751%5D,%5B8.656197,49.571762%5D%5D%5D%7D%7D%5D%7D"
+-    },
+-    "groupByBoundaryResult": [
+-        {
+-            "groupByObject": "Heidelberg",
+-            "result": [
+-                {
+-                    "timestamp": "2015-01-01T00:00:00Z",
+-                    "value": 21914
+-                },
+-                {
+-                    "timestamp": "2016-01-01T00:00:00Z",
+-                    "value": 22584
+-                },
+-                {
+-                    "timestamp": "2017-01-01T00:00:00Z",
+-                    "value": 24815
+-                }
+-            ]
+-        },
+-        {
+-            "groupByObject": "Weinheim",
+-            "result": [
+-                {
+-                    "timestamp": "2015-01-01T00:00:00Z",
+-                    "value": 6968
+-                },
+-                {
+-                    "timestamp": "2016-01-01T00:00:00Z",
+-                    "value": 9634
+-                },
+-                {
+-                    "timestamp": "2017-01-01T00:00:00Z",
+-                    "value": 11728
+-                }
+-            ]
+-        }
+-    ]
+-}
+-```
+ 
+ ## Documentation
+ 
+@@ -180,7 +149,6 @@ DOCS_DEPLOYMENT=release make clean html
+ 
+ ## Built With
+ 
+-* [Eclipse](http://www.eclipse.org/downloads/packages/eclipse-ide-java-ee-developers/oxygen1a) - IDE
+ * [Spring Boot](https://projects.spring.io/spring-boot/) - Web framework
+ * [Maven](https://maven.apache.org/) - Dependency management and project building
+ * [Sphinx](https://www.sphinx-doc.org) - API documentation
+diff --git a/docs/conf.py b/docs/conf.py
+index 558f5786..4eb3a818 100644
+--- a/docs/conf.py
++++ b/docs/conf.py
+@@ -48,6 +48,7 @@
+   'sphinxcontrib.openapi',
+   'sphinxcontrib.httpdomain',
+   'sphinx_tabs.tabs',
++  'sphinx_copybutton',
+ ]
+ 
+ # Add any paths that contain templates here, relative to this directory.
+diff --git a/docs/endpoints.rst b/docs/endpoints.rst
+index 26a8d0bd..d7167d98 100644
+--- a/docs/endpoints.rst
++++ b/docs/endpoints.rst
+@@ -33,25 +33,25 @@ Aggregation Endpoints
+ .. _time: time.html#time
+ .. _filter: filter.html#filter
+ 
++
+ **Example request**:
+ 
++How big is the area of farmland in the region Rhein-Neckar?
++
+  .. tabs::
+ 
+    .. code-tab:: bash curl (GET)
+ 
+-      # How big is the area of farmland in the region Rhein-Neckar?
+ 
+       curl -X GET 'https://api.ohsome.org/v1/elements/area?bboxes=8.625%2C49.3711%2C8.7334%2C49.4397&format=json&time=2014-01-01&filter=landuse%3Dfarmland%20and%20type%3Away'
+ 
+    .. code-tab:: bash curl (POST)
+ 
+-      # How big is the area of farmland in the region Rhein-Neckar?
+ 
+       curl -X POST 'https://api.ohsome.org/v1/elements/area' --data-urlencode 'bboxes=8.625,49.3711,8.7334,49.4397' --data-urlencode 'format=json' --data-urlencode 'time=2014-01-01' --data-urlencode 'filter=landuse=farmland and type:way'
+ 
+    .. code-tab:: python Python
+ 
+-       # How big is the area of farmland in the region Rhein-Neckar?
+ 
+        import requests
+        URL = 'https://api.ohsome.org/v1/elements/area'
+@@ -61,7 +61,6 @@ Aggregation Endpoints
+ 
+    .. code-tab:: r R
+ 
+-       # How big is the area of farmland in the region Rhein-Neckar?
+ 
+        library(httr)
+        r <- POST("https://api.ohsome.org/v1/elements/area", encode = "form", body = list(bboxes = "8.625,49.3711,8.7334,49.4397", filter = "landuse=farmland and type:way", time = "2014-01-01"))
+@@ -140,34 +139,27 @@ Aggregation Endpoints
+ 
+ **Example request**:
+ 
++What is the density of restaurants with wheelchair access in Heidelberg?
++
+    .. tabs::
+ 
+       .. code-tab:: bash curl (GET)
+ 
+-         # What is the density of restaurants with wheelchair access in Heidelberg?
+-
+          curl -X GET 'https://api.ohsome.org/v1/elements/count/density?bboxes=8.625%2C49.3711%2C8.7334%2C49.4397&format=json&filter=amenity%3Drestaurant%20and%20wheelchair%3Dyes%20and%20type%3Anode&time=2019-05-07'
+ 
+       .. code-tab:: bash curl (POST)
+ 
+-         # What is the density of restaurants with wheelchair access in Heidelberg?
+-
+          curl -X POST 'https://api.ohsome.org/v1/elements/count/density' --data-urlencode 'bboxes=8.625,49.3711,8.7334,49.4397' --data-urlencode 'format=json' --data-urlencode 'time=2019-05-07' --data-urlencode 'filter=amenity=restaurant and wheelchair=yes and type:node'
+ 
+       .. code-tab:: python Python
+ 
+-          # What is the density of restaurants with wheelchair access in Heidelberg?
+-
+           import requests
+           URL = 'https://api.ohsome.org/v1/elements/count/density'
+           data = {"bboxes": "8.625,49.3711,8.7334,49.4397", "format": "json", "time": "2019-05-07", "filter": "amenity=restaurant and wheelchair=yes and type:node"}
+           response = requests.post(URL, data=data)
+ 
+-
+       .. code-tab:: r R
+ 
+-         # What is the density of restaurants with wheelchair access in Heidelberg?
+-
+          library(httr)
+          r <- POST("https://api.ohsome.org/v1/elements/count/density", encode = "form", body = list(bboxes = "8.625,49.3711,8.7334,49.4397", filter = "amenity=restaurant and wheelchair=yes and type:node", time = "2019-05-07"))
+          r
+@@ -247,25 +239,20 @@ Aggregation Endpoints
+    
+ **Example request**:
+ 
++How many oneway streets exist within living_street streets in Heidelberg over time? And how many of them are oneway streets?
++
+  .. tabs::
+ 
+       .. code-tab:: bash curl (GET)
+ 
+-          # How many oneway streets exist within living_street streets in Heidelberg over time? And how many of them are oneway streets?
+-
+           curl -X GET 'https://api.ohsome.org/v1/elements/length/ratio?bboxes=8.625%2C49.3711%2C8.7334%2C49.4397&format=json&filter=highway%3Dliving_street%20and%20type%3Away&filter2=highway%3Dliving_street%20and%20oneway%3Dyes%20and%20type%3Away&time=2016-01-01%2F2018-01-01%2FP1Y'
+ 
+       .. code-tab:: bash curl (POST)
+ 
+-          # How many oneway streets exist within living_street streets in Heidelberg over time? And how many of them are oneway streets?
+-
+           curl -X POST 'https://api.ohsome.org/v1/elements/length/ratio' --data-urlencode 'bboxes=8.625,49.3711,8.7334,49.4397' --data-urlencode 'format=json' --data-urlencode 'time=2016-01-01/2018-01-01/P1Y' --data-urlencode 'filter=highway=living_street and type:way' --data-urlencode 'filter2=highway=living_street and oneway=yes and type:way'
+ 
+-
+       .. code-tab:: python Python
+ 
+-          # How many oneway streets exist within living_street streets in Heidelberg over time? And how many of them are oneway streets?
+-
+           import requests
+           URL = 'https://api.ohsome.org/v1/elements/length/ratio'
+           data = {"bboxes": "8.625,49.3711,8.7334,49.4397", "format": "json", "time": "2016-01-01/2018-01-01/P1Y", "filter": "highway=living_street and type:way", "filter2": "highway=living_street and oneway=yes and type:way"}
+@@ -274,8 +261,6 @@ Aggregation Endpoints
+ 
+       .. code-tab:: r R
+ 
+-           # How many oneway streets exist within living_street streets in Heidelberg over time? And how many of them are oneway streets?
+-
+            library(httr)
+            r <- POST("https://api.ohsome.org/v1/elements/length/ratio", encode = "form", body = list(bboxes = "8.625,49.3711,8.7334,49.4397", time = "2016-01-01/2018-01-01/P1Y", filter = "highway=living_street and type:way", filter2 = "highway=living_street and oneway=yes and type:way"))
+            r
+@@ -414,24 +399,20 @@ Aggregation Endpoints
+ 
+ **Example request**:
+ 
++How often information about the roof of buildings is present?
++
+ .. tabs::
+ 
+      .. code-tab:: bash curl (GET)
+ 
+-        # How often information about the roof of buildings is present?
+-
+         curl -X GET 'https://api.ohsome.org/v1/elements/count/groupBy/key?bboxes=Heidelberg:8.625%2C49.3711%2C8.7334%2C49.4397&format=json&time=2018-01-01&filter=building%3D*%20and%20type%3Away&groupByKeys=building%3Aroof%2Cbuilding%3Aroof%3Acolour'
+ 
+      .. code-tab:: bash curl (POST)
+ 
+-        # How often information about the roof of buildings is present?
+-
+         curl -X POST 'https://api.ohsome.org/v1/elements/count/groupBy/key' --data-urlencode 'bboxes=Heidelberg:8.625,49.3711,8.7334,49.4397' --data-urlencode 'format=json' --data-urlencode 'time=2018-01-01' --data-urlencode 'groupByKeys=building:roof,building:roof:colour' --data-urlencode 'filter=building=* and type:way'
+ 
+      .. code-tab:: python Python
+ 
+-        # How often information about the roof of buildings is present?
+-
+         import requests
+         URL = 'https://api.ohsome.org/v1/elements/count/groupBy/key'
+         data = {"bboxes": "8.625,49.3711,8.7334,49.4397", "format": "json", "time": "2018-01-01", "filter": "building=* and type:way", "groupByKeys": "building:roof,building:roof:colour"}
+@@ -440,8 +421,6 @@ Aggregation Endpoints
+ 
+      .. code-tab:: r R
+ 
+-        # How often information about the roof of buildings is present?
+-
+         library(httr)
+           r <- POST("https://api.ohsome.org/v1/elements/count/groupBy/key", encode = "form", body = list(bboxes = "8.625,49.3711,8.7334,49.4397", filter = "building=* and type:way", time = "2018-01-01", groupByKeys = "building:roof,building:roof:colour"))
+           r
+@@ -592,26 +571,20 @@ Aggregation Endpoints
+ 
+ **Example request**:
+ 
++Compare length of different types of streets for two or more regions.
++
+    .. tabs::
+ 
+         .. code-tab:: bash curl (GET)
+ 
+-           # Compare length of different types of streets for two or more regions.
+-
+            curl -X GET 'https://api.ohsome.org/v1/elements/length/groupBy/boundary/groupBy/tag?bboxes=Heidelberg%3A8.625%2C49.3711%2C8.7334%2C49.4397%7CPlankstadt%3A8.5799%2C49.3872%2C8.6015%2C49.4011&format=json&groupByKey=highway&time=2018-01-01&groupByValues=primary%2Csecondary%2Ctertiary&filter=type%3Away'
+ 
+-
+         .. code-tab:: bash curl (POST)
+ 
+-           # Compare length of different types of streets for two or more regions.
+-
+            curl -X POST 'https://api.ohsome.org/v1/elements/length/groupBy/boundary/groupBy/tag' --data-urlencode 'bboxes=Heidelberg:8.625,49.3711,8.7334,49.4397|Plankstadt:8.5799,49.3872,8.6015,49.4011' --data-urlencode 'format=json' --data-urlencode 'time=2018-01-01' --data-urlencode 'filter=type:way' --data-urlencode 'groupByKey=highway' --data-urlencode 'groupByValues=primary,secondary,tertiary'
+ 
+-
+         .. code-tab:: python Python
+ 
+-            # Compare length of different types of streets for two or more regions.
+-
+             import requests
+             URL = 'https://api.ohsome.org/v1/elements/length/groupBy/boundary/groupBy/tag'
+             data = {"bboxes": "Heidelberg:8.625,49.3711,8.7334,49.4397|Plankstadt:8.5799,49.3872,8.6015,49.4011", "format": "json", "time": "2018-01-01", "filter": "type:way", "groupByKey": "highway", "groupByValues": "primary,secondary,tertiary"}
+@@ -620,8 +593,6 @@ Aggregation Endpoints
+ 
+         .. code-tab:: r R
+ 
+-             # Compare length of different types of streets for two or more regions.
+-
+              library(httr)
+              r <- POST("https://api.ohsome.org/v1/elements/length/groupBy/boundary/groupBy/tag", encode = "form", body = list(bboxes = "Heidelberg:8.625,49.3711,8.7334,49.4397|Plankstadt:8.5799,49.3872,8.6015,49.4011", groupByKey = "highway", time = "2018-01-01", filter = "type:way", groupByValues = "primary,secondary,tertiary"))
+              r
+@@ -892,24 +863,20 @@ Users Aggregation Endpoints
+ 
+ **Example request**:
+ 
++Show number of users editing buildings before, during and after Nepal earthquake 2015.
++
+   .. tabs::
+ 
+     .. code-tab:: bash curl (GET)
+ 
+-       # Show number of users editing buildings before, during and after Nepal earthquake 2015.
+-
+        curl -X GET 'https://api.ohsome.org/v1/users/count?bboxes=82.3055%2C6.7576%2C87.4663%2C28.7025&format=json&filter=building%3D*%20and%20type%3Away&time=2015-03-01%2F2015-08-01%2FP1M'
+ 
+     .. code-tab:: bash curl (POST)
+ 
+-       # Show number of users editing buildings before, during and after Nepal earthquake 2015.
+-
+        curl -X POST 'https://api.ohsome.org/v1/users/count' --data-urlencode 'bboxes=82.3055,6.7576,87.4663,28.7025' --data-urlencode 'format=json' --data-urlencode 'time=2015-03-01/2015-08-01/P1M' --data-urlencode 'filter=building=* and type:way'
+ 
+     .. code-tab:: python Python
+ 
+-        # Show number of users editing buildings before, during and after Nepal earthquake 2015.
+-
+         import requests
+         URL = 'https://api.ohsome.org/v1/users/count'
+         data = {"bboxes": "82.3055,6.7576,87.4663,28.7025", "format": "json", "time": "2015-03-01/2015-08-01/P1M", "filter": "building=* and type:way"}
+@@ -918,8 +885,6 @@ Users Aggregation Endpoints
+ 
+     .. code-tab:: r R
+ 
+-        # Show number of users editing buildings before, during and after Nepal earthquake 2015.
+-
+         library(httr)
+         r <- POST("https://api.ohsome.org/v1/users/count", encode = "form", body = list(bboxes = "82.3055,6.7576,87.4663,28.7025", filter = "building=* and type:way", time = "2015-03-01/2015-08-01/P1M"))
+         r
+@@ -1065,30 +1030,28 @@ Extraction Endpoints
+ 
+    :query time: required; format same as described in time_
+    :query properties: specifies what properties should be included for each feature representing an OSM element: ‘tags’ and/or 'metadata’; multiple values can be delimited by commas; default: empty
++   :query clipGeometry: boolean operator to specify whether the returned geometries of the features should be clipped to the query's spatial boundary (‘true’), or not (‘false’); default: ‘true’
+    :query <other>: see above_ (except **format**)
++   
+ 
+ .. note:: The extraction endpoints always return a .geojson file.
+ 
+ **Example request**:
+ 
++Get all the bike rental stations in Heidelberg.
++
+   .. tabs::
+ 
+     .. code-tab:: bash curl (GET)
+ 
+-       # Get all the bike rental stations in Heidelberg.
+-
+        curl -X GET 'https://api.ohsome.org/v1/elements/geometry?bboxes=8.625%2C49.3711%2C8.7334%2C49.4397&filter=amenity%3Dbicycle_rental%20and%20type%3Anode&time=2019-09-01'
+ 
+     .. code-tab:: bash curl (POST)
+ 
+-       # Get all the bike rental stations in Heidelberg.
+-
+        curl -X POST 'https://api.ohsome.org/v1/elements/geometry' --data-urlencode 'bboxes=8.625,49.3711,8.7334,49.4397' --data-urlencode 'time=2019-09-01' --data-urlencode 'filter=amenity=bicycle_rental and type:node'
+ 
+     .. code-tab:: python Python
+ 
+-        # Get all the bike rental stations in Heidelberg.
+-
+         import requests
+         URL = 'https://api.ohsome.org/v1/elements/geometry'
+         data = {"bboxes": "8.625,49.3711,8.7334,49.4397", "time": "2019-09-01", "filter": "amenity=bicycle_rental and type:node"}
+@@ -1097,8 +1060,6 @@ Extraction Endpoints
+ 
+     .. code-tab:: r R
+ 
+-        # Get all the bike rental stations in Heidelberg.
+-
+         library(httr)
+         r <- POST("https://api.ohsome.org/v1/elements/geometry", encode = "form",body = list(bboxes = "8.625,49.3711,8.7334,49.4397", filter = "amenity=bicycle_rental and type:node", time = "2019-09-01"))
+         r
+@@ -1132,32 +1093,30 @@ Extraction Endpoints
+    This endpoint supports the same ``geometryType`` options as the ``/elements`` endpoint.
+ 
+    :query time: required; must consist of two ISO-8601 conform timestrings defining a time interval; no default value
+-   :query properties: specifies what properties should be included for each feature representing an OSM element: ‘tags’ and/or 'metadata’; multiple values can be delimited by commas; default: empty
++   :query properties: same as for generic-extraction_
++   :query clipGeometry: same as for generic-extraction_
+    :query <other>: see above_ (except **format**)
+ 
++.. _generic-extraction: endpoints.html#post--elements-(geometryType)
+ .. _above: endpoints.html#post--elements-(aggregation)
+ .. _time: time.html#time
+ 
+ **Example request**:
+ 
++Extract the modifications of the blown up tower of the heidelberg castle over time
++
+   .. tabs::
+ 
+     .. code-tab:: bash curl (GET)
+ 
+-       # Extract the modifications of the blown up tower of the heidelberg castle over time
+-
+        curl -X GET 'https://api.ohsome.org/v1/elementsFullHistory/geometry?bboxes=8.7137%2C49.4096%2C8.717%2C49.4119&filter=name%3DKrautturm%20and%20type%3Away&time=2008-01-01%2C2016-01-01'
+ 
+     .. code-tab:: bash curl (POST)
+ 
+-       # Extract the modifications of the blown up tower of the heidelberg castle over time
+-
+        curl -X POST 'https://api.ohsome.org/v1/elementsFullHistory/geometry' --data-urlencode 'bboxes=8.7137,49.4096,8.717,49.4119' --data-urlencode 'time=2008-01-01,2016-01-01' --data-urlencode 'filter=name=Krautturm and type:way'
+ 
+     .. code-tab:: python Python
+ 
+-        # Extract the modifications of the blown up tower of the heidelberg castle over time
+-
+         import requests
+         URL = 'https://api.ohsome.org/v1/elementsFullHistory/geometry'
+         data = {"bboxes": "8.7137,49.4096,8.717,49.4119", "time": "2008-01-01,2016-01-01", "filter": "name=Krautturm and type:way"}
+@@ -1166,8 +1125,6 @@ Extraction Endpoints
+ 
+     .. code-tab:: r R
+ 
+-        # Extract the modifications of the blown up tower of the heidelberg castle over time
+-
+         library(httr)
+         r <- POST("https://api.ohsome.org/v1/elementsFullHistory/geometry", encode = "form", body = list(bboxes = "8.7137,49.4096,8.717,49.4119", time = "2008-01-01,2016-01-01", filter = "name=Krautturm and type:way"))
+         r
+@@ -1341,18 +1298,16 @@ Metadata Endpoint
+ 
+ **Example request**:
+ 
++Get metadata of the underlying OSHDB data
++
+   .. tabs::
+ 
+     .. code-tab:: bash curl (GET)
+ 
+-       # Get metadata of the underlying OSHDB data
+-
+        curl -X GET 'https://api.ohsome.org/v1/metadata'
+ 
+     .. code-tab:: python Python
+ 
+-        # Get metadata of the underlying OSHDB data
+-
+         import requests
+         URL = 'https://api.ohsome.org/v1/metadata'
+         response = requests.get(URL)
+@@ -1360,8 +1315,6 @@ Metadata Endpoint
+ 
+     .. code-tab:: r R
+ 
+-        # Get metadata of the underlying OSHDB data
+-
+         library(httr)
+         r <- GET("https://api.ohsome.org/v1/metadata")
+         r
+diff --git a/docs/requirements.txt b/docs/requirements.txt
+index 700368ba..c0bd6938 100644
+--- a/docs/requirements.txt
++++ b/docs/requirements.txt
+@@ -6,3 +6,4 @@ sphinx_tabs
+ recommonmark
+ m2r
+ anytree
++sphinx-copybutton
+diff --git a/pom.xml b/pom.xml
+index 094f61e1..2e238fe8 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -6,7 +6,7 @@
+   <parent>
+     <groupId>org.heigit.ohsome</groupId>
+     <artifactId>ohsome-parent</artifactId>
+-    <version>2.3</version>
++    <version>2.4</version>
+   </parent>
+ 
+   <artifactId>ohsome-api</artifactId>
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java b/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java
+index 9d490fcf..550baa46 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/config/SwaggerConfig.java
+@@ -155,6 +155,9 @@ private List<Parameter> defineGlobalOperationParams(boolean isDataExtraction) {
+       globalOperationParams.add(new ParameterBuilder().name("properties")
+           .description(ParameterDescriptions.PROPERTIES).modelRef(new ModelRef(string))
+           .parameterType(query).defaultValue("tags").required(false).build());
++      globalOperationParams.add(new ParameterBuilder().name("clipGeometry")
++          .description(ParameterDescriptions.CLIP_GEOMETRY).modelRef(new ModelRef(string))
++          .parameterType(query).defaultValue("true").required(false).build());
+     }
+     globalOperationParams.add(
+         new ParameterBuilder().name("showMetadata").description(ParameterDescriptions.SHOW_METADATA)
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java b/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java
+index 76fa478c..17b07562 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/controller/ParameterDescriptions.java
+@@ -41,6 +41,9 @@ public class ParameterDescriptions {
+       + "v1.0. We encourage you to use the new parameter 'filter' instead.";
+   public static final String DEPRECATED_USE_FILTER2 = "This parameter has been deprecated since "
+       + "v1.0. We encourage you to use the new parameter 'filter2' instead.";
++  public static final String CLIP_GEOMETRY = "Boolean operator to specify whether the returned "
++      + "geometries of the features should be clipped to the query's spatial boundary (‘true’), "
++      + "or not (‘false’); default: ‘true’";
+ 
+   private ParameterDescriptions() {
+     throw new IllegalStateException("Utility class");
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+index 97363b5a..7de00b2c 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+@@ -99,9 +99,10 @@ public static void extract(ElementsGeometry elemGeom, HttpServletRequest servlet
+     InputProcessor inputProcessor = new InputProcessor(servletRequest, true, false);
+     MapReducer<OSMEntitySnapshot> mapRed = null;
+     inputProcessor.processPropertiesParam();
++    inputProcessor.processIsUnclippedParam();
+     final boolean includeTags = inputProcessor.includeTags();
+     final boolean includeOSMMetadata = inputProcessor.includeOSMMetadata();
+-    final boolean unclippedGeometries = inputProcessor.isUnclipped();
++    final boolean clipGeometries = inputProcessor.isClipGeometry();
+     if (DbConnData.db instanceof OSHDBIgnite) {
+       // on ignite: Use AffinityCall backend, which is the only one properly supporting streaming
+       // of result data, without buffering the whole result in memory before returning the result.
+@@ -131,7 +132,7 @@ public static void extract(ElementsGeometry elemGeom, HttpServletRequest servlet
+       properties.put("@snapshotTimestamp",
+           TimestampFormatter.getInstance().isoDateTime(snapshot.getTimestamp()));
+       Geometry geom = snapshot.getGeometry();
+-      if (unclippedGeometries) {
++      if (!clipGeometries) {
+         geom = snapshot.getGeometryUnclipped();
+       }
+       return exeUtils.createOSMFeature(snapshot.getEntity(), geom, properties, keysInt, includeTags,
+@@ -204,10 +205,11 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+     MapReducer<Feature> contributionPreResult = null;
+     ExecutionUtils exeUtils = new ExecutionUtils(processingData);
+     inputProcessor.processPropertiesParam();
++    inputProcessor.processIsUnclippedParam();
+     InputProcessingUtils utils = inputProcessor.getUtils();
+     final boolean includeTags = inputProcessor.includeTags();
+     final boolean includeOSMMetadata = inputProcessor.includeOSMMetadata();
+-    final boolean unclippedGeometries = inputProcessor.isUnclipped();
++    final boolean clipGeometries = inputProcessor.isClipGeometry();
+     final Set<SimpleFeatureType> simpleFeatureTypes = processingData.getSimpleFeatureTypes();
+     Optional<FilterExpression> filter = processingData.getFilterExpression();
+     final boolean requiresGeometryTypeCheck =
+@@ -233,7 +235,7 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+       } else {
+         // if not "creation": take "before" as starting "row" (geom, tags), valid_from = t_start
+         currentEntity = contributions.get(0).getEntityBefore();
+-        currentGeom = exeUtils.getGeometry(contributions.get(0), unclippedGeometries, true);
++        currentGeom = exeUtils.getGeometry(contributions.get(0), clipGeometries, true);
+         validFrom = startTimestamp;
+       }
+       // then for each contribution:
+@@ -268,7 +270,7 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+         } else {
+           // else: take "after" as next row
+           currentEntity = contribution.getEntityAfter();
+-          currentGeom = exeUtils.getGeometry(contribution, unclippedGeometries, false);
++          currentGeom = exeUtils.getGeometry(contribution, clipGeometries, false);
+           validFrom = TimestampFormatter.getInstance().isoDateTime(contribution.getTimestamp());
+         }
+       }
+@@ -312,7 +314,7 @@ public static void extractFullHistory(ElementsGeometry elemGeom,
+             properties.put("@lastEdit", entity.getTimestamp().toString());
+           }
+           Geometry geom = snapshot.getGeometry();
+-          if (unclippedGeometries) {
++          if (!clipGeometries) {
+             geom = snapshot.getGeometryUnclipped();
+           }
+           properties.put("@snapshotTimestamp",
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+index f4454fc7..bb1a4c93 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+@@ -291,18 +291,28 @@ public void writeCsvResponse(GroupByObject[] resultSet, HttpServletResponse serv
+       CSVWriter writer = writeComments(servletResponse, comments);
+       Pair<List<String>, List<String[]>> rows;
+       if (resultSet instanceof GroupByResult[]) {
+-        GroupByResult result = (GroupByResult) resultSet[0];
+-        if (result.getResult() instanceof UsersResult[]) {
+-          rows = createCsvResponseForUsersGroupBy(resultSet);
++        if (resultSet.length == 0) {
++          List<String> column = new ArrayList<>();
++          column.add("timestamp");
++          rows = new ImmutablePair<>(column, null);
+         } else {
+-          rows = createCsvResponseForElementsGroupBy(resultSet);
++          GroupByResult result = (GroupByResult) resultSet[0];
++          if (result.getResult() instanceof UsersResult[]) {
++            rows = createCsvResponseForUsersGroupBy(resultSet);
++          } else {
++            rows = createCsvResponseForElementsGroupBy(resultSet);
++          }
+         }
+       } else {
+         rows = createCsvResponseForElementsRatioGroupBy(resultSet);
+       }
+       writer.writeNext(rows.getLeft().toArray(new String[rows.getLeft().size()]), false);
+-      writer.writeAll(rows.getRight(), false);
+-      writer.close();
++      if (rows.getRight() != null) {
++        writer.writeAll(rows.getRight(), false);
++        writer.close();
++      } else {
++        writer.close();
++      }
+     } catch (IOException e) {
+       e.printStackTrace();
+     }
+@@ -823,20 +833,20 @@ public Map<String, Object> addContribType(OSMContribution contribution,
+    * Extracts and returns a geometry out of the given contribution. The boolean values specify if it
+    * should be clipped/unclipped and if the geometry before/after a contribution should be taken.
+    */
+-  public Geometry getGeometry(OSMContribution contribution, boolean unclippedGeometries,
++  public Geometry getGeometry(OSMContribution contribution, boolean clipGeometries,
+       boolean before) {
+     Geometry geom = null;
+-    if (unclippedGeometries) {
++    if (clipGeometries) {
+       if (before) {
+-        geom = contribution.getGeometryUnclippedBefore();
++        geom = contribution.getGeometryBefore();
+       } else {
+-        geom = contribution.getGeometryUnclippedAfter();
++        geom = contribution.getGeometryAfter();
+       }
+     } else {
+       if (before) {
+-        geom = contribution.getGeometryBefore();
++        geom = contribution.getGeometryUnclippedBefore();
+       } else {
+-        geom = contribution.getGeometryAfter();
++        geom = contribution.getGeometryUnclippedAfter();
+       }
+     }
+     return geom;
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+index 73914c88..f8417d52 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+@@ -76,7 +76,7 @@ public class InputProcessor {
+   private Map<String, String[]> requestParameters;
+   private boolean includeTags;
+   private boolean includeOSMMetadata;
+-  private boolean unclipped;
++  private boolean clipGeometry = true;
+ 
+   public InputProcessor(HttpServletRequest servletRequest, boolean isSnapshot, boolean isDensity) {
+     if (DbConnData.db instanceof OSHDBIgnite) {
+@@ -212,18 +212,8 @@ public <T extends OSHDBMapReducible> MapReducer<T> processParameters(ComputeMode
+       mapRed = mapRed.areaOfInterest((Geometry & Polygonal) boundary);
+     }
+ 
+-    if (showMetadata == null) {
+-      processingData.setShowMetadata(false);
+-    } else if ("true".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))
+-        || "yes".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))) {
+-      processingData.setShowMetadata(true);
+-    } else if ("false".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))
+-        || "".equals(showMetadata.replaceAll("\\s", ""))
+-        || "no".equalsIgnoreCase(showMetadata.replaceAll("\\s", ""))) {
+-      processingData.setShowMetadata(false);
+-    } else {
+-      throw new BadRequestException(ExceptionMessages.SHOWMETADATA_PARAM);
+-    }
++    processShowMetadata(showMetadata);
++
+     checkFormat(processingData.getFormat());
+     if ("geojson".equalsIgnoreCase(processingData.getFormat())) {
+       GeoJSONWriter writer = new GeoJSONWriter();
+@@ -467,18 +457,32 @@ public void processPropertiesParam() throws BadRequestException {
+       throw new BadRequestException(ExceptionMessages.PROPERTIES_PARAM);
+     }
+     for (String property : properties) {
++      @Deprecated
++      boolean oldUnclippedParameter = "unclipped".equalsIgnoreCase(property);
+       if ("tags".equalsIgnoreCase(property)) {
+         this.includeTags = true;
+       } else if ("metadata".equalsIgnoreCase(property)) {
+         this.includeOSMMetadata = true;
+-      } else if ("unclipped".equalsIgnoreCase(property)) {
+-        this.unclipped = true;
++      } else if (oldUnclippedParameter) {
++        this.clipGeometry = false;
+       } else {
+         throw new BadRequestException(ExceptionMessages.PROPERTIES_PARAM);
+       }
+     }
+   }
+ 
++  /**
++   * Processes the clipGeometry parameter used in data-extraction ressources and sets the respective
++   * boolean value 'clipGeometry'. Note: this method is called after processPropertiesParam() so it
++   * could overwrite the previously defined value of 'clipGeometry'.
++   */
++  public void processIsUnclippedParam() throws BadRequestException {
++    if (null != requestParameters.get("clipGeometry")) {
++      this.clipGeometry =
++          processBooleanParam("clipGeometry", requestParameters.get("clipGeometry")[0]);
++    }
++  }
++
+   /** Returns the request URL if a GET request was sent. */
+   public String getRequestUrlIfGetRequest(HttpServletRequest servletRequest) {
+     if (!"post".equalsIgnoreCase(servletRequest.getMethod())) {
+@@ -499,21 +503,21 @@ public <T extends Mappable<? extends OSHDBMapReducible>> T filterOnSimpleFeature
+     return (T) mapRed.filter(data -> {
+       if (data instanceof OSMEntitySnapshot) {
+         Geometry snapshotGeom;
+-        if (unclipped) {
+-          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+-        } else {
++        if (clipGeometry) {
+           snapshotGeom = ((OSMEntitySnapshot) data).getGeometry();
++        } else {
++          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+         }
+         return utils.checkGeometryOnSimpleFeatures(snapshotGeom, simpleFeatureTypes);
+       } else if (data instanceof OSMContribution) {
+         Geometry contribGeomBefore;
+         Geometry contribGeomAfter;
+-        if (unclipped) {
+-          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
+-          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+-        } else {
++        if (clipGeometry) {
+           contribGeomBefore = ((OSMContribution) data).getGeometryBefore();
+           contribGeomAfter = ((OSMContribution) data).getGeometryAfter();
++        } else {
++          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
++          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+         }
+         return contribGeomBefore != null
+             && utils.checkGeometryOnSimpleFeatures(contribGeomBefore, simpleFeatureTypes)
+@@ -542,10 +546,10 @@ public <T extends Mappable<? extends OSHDBMapReducible>> T filterOnGeometryType(
+       if (data instanceof OSMEntitySnapshot) {
+         OSMEntity snapshotEntity = ((OSMEntitySnapshot) data).getEntity();
+         Geometry snapshotGeom;
+-        if (unclipped) {
+-          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+-        } else {
++        if (clipGeometry) {
+           snapshotGeom = ((OSMEntitySnapshot) data).getGeometry();
++        } else {
++          snapshotGeom = ((OSMEntitySnapshot) data).getGeometryUnclipped();
+         }
+         return filterExpr.applyOSMGeometry(snapshotEntity, snapshotGeom);
+       } else if (data instanceof OSMContribution) {
+@@ -553,12 +557,12 @@ public <T extends Mappable<? extends OSHDBMapReducible>> T filterOnGeometryType(
+         OSMEntity entityAfter = ((OSMContribution) data).getEntityAfter();
+         Geometry contribGeomBefore;
+         Geometry contribGeomAfter;
+-        if (unclipped) {
+-          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
+-          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+-        } else {
++        if (clipGeometry) {
+           contribGeomBefore = ((OSMContribution) data).getGeometryBefore();
+           contribGeomAfter = ((OSMContribution) data).getGeometryAfter();
++        } else {
++          contribGeomBefore = ((OSMContribution) data).getGeometryUnclippedBefore();
++          contribGeomAfter = ((OSMContribution) data).getGeometryUnclippedAfter();
+         }
+         return contribGeomBefore != null
+             && filterExpr.applyOSMGeometry(entityBefore, contribGeomBefore)
+@@ -817,6 +821,35 @@ private void checkParameters(HttpServletRequest servletRequest) {
+     }
+   }
+ 
++  /**
++   * Processes the given showMetadata parameter and sets the respective value in the processingData
++   * object.
++   */
++  private void processShowMetadata(String showMetadata) {
++    processingData.setShowMetadata(processBooleanParam("showMetadata", showMetadata));
++  }
++
++  /**
++   * Tries to extract and set a boolean value out of the given parameter. Assumes that the default
++   * value of the parameter is false. Throws a 400 - BadRequestException if the content is invalid.
++   */
++  private boolean processBooleanParam(String paramName, String paramValue)
++      throws BadRequestException {
++    if (paramValue == null) {
++      return false;
++    } else if ("true".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))
++        || "yes".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))) {
++      return true;
++    } else if ("false".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))
++        || "".equals(paramValue.replaceAll("\\s", ""))
++        || "no".equalsIgnoreCase(paramValue.replaceAll("\\s", ""))) {
++      return false;
++    } else {
++      throw new BadRequestException("The given parameter " + paramName + " can only contain the "
++          + "values 'true', 'yes', 'false', or 'no'.");
++    }
++  }
++
+   /**
+    * Gets the geometry from the currently in-use boundary object(s).
+    * 
+@@ -864,7 +897,7 @@ public boolean includeOSMMetadata() {
+     return includeOSMMetadata;
+   }
+ 
+-  public boolean isUnclipped() {
+-    return unclipped;
++  public boolean isClipGeometry() {
++    return clipGeometry;
+   }
+ }
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+index 4134ce06..a94d12f2 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+@@ -45,6 +45,7 @@ public static List<String> getResourceSpecificParams(HttpServletRequest servletR
+       return possibleParams;
+     } else if (uri.contains("/bbox") || uri.contains("/centroid") || uri.contains("/geometry")) {
+       possibleParams.add("properties");
++      possibleParams.add("clipGeometry");
+       return possibleParams;
+     } else {
+       return possibleParams;
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java
+index efeef3f4..fc648984 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/ElementsControllerTest.java
+@@ -172,6 +172,19 @@ public void getElementsCentroidTest() {
+         .findFirst().get().get("geometry").get("coordinates").size());
+   }
+ 
++  @Test
++  public void getElementsClipGeometryParamTrueFalseTest() {
++    TestRestTemplate restTemplate = new TestRestTemplate();
++    String uri = "/elements/geometry?bboxes=8.700582,49.4143039,8.701247,49.414994&types=other,"
++        + "line&keys=building&showMetadata=true&time=2018-01-02";
++    ResponseEntity<JsonNode> emptyFeatureResponse =
++        restTemplate.getForEntity(server + port + uri + "&clipGeometry=false", JsonNode.class);
++    ResponseEntity<JsonNode> featureResponse =
++        restTemplate.getForEntity(server + port + uri + "&clipGeometry=true", JsonNode.class);
++    assertTrue(emptyFeatureResponse.getBody().get("features").size() == 0);
++    assertTrue(featureResponse.getBody().get("features").size() == 1);
++  }
++
+   /*
+    * ./elementsFullHistory/geometry|bbox|centroid tests
+    */
