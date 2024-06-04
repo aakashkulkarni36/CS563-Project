@@ -1,0 +1,85 @@
+serial_number,repo_name,bug_link,bug_type,consider?,Modified File Name,Modified Line Number,comment
+1,management-api-for-apache-cassandra,https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/147,,,,,K8SSAND-963 ⁃ Cannot use non-default MCAC_PATH directory
+2,management-api-for-apache-cassandra,https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/128,,,,,K8SSAND-870 ⁃ IPCControllerTest fails when run on MacOS
+3,management-api-for-apache-cassandra,https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/122,,,,,K8SSAND-834 ⁃ Cassandra 4.1-SNAPSHOT fails to start
+4,management-api-for-apache-cassandra,https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/103,,,,,API v0.1.24 not compatible with C* 4.0-rc1
+5,management-api-for-apache-cassandra,https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/101,,,,,DB home is not a writeable path
+6,management-api-for-apache-cassandra,https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/100,,,,,K8SSAND-148 ⁃ Fix `--cassandra-home` in entrypoint.sh
+7,catwatch,https://github.com/zalando-incubator/catwatch/issues/52,,,,,Inconsistent project-naming issue
+8,catwatch,https://github.com/zalando-incubator/catwatch/issues/22,,,,,Forked repos (non-Zalando projects) should not be shown
+9,catwatch,https://github.com/zalando-incubator/catwatch/issues/5,,,,,Bug: Not all repositories of the organizations are listed
+10,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/pull/258,,,,,Fix: Seperate Unique Constraints for hashed_guid and hashed_guid_dob
+75,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/69,,,,,Pull requests fail during Sonar step
+76,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/pull/68,,,,,fix: rename test class for use in build process
+77,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/67,,,,,Pull requests fail during deploy step 
+78,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/55,,,,,[BSI][0.3.1-alpha] Missing request size limitation leads to memory exhaustion
+79,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/54,,,,,teleTAN generation and spec don't match. 
+80,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/pull/51,,,,,"fix additional junit tests, clean code, bugfixes"
+81,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/47,,,,,Entity AppSession table in architecture overview  - content errors
+82,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/pull/44,,,,,Teletan matched string with [characters]{7} and thus also matched 8 c…
+83,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/35,,,,,[BSI][0.3.1-alpha] Database Lookup Not Possible After Updating Record
+84,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/33,,,,,[BSI][0.3.1-alpha] Fields in Request Body not Checked
+85,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/32,,,,,[BSI][0.3.1-alpha] TAN Counter Off-By-One
+86,cwa-verification-server,https://github.com/corona-warn-app/cwa-verification-server/issues/15,,,,,API wrong
+102,digdag,https://github.com/treasure-data/digdag/pull/1255,,,,,"To fix TravisCI failure caused by too long log, incrase CI nodes."
+106,digdag,https://github.com/treasure-data/digdag/pull/1227,,,,,Fix some metrics are not exported in digdag-metrics 
+107,digdag,https://github.com/treasure-data/digdag/pull/1225,,,,,Fix bq output parameter.
+108,digdag,https://github.com/treasure-data/digdag/pull/1165,,,,,Fix the message of invalid ISO time format error
+109,digdag,https://github.com/treasure-data/digdag/issues/1142,,,,,ClassCastException thrown when schema_update_options given with bq_load
+110,digdag,https://github.com/treasure-data/digdag/pull/1141,,,,,Fix error when schema_update_options given
+111,digdag,https://github.com/treasure-data/digdag/pull/1118,,,,,Update the condition for filterSessionsByStatus
+112,digdag,https://github.com/treasure-data/digdag/issues/1117,,,,,Session status filter can't return correct list at failure and pending status.
+113,digdag,https://github.com/treasure-data/digdag/issues/1088,,,,,Could not find BigQuery jobs in not US location
+115,digdag,https://github.com/treasure-data/digdag/pull/1081,,,,,Add npm packages to fix missing peer dependencies
+117,digdag,https://github.com/treasure-data/digdag/pull/1073,,,,,Fix the issue which causes infinite task retry.
+118,digdag,https://github.com/treasure-data/digdag/pull/1054,,,,,Fix ParamServer DEFAULT_TTL value.
+119,digdag,https://github.com/treasure-data/digdag/issues/1053,,,,,ParamServer returns empty values
+120,digdag,https://github.com/treasure-data/digdag/pull/1026,,,,,Digdag push validation on the server side.
+121,digdag,https://github.com/treasure-data/digdag/pull/965,,,,,Fix that DigdagClient raises JsonParseException
+123,digdag,https://github.com/treasure-data/digdag/issues/947,,,,,[issue] JsonParseException with digdag push >= 0.9.26
+126,digdag,https://github.com/treasure-data/digdag/issues/859,,,,,pushing dig project to server should verify digs
+127,digdag,https://github.com/treasure-data/digdag/issues/849,,,,,Group retry does not work in call> operator
+128,digdag,https://github.com/treasure-data/digdag/issues/781,,,,,"Improve error message when 'digdag version' command is executed: ""error: RESTEASY004655: Unable to invoke request (processing)"""
+129,digdag,https://github.com/treasure-data/digdag/pull/769,,,,,[Fix] Group Task still has error status when Group Retry succeed
+158,enviroCar-server,https://github.com/enviroCar/enviroCar-server/issues/45,,,,,Deleting Users
+159,enviroCar-server,https://github.com/enviroCar/enviroCar-server/issues/36,,,,,Incorrect removal of friends
+160,enviroCar-server,https://github.com/enviroCar/enviroCar-server/issues/35,,,,,Delete references to deleted users
+161,enviroCar-server,https://github.com/enviroCar/enviroCar-server/issues/34,,,,,/rest/users defect
+162,enviroCar-server,https://github.com/enviroCar/enviroCar-server/issues/31,,,,,Server is using to much resources
+163,enviroCar-server,https://github.com/enviroCar/enviroCar-server/issues/21,,,,,Seperate Providers and En-/Decoders
+164,enviroCar-server,https://github.com/enviroCar/enviroCar-server/issues/2,,,,,Rename the project to car.io
+165,kafka-rest,https://github.com/confluentinc/kafka-rest/pull/285,,,,,"CLIENTS-281: Fix KafkaConsumerReadTask's locking, handling of multiple polls, invalid handling of old ConsumerTimeout exceptions, and incorrect generic type parameters."
+166,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/105,,,,,Race condition when consuming while topic is being created
+167,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/95,,,,,Fix log4j issue in kafka-rest-run-class with equivalent fix from schema-registry
+168,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/91,,,,,Handle large number of schemas
+169,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/74,,,,,Custom partitioning doesn't work in `POST /topics/:topic`
+170,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/69,,,,,Debian packages are missing files in /etc/kafka-rest
+171,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/68,,,,,kafka-rest packages don't include /etc/kafka-rest/log4j.properties
+172,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/65,,,,,Consumer read request hangs if you try to create two consumer instances with the same ID
+173,kafka-rest,https://github.com/confluentinc/kafka-rest/issues/55,,,,,Some requests can block forever waiting for ZooKeeper
+214,ohsome-api,https://github.com/GIScience/ohsome-api/issues/99,,,,,Filter not set when using groupBy/boundary request
+215,ohsome-api,https://github.com/GIScience/ohsome-api/pull/97,,,,,make sure groupByEntity is called before filters are set
+216,ohsome-api,https://github.com/GIScience/ohsome-api/pull/80,,,,,fix a regression in v1.2.0
+217,ohsome-api,https://github.com/GIScience/ohsome-api/pull/75,,,,,Extract flatMap lambda functions from DataRequestExecutor
+218,ohsome-api,https://github.com/GIScience/ohsome-api/pull/60,,,,,allowing pipe sign in GET requests
+219,ohsome-api,https://github.com/GIScience/ohsome-api/issues/59,,,,,Pipe sign delimiter in boundary parameter for GET requests not working
+220,ohsome-api,https://github.com/GIScience/ohsome-api/issues/28,,,,,Unfitting response for missing filter2 parameter
+221,ohsome-api,https://github.com/GIScience/ohsome-api/issues/26,,,,,/ratio request gives nullpointer exception on missing filter2 parameter
+222,ohsome-api,https://github.com/GIScience/ohsome-api/issues/25,,,,,GroupBy Request with format CSV fails if result is empty
+223,ohsome-api,https://github.com/GIScience/ohsome-api/issues/19,,,,,Swagger UI doesn't encode !
+224,ohsome-api,https://github.com/GIScience/ohsome-api/pull/11,,,,,update ohsome parent to 2.3
+225,ohsome-api,https://github.com/GIScience/ohsome-api/issues/10,,,,,(early) timeouts in data extraction request return HTTP/500 instead of 4xx error code
+226,ohsome-api,https://github.com/GIScience/ohsome-api/issues/8,,,,,invalid osm-type parameter doesn't always trigger an exception
+227,ohsome-api,https://github.com/GIScience/ohsome-api/issues/2,,,,,error when using format=csv for requests with empty time parameter
+228,quartz-manager,https://github.com/fabioformosa/quartz-manager/issues/115,,,,,[QUESTION] Run `quartz-persistance` independently
+229,quartz-manager,https://github.com/fabioformosa/quartz-manager/issues/68,,,,,Setup of the API with or without security
+230,quartz-manager,https://github.com/fabioformosa/quartz-manager/issues/2,,,,,Sometime I have to re-create a new trigger (press submit button) to start actually the job
+238,restcountries,https://github.com/apilayer/restcountries/issues/34,,,,,Negative timezones using diferrent dash/hyphen character
+239,restcountries,https://github.com/apilayer/restcountries/issues/33,,,,,Missing timezones
+240,restcountries,https://github.com/apilayer/restcountries/issues/9,,,,,UK calling code 44 only returns Guernsey
+241,restcountries,https://github.com/apilayer/restcountries/issues/7,,,,,Currency and country error
+242,restcountries,https://github.com/apilayer/restcountries/pull/5,,,,,Fix typo in Canda's captial
+243,restcountries,https://github.com/apilayer/restcountries/pull/4,,,,,"United Kingdom's TLD is .uk, not .gb"
+244,restcountries,https://github.com/apilayer/restcountries/issues/2,,,,,/callingcode/1 return incorrect
+245,senzing-api-server,https://github.com/senzing-garage/senzing-api-server/issues/311,,,,,maxDegrees should be allowed to be zero (0) for GET /entity-networks
+246,senzing-api-server,https://github.com/senzing-garage/senzing-api-server/issues/265,,,,,Spaces after a comma delimiter in CSV files causes incorrect parsing and incorrect data that is valid and loaded

@@ -10,12 +10,21 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{tabularx}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{array}
+% \usepackage{lscape}
+\usepackage{pdflscape}
+\usepackage{rotating}
+
+\usetikzlibrary{shapes.geometric, arrows}
 
 
 
 \newcommand{\todo}[1]{\textcolor{red}{{\bfseries [[#1]]}}}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
 \begin{document}
 
 \title{Do Automated Fault Localization Techniques Work For REST APIs?}
@@ -201,11 +210,32 @@ Given the unique challenges posed by REST APIs, such as stateless operations and
 \end{itemize}
 
 
-\begin{figure*}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{Paper/fig2.png}
-    \caption{Procedure for creating benchmark and testing FL performance}
+
+\begin{figure*}[t]
+    \caption{Issue Types}
+    \label{fig:issueTypes}
+    \begin{tabular}{|m{3cm}|m{3 cm}|m{5cm}|m{5cm}|}
+    \hline
+    \textbf{Concurrency Issues} & \textbf{Configuration Issues} & \textbf{Implementation Issues} & \textbf{Verification and Validation Issues} \\
+    \hline
+    Concurrency Issue & Environment Incompatibility & \textbf{Coding Issues:} & Request Verification \\
+     &  & Hardcoded &  \\
+     & Incorrect Configuration & Off by one Error & Unexpected Error Code \\
+     &  & Unsupported Code &  \\
+    \hline
+     &  & \textbf{Processing Issues:} &  \\
+     &  & Incorrect Input Processing &  \\
+     &  & Incorrect Memory Handling &  \\
+     &  & Redundant Value &  \\
+    \hline
+     &  & \textbf{Indexing Issues:} &  \\
+     &  & Unique Index or Primary Key &  \\
+    \hline
+    \end{tabular}
 \end{figure*}
+
+
+
 
 \section{Evaluation}
 \label{sec:evaluation}
@@ -236,9 +266,6 @@ The  process of filtering out issues not marked as 'bugs' and 'closed,' leaving 
 \end{table}
     
 
-
-
-
 % The fault taxonomy had 4 Major fault types where each major fault type has sub-categories from ~\cite{automatedTestTaxonomy}, in total we had 19 categories of faults we can divide into. 
 
 The fault taxonomy utilized in our study delineates four major fault types, each encompassing various sub-categories as outlined in ~\cite{automatedTestTaxonomy}. Collectively, these categories provide a comprehensive framework, dividing the faults into a total of 19 distinct categories. 
@@ -249,26 +276,27 @@ This detailed classification aids in systematically analyzing and categorizing t
     \centering
     \caption{Fault Data}
     \label{tab:faultData}
-    \begin{tabular}{|c|p{6cm}|c|}
+    \begin{tabular}{|c|c|c|}
     \hline
         \hline
         \textbf{No.} & \textbf{Fault Type} & \textbf{\# of Faults} \\ \hline
-        1 & DB Operations/ Optimistic Lock Exception & 1 \\ \hline
-        2 & DB Operations/ Unique Index or Primary Key &  2 \\ \hline
-        3 & Incomplete Specification/Form/Format & 1 \\ \hline
-        4 & Framework Misconfiguration/ Rejected Calls & 2 \\ \hline
-        5 & Harcoded & 1 \\ \hline
-        6 & Incomplete Specification/Custom Constraint/Semantic & 1 \\ \hline
-        7 & Inconsistent Behavior/ Unexpected 500 & 1 \\ \hline
-        8 & Inconsistent Behavior/ Multiple Execution Fault & 1 \\ \hline 
-        9 & Incomplete Specification/Custom Constraint/Invalid Combination & 5 \\ \hline 
-        10 & Incomplete Specification/Form/Missing or Null values & 3 \\ \hline
-        11 & Incomplete Specification/Form/Type & 1 \\ \hline
-        12 & Unsupported Code & 3 \\ \hline
+        1 & Concurrency Issue & 2 \\ \hline
+        2 & Environment Incompatibility &  1 \\ \hline
+        3 & Hardcoded & 1 \\ \hline
+        4 & Incorrect Configuration & 3 \\ \hline
+        5 & Incorrect Input Processing & 4 \\ \hline
+        6 & Incorrect Memory Handling & 1 \\ \hline
+        7 & Off by one error & 1 \\ \hline
+        8 & Redundant Value & 1 \\ \hline 
+        9 & Regression Failure & 1 \\ \hline 
+        10 & Request Verification & 2 \\ \hline
+        11 & Unexpected Error Code & 1 \\ \hline
+        12 & Unique Index or Primary Key & 2 \\ \hline
+        13 & Unsupported Input & 4 \\ \hline
     \end{tabular}
 \end{table}
-    
 
+    
 
 \subsection{Metrics}
 \label{sec:metrics}
@@ -368,3 +396,61 @@ The results of the experiments will be presented in a comparative format, highli
 \bibliography{relatedwork}
 
 \end{document}
+
+
+
+
+
+
+% Additional Information for this document
+
+% ------------- Taxonomy -------------
+\textbf{\textit{Concurrency Issue}}
+This fault refers to a scenario known as a race condition in concurrent programming, where two functions are intended to execute sequentially but run simultaneously instead. This can result in one function depending on the output of the other function before it has completed, leading to erroneous outcomes or failures.
+
+
+\textbf{\textit{Environment Incompatibility}}
+These are the kind of errors which arise due to the environments such as Operating System, Hardware Environment, or Network Environment, where the code written for one environment doesn't translate to another environment.
+
+
+\textbf{\textit{Hard-coded}}
+This fault type occurs when a value is invalid due to being hardcoded within the software.
+
+
+\textbf{\textit{Incorrect Configuration}}
+This fault refers to errors or mistakes in the setup or configuration of a system, software, or application. Misconfiguration can lead to unexpected behavior, errors, or issues.
+
+
+\textbf{\textit{Incorrect Input Processing}}
+Incorrect input processing in web applications refers to the improper handling of user inputs, leading to issues such as errors in API responses, unexpected behavior, and inconsistencies in the way data is processed and displayed. This can result in inaccuracies, unexpected outcomes, and functionality failures within the web application.
+
+
+\textbf{\textit{Incorrect Memory Handling}}
+Incorrect memory handling involves inadequate or absent measures to limit or manage memory usage within a system, potentially leading to issues like memory exhaustion, performance degradation, or system instability.
+
+
+\textbf{\textit{Off by one Error}}
+An off-by-one error refers to a programming mistake where the application incorrectly processes or manipulates data, resulting in either accessing one more or one less element than intended, leading to unintended behavior or functional errors in the web application.
+
+
+\textbf{\textit{Redundant Value}}
+This fault type refers to an unnecessary or duplicated data point or condition within a system, schema, or dataset. It indicates an extra check or condition that adds complexity without providing any additional benefit in terms of data validation or processing logic.
+
+
+\textbf{\textit{Request Verification}}
+This refers to the process of confirming the validity and authorization of incoming requests made to a system or application. This involves checking user permissions, ensuring proper authentication, and validating the data provided in the requests to prevent unauthorized access, maintain security, and uphold data integrity within the system.
+
+
+\textbf{\textit{Unexpected Error Code}}
+This occurs when an error code is generated in response to a specific condition that deviates from the expected or standard error code for that situation.
+
+
+\textbf{\textit{Unique Index or Primary Key}}
+This fault arises when an identifier, such as an ID or key, is shared by multiple entities or records. This lack of uniqueness can result in data inconsistency, referencing errors, and challenges in accurately identifying or distinguishing individual entities within the system.
+
+
+\textbf{\textit{Unsupported Code}}
+This issue occurs when the documented functionality or parameters are not implemented or supported in the actual codebase or system. This discrepancy can lead to unexpected behaviors, errors, or limitations when utilizing the software based on the documented specifications.
+
+
+% ------------- Taxonomy -------------
