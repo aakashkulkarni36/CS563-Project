@@ -1,0 +1,40 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index ac5211e2..48ee7596 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -3,9 +3,17 @@ Changelog
+ 
+ ## 1.4.0-SNAPSHOT (current master)
+ 
++### Bug Fixes
++
++* fix some invalid filters in the default swagger examples ([#111])
++
++[#111]: https://github.com/GIScience/ohsome-api/issues/111
++
+ 
+ ## 1.3.2
+ 
++### Bug Fixes
++
+ * update OSHDB to 0.6.3 to fix a bug where certain invalid multipolygons cause an infinite loop ([OSHDB#343])
+ 
+ [OSHDB#343]: https://github.com/GIScience/oshdb/pull/343
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/DefaultSwaggerParameters.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/DefaultSwaggerParameters.java
+index 064a2d82..4feca32f 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/DefaultSwaggerParameters.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/DefaultSwaggerParameters.java
+@@ -6,12 +6,10 @@ public class DefaultSwaggerParameters {
+   public static final String BBOX = "8.625,49.3711,8.7334,49.4397";
+   public static final String HIGHWAY_KEY = "highway";
+   public static final String BUILDING_KEY = "building";
+-  public static final String HOUSENUMBER_KEY = "addr:housenumber";
+-  public static final String RESIDENTIAL_VALUE = "residential";
+   public static final String TYPE_FILTER = "type:way";
+   public static final String HIGHWAY_FILTER = "highway=residential";
+   public static final String BUILDING_FILTER = "building=*";
+-  public static final String HOUSENUMBER_FILTER = "type:node and \"addr:housenumber=*\"";
++  public static final String HOUSENUMBER_FILTER = "type:node and \"addr:housenumber\"=*";
+   public static final String TIME = "2014-01-01/2017-01-01/P1Y";
+   
+   private DefaultSwaggerParameters() {

@@ -1,0 +1,132 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 0f2b07d6..e4f1d733 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,7 +1,16 @@
+ Changelog
+ =========
+ 
++## 1.10.0-SNAPSHOT (current master)
++
++### Bug Fixes
++* Fix bug which prevented some filters (which only work on ContributionView-based queries) to correctly work in contribution extraction endpoints ([#305])
++
++[#305]: https://github.com/GIScience/ohsome-api/issues/305
++
++
+ ## 1.9.1
++
+ * Upgrade OSHDB to version 1.1.2 [#302]
+ 
+ [#302]: https://github.com/GIScience/ohsome-api/issues/302
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java
+index 992b8655..ff875058 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java
+@@ -24,6 +24,7 @@
+ import org.heigit.ohsome.oshdb.api.db.OSHDBIgnite.ComputeMode;
+ import org.heigit.ohsome.oshdb.api.mapreducer.MapReducer;
+ import org.heigit.ohsome.oshdb.filter.FilterExpression;
++import org.heigit.ohsome.oshdb.util.mappable.OSHDBMapReducible;
+ import org.heigit.ohsome.oshdb.util.mappable.OSMContribution;
+ import org.heigit.ohsome.oshdb.util.mappable.OSMEntitySnapshot;
+ import org.heigit.ohsome.oshdb.util.tagtranslator.TagTranslator;
+@@ -61,20 +62,7 @@ public DataRequestExecutor(RequestResource requestResource, ElementsGeometry ele
+    */
+   public void extract() throws Exception {
+     inputProcessor.getProcessingData().setFullHistory(true);
+-    InputProcessor snapshotInputProcessor = new InputProcessor(servletRequest, true, false);
+-    snapshotInputProcessor.getProcessingData().setFullHistory(true);
+-    MapReducer<OSMEntitySnapshot> mapRedSnapshot = null;
+-    MapReducer<OSMContribution> mapRedContribution = null;
+-    if (DbConnData.db instanceof OSHDBIgnite) {
+-      // on ignite: Use AffinityCall backend, which is the only one properly supporting streaming
+-      // of result data, without buffering the whole result in memory before returning the result.
+-      // This allows to write data out to the client via a chunked HTTP response.
+-      mapRedSnapshot = snapshotInputProcessor.processParameters(ComputeMode.AFFINITY_CALL);
+-      mapRedContribution = inputProcessor.processParameters(ComputeMode.AFFINITY_CALL);
+-    } else {
+-      mapRedSnapshot = snapshotInputProcessor.processParameters();
+-      mapRedContribution = inputProcessor.processParameters();
+-    }
++    final MapReducer<List<OSMContribution>> mapRedContributions = getMapReducer(inputProcessor);
+     RequestParameters requestParameters = processingData.getRequestParameters();
+     String[] time = inputProcessor.splitParamOnComma(
+         inputProcessor.createEmptyArrayIfNull(servletRequest.getParameterValues("time")));
+@@ -102,17 +90,10 @@ public void extract() throws Exception {
+         .format(DateTimeFormatter.ISO_DATE_TIME);
+     String endTimestamp = IsoDateTimeParser.parseIsoDateTime(requestParameters.getTime()[1])
+         .format(DateTimeFormatter.ISO_DATE_TIME);
+-    MapReducer<List<OSMContribution>> mapRedContributions = mapRedContribution.groupByEntity();
+-    MapReducer<List<OSMEntitySnapshot>> mapRedSnapshots = mapRedSnapshot.groupByEntity();
+-    Optional<FilterExpression> filter = processingData.getFilterExpression();
+-    if (filter.isPresent()) {
+-      mapRedSnapshots = mapRedSnapshots.filter(filter.get());
+-      mapRedContributions = mapRedContributions.filter(filter.get());
+-    }
+     final boolean isContainingSimpleFeatureTypes = processingData.isContainingSimpleFeatureTypes();
+     DataExtractionTransformer dataExtractionTransformer = new DataExtractionTransformer(
+-        startTimestamp, endTimestamp, filter.orElse(null), isContributionsEndpoint,
+-        isContributionsLatestEndpoint,
++        startTimestamp, endTimestamp, processingData.getFilterExpression().orElse(null),
++        isContributionsEndpoint, isContributionsLatestEndpoint,
+         clipGeometries, includeTags, includeOSMMetadata, includeContributionTypes, utils, exeUtils,
+         keysInt, elementsGeometry, simpleFeatureTypes,
+         isContainingSimpleFeatureTypes);
+@@ -128,6 +109,9 @@ public void extract() throws Exception {
+         metadata, "FeatureCollection", Collections.emptyList());
+     MapReducer<Feature> snapshotPreResult = null;
+     if (!isContributionsEndpoint) {
++      InputProcessor snapshotInputProcessor = new InputProcessor(servletRequest, true, false);
++      snapshotInputProcessor.getProcessingData().setFullHistory(true);
++      MapReducer<List<OSMEntitySnapshot>> mapRedSnapshots = getMapReducer(snapshotInputProcessor);
+       // handles cases where valid_from = t_start, valid_to = t_end; i.e. non-modified data
+       snapshotPreResult = mapRedSnapshots
+           .filter(snapshots -> snapshots.size() == 2)
+@@ -146,4 +130,21 @@ public void extract() throws Exception {
+           Stream.concat(contributionStream, snapshotStream));
+     }
+   }
++
++  private <X extends OSHDBMapReducible> MapReducer<List<X>> getMapReducer(
++      InputProcessor inputProcessor) throws Exception {
++    MapReducer<X> mapRed;
++    if (DbConnData.db instanceof OSHDBIgnite) {
++      // on ignite: Use AffinityCall backend, which is the only one properly supporting streaming
++      // of result data, without buffering the whole result in memory before returning the result.
++      // This allows to write data out to the client via a chunked HTTP response.
++      mapRed = inputProcessor.processParameters(ComputeMode.AFFINITY_CALL);
++    } else {
++      mapRed = inputProcessor.processParameters();
++    }
++    MapReducer<List<X>> mapRedGrouped = mapRed.groupByEntity();
++    Optional<FilterExpression> filter = processingData.getFilterExpression();
++    return filter.map(mapRedGrouped::filter)
++        .orElse(mapRedGrouped);
++  }
+ }
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java
+index 15a05369..feb31cdd 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java
+@@ -460,6 +460,20 @@ public void contributionTypesPropertiesParameterTest() {
+     assertEquals("14227603", feature.get("properties").get("@contributionChangesetId").asText());
+   }
+ 
++  @Test
++  public void contributionsChangesetFilterTest() {
++    TestRestTemplate restTemplate = new TestRestTemplate();
++    ResponseEntity<JsonNode> response = restTemplate.getForEntity(server + port
++        + "/contributions/bbox?bboxes=8.67,49.39,8.71,49.42&clipGeometry=true&"
++        + "filter=id:way/25316163 and changeset:14227603&"
++        + "properties=metadata,contributionTypes&time=2012-12-10,2017-12-11",
++        JsonNode.class);
++    var features = response.getBody().get("features");
++    assertEquals(1, features.size());
++    assertEquals("14227603",
++        features.get(0).get("properties").get("@contributionChangesetId").asText());
++  }
++
+   /*
+    * ./contributions/latest tests
+    */
