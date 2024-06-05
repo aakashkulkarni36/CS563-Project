@@ -11,11 +11,11 @@ The increasing reliance on REST APIs in modern web applications has highlighted 
 ## Introduction
 
 REST APIs (Representational State Transfer) have become backbone of the modern web and cloud applications. 
-They facilitate seamless interactions between client and server through stateless communication, enabling services to be scalable, reliable, and easily integrateable ~\cite{li2016} ~\cite{neumann2018}. 
-Basically, REST APIs are a set of rules and standards  defined by OpenAPI ~\cite{ed-douibi2018} used to enable communication between different software applications over the internet. They are built around the use of standard HTTP methods such as GET, POST, PUT, and DELETE to interact with resources, which are any kind of data or service that can be named on a network.
+They facilitate seamless interactions between client and server through stateless communication, enabling services to be scalable, reliable, and easily integrateable. 
+Basically, REST APIs are a set of rules and standards  defined by OpenAPI used to enable communication between different software applications over the internet. They are built around the use of standard HTTP methods such as GET, POST, PUT, and DELETE to interact with resources, which are any kind of data or service that can be named on a network.
 Given their critical role, the effective identification and resolution of faults within REST APIs remain a significant challenge ~\cite{barbir2007}, prompting the need for research on how well the existing taxonomy align with real-world scenarios.
 
-As systems that rely on REST APIs grow in scale and complexity  ~\cite{khare2004} , minor faults can escalate into major disruptions, impacting user experience and business operations. 
+As systems that rely on REST APIs grow in scale and complexity , minor faults can escalate into major disruptions, impacting user experience and business operations. 
 So it is important to understand the real-world faults, but there are many faults that can be existing in the context of REST APIs. And we need a detailed taxonomy to cluster these real-world bugs into meaningful categories. So, that we can prioritize and diagnose the critical faults in REST APIs.
 
 Our initial assumption was that the existing taxonomy, developed from automated test generation tools, would align well with real-world bug reports from GitHub. 
@@ -32,11 +32,9 @@ This new taxonomy aims to provide a more holistic understanding of faults in RES
 
 
 Our Assumptions:
+1. We assume that the findings and the new taxonomy can be generalized to other REST API projects beyond the ones specifically analyzed in this study.
+2. We assume that the new taxonomy will provide better diagnostic capability for developers, allowing them to identify, categorize, and prioritize faults more effectively.
 
-\begin{itemize}
-    \item 	\textit{Assumption 1}: We assume that the findings and the new taxonomy can be generalized to other REST API projects beyond the ones specifically analyzed in this study.
-    \item   \textit{Assumption 2}: 	We assume that the new taxonomy will provide better diagnostic capability for developers, allowing them to identify, categorize, and prioritize faults more effectively.
-\end{itemize}
 
 
 
@@ -46,14 +44,13 @@ This misalignment limits the ability of developers to effectively diagnose, cate
 This taxonomy will enhance  fault understanding process, improve system reliability, and better support developers in maintaining robust and resilient REST API-based systems.
 
 To guide our investigation and address the identified gaps, we formulated the following research questions:
-\begin{enumerate}
-    \item \textbf{RQ1:} What categories of faults are most prevalent in real-world REST API bug reports?
-    \item 
-\end{enumerate}
+
+RQ1: What categories of faults are most prevalent in real-world REST API bug reports?
+RQ2: How does the new taxonomy improve our understanding and classification of REST API faults compared to the existing taxonomy?
 
 
-For the evaluation dataset, we will manually select the issues from the GitHub services and their fixes from REST API projects that utilize Spring Boot or Jersey frameworks. These GitHub services are used in the paper  \textit{Generating REST API Specifications through Static Analysis} by Manish et al ~\cite{ManishRestServices}
-This dataset will encompass various categories of faults identified in REST APIs. By analyzing repositories and commit histories, we will extract specific instances where bugs have been documented and subsequently fixed. 
+
+For the evaluation dataset, we will manually select the issues from the GitHub services and their fixes from REST API projects that utilize Spring Boot or Jersey frameworks. These GitHub services are used in the paper  "Generating REST API Specifications through Static Analysis" by Manish et al. This dataset will encompass various categories of faults identified in REST APIs. By analyzing repositories and commit histories, we will extract specific instances where bugs have been documented and subsequently fixed. 
 
 
 Our analysis of bug reports led us to create a benchmark of 24 bugs which were classified with a taxonomy based on bug reports.
