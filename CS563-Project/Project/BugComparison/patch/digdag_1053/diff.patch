@@ -1,0 +1,109 @@
+diff --git a/digdag-spi/src/main/java/io/digdag/spi/ParamServerClient.java b/digdag-spi/src/main/java/io/digdag/spi/ParamServerClient.java
+index d3cfebc39f..d528e29ec9 100644
+--- a/digdag-spi/src/main/java/io/digdag/spi/ParamServerClient.java
++++ b/digdag-spi/src/main/java/io/digdag/spi/ParamServerClient.java
+@@ -7,7 +7,7 @@
+ public interface ParamServerClient
+ {
+     // default ttl for each record is 90 days
+-    int DEFAULT_TTL = 60 * 24 * 90;
++    int DEFAULT_TTL_IN_SEC = 60 * 60 * 24 * 90;
+ 
+     Optional<Record> get(String key, int sitedId);
+ 
+diff --git a/digdag-standards/src/main/java/io/digdag/standards/operator/param/PostgresqlParamServerClient.java b/digdag-standards/src/main/java/io/digdag/standards/operator/param/PostgresqlParamServerClient.java
+index 979190a06d..8cd2ecf70a 100644
+--- a/digdag-standards/src/main/java/io/digdag/standards/operator/param/PostgresqlParamServerClient.java
++++ b/digdag-standards/src/main/java/io/digdag/standards/operator/param/PostgresqlParamServerClient.java
+@@ -44,7 +44,7 @@ public Optional<Record> get(String key, int siteId)
+                         "select key, value, value_type" +
+                                 " from params" +
+                                 " where key = :key and site_id = :site_id" +
+-                                " and updated_at + INTERVAL '" + String.valueOf(DEFAULT_TTL) + " seconds' >= now()" +
++                                " and updated_at + INTERVAL '" + String.valueOf(DEFAULT_TTL_IN_SEC) + " seconds' >= now()" +
+                                 " limit 1")
+                 .bind("key", key)
+                 .bind("site_id", siteId)
+diff --git a/digdag-standards/src/main/java/io/digdag/standards/operator/param/RedisParamServerClient.java b/digdag-standards/src/main/java/io/digdag/standards/operator/param/RedisParamServerClient.java
+index e03b117d52..45cd5efb8b 100644
+--- a/digdag-standards/src/main/java/io/digdag/standards/operator/param/RedisParamServerClient.java
++++ b/digdag-standards/src/main/java/io/digdag/standards/operator/param/RedisParamServerClient.java
+@@ -98,7 +98,7 @@ public void commit()
+             if (!msetTarget.isEmpty()) {
+                 Transaction multi = connection.multi();
+                 for (Map.Entry<String, String> entry : msetTarget.entrySet()) {
+-                    multi.setex(entry.getKey(), DEFAULT_TTL, entry.getValue());
++                    multi.setex(entry.getKey(), DEFAULT_TTL_IN_SEC, entry.getValue());
+                 }
+                 multi.exec();
+             }
+diff --git a/digdag-tests/src/test/java/acceptance/ParamGetPostgresqlIT.java b/digdag-tests/src/test/java/acceptance/ParamGetPostgresqlIT.java
+index d26a595aae..1c4e2c513d 100644
+--- a/digdag-tests/src/test/java/acceptance/ParamGetPostgresqlIT.java
++++ b/digdag-tests/src/test/java/acceptance/ParamGetPostgresqlIT.java
+@@ -77,13 +77,13 @@ public void testGetExpiredParamsAreInvisible()
+         SecretProvider secrets = getDatabaseSecrets();
+         try (
+                 PgConnection conn = PgConnection.open(PgConnectionConfig.configure(secrets, EMPTY_CONFIG))) {
+-            int expiredUpdatedAt = 60 * 24 * 90 + 1;
++            int expiredUpdatedAt = 60 * 60 * 24 * 90 + 1;
+             // expired param(last update is 90 days + 1second ago)
+             conn.executeUpdate(String.format(
+                     "insert into params (key, value, value_type, site_id, created_at, updated_at) " +
+                             "values ('%s', '%s', %d, %d, now(), now() - interval '" + String.valueOf(expiredUpdatedAt) + " second')",
+                     "key1", "{\"value\": \"value1\"}", 0, 0));
+-            int notExpiredUpdatedAt = 60 * 24 * 89;
++            int notExpiredUpdatedAt = 60 * 60 * 24 * 89;
+             // not expired param(last update is 89 days ago)
+             conn.executeUpdate(String.format(
+                     "insert into params (key, value, value_type, site_id, created_at, updated_at) " +
+diff --git a/digdag-tests/src/test/java/acceptance/ParamSetRedisIT.java b/digdag-tests/src/test/java/acceptance/ParamSetRedisIT.java
+index cfb425f3a9..ee18940a72 100644
+--- a/digdag-tests/src/test/java/acceptance/ParamSetRedisIT.java
++++ b/digdag-tests/src/test/java/acceptance/ParamSetRedisIT.java
+@@ -8,6 +8,7 @@
+ import java.nio.file.Path;
+ 
+ import static java.util.Arrays.asList;
++import static junit.framework.TestCase.assertTrue;
+ import static org.hamcrest.core.Is.is;
+ import static org.junit.Assert.assertThat;
+ import static utils.TestUtils.addWorkflow;
+@@ -17,6 +18,9 @@
+ public class ParamSetRedisIT
+         extends BaseParamRedisIT
+ {
++    private static long TTL_90_DAYS = 60 * 60 * 24 * 90; // 90days
++    private static long TTL_89_DAYS = 60 * 60 * 24 * 89; // 89days
++
+     @Test
+     public void setValueToRedis()
+             throws IOException
+@@ -36,6 +40,13 @@ public void setValueToRedis()
+                 projectDir.resolve("set.dig").toString()
+         );
+         assertCommandStatus(status);
++
++        long key1_ttl = redisClient.ttl("0:key1");
++        long key2_ttl = redisClient.ttl("0:key2");
++
++        assertTrue(key1_ttl <= TTL_90_DAYS && key1_ttl > TTL_89_DAYS);
++        assertTrue(key2_ttl <= TTL_90_DAYS && key2_ttl > TTL_89_DAYS);
++
+         assertThat(redisClient.get("0:key1"), is("{\"value_type\":0,\"value\":{\"value\":\"value1\"}}"));
+         assertThat(redisClient.get("0:key2"), is("{\"value_type\":0,\"value\":{\"value\":\"value2\"}}"));
+     }
+@@ -59,6 +70,13 @@ public void parallelSetValueToRedis()
+                 projectDir.resolve("parallel_set.dig").toString()
+         );
+         assertCommandStatus(status);
++
++        long key1_ttl = redisClient.ttl("0:key1");
++        long key2_ttl = redisClient.ttl("0:key2");
++
++        assertTrue(key1_ttl <= TTL_90_DAYS && key1_ttl > TTL_89_DAYS);
++        assertTrue(key2_ttl <= TTL_90_DAYS && key2_ttl > TTL_89_DAYS);
++
+         assertThat(redisClient.get("0:key1"), is("{\"value_type\":0,\"value\":{\"value\":\"value1\"}}"));
+         assertThat(redisClient.get("0:key2"), is("{\"value_type\":0,\"value\":{\"value\":\"value2\"}}"));
+     }

@@ -1,0 +1,26 @@
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+index 8960989d..aa2f7c32 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+@@ -291,11 +291,17 @@ public void writeCsvResponse(GroupByObject[] resultSet, HttpServletResponse serv
+       CSVWriter writer = writeComments(servletResponse, comments);
+       Pair<List<String>, List<String[]>> rows;
+       if (resultSet instanceof GroupByResult[]) {
+-        GroupByResult result = (GroupByResult) resultSet[0];
+-        if (result.getResult() instanceof UsersResult[]) {
+-          rows = createCsvResponseForUsersGroupBy(resultSet);
++        if (resultSet.length == 0) {
++          writer.writeNext(new String[] {"timestamp"}, false);
++          writer.close();
++          return;
+         } else {
+-          rows = createCsvResponseForElementsGroupBy(resultSet);
++          GroupByResult result = (GroupByResult) resultSet[0];
++          if (result.getResult() instanceof UsersResult[]) {
++            rows = createCsvResponseForUsersGroupBy(resultSet);
++          } else {
++            rows = createCsvResponseForElementsGroupBy(resultSet);
++          }
+         }
+       } else {
+         rows = createCsvResponseForElementsRatioGroupBy(resultSet);

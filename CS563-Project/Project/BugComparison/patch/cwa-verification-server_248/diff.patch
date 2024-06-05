@@ -1,0 +1,91 @@
+diff --git a/src/main/java/app/coronawarn/verification/service/AppSessionService.java b/src/main/java/app/coronawarn/verification/service/AppSessionService.java
+index be912495..8b09c347 100644
+--- a/src/main/java/app/coronawarn/verification/service/AppSessionService.java
++++ b/src/main/java/app/coronawarn/verification/service/AppSessionService.java
+@@ -22,6 +22,7 @@
+ package app.coronawarn.verification.service;
+ 
+ import app.coronawarn.verification.domain.VerificationAppSession;
++import app.coronawarn.verification.exception.VerificationServerException;
+ import app.coronawarn.verification.model.AppSessionSourceOfTrust;
+ import app.coronawarn.verification.model.RegistrationToken;
+ import app.coronawarn.verification.model.TeleTanType;
+@@ -33,6 +34,7 @@
+ import lombok.RequiredArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
+ import org.apache.commons.lang3.RandomStringUtils;
++import org.springframework.dao.DataIntegrityViolationException;
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.stereotype.Component;
+@@ -103,7 +105,14 @@ public ResponseEntity<RegistrationToken> generateRegistrationTokenByGuid(
+     appSession.setHashedGuid(hashedGuid);
+     appSession.setHashedGuidDob(hashedGuidDob);
+     appSession.setSourceOfTrust(AppSessionSourceOfTrust.HASHED_GUID);
+-    saveAppSession(appSession);
++
++    try {
++      saveAppSession(appSession);
++    } catch (DataIntegrityViolationException e) {
++      log.error("Failed to save RegistrationToken because of Hashed GUID Conflict: {}", hashedGuid);
++      throw new VerificationServerException(
++        HttpStatus.BAD_REQUEST, "Failed to save RegistrationToken because of Hashed GUID Conflict");
++    }
+ 
+     log.info("Returning the successfully created registration token.");
+     return ResponseEntity.status(HttpStatus.CREATED).body(
+diff --git a/src/main/resources/db/changelog.yml b/src/main/resources/db/changelog.yml
+index 81b4c1ff..b0c61421 100644
+--- a/src/main/resources/db/changelog.yml
++++ b/src/main/resources/db/changelog.yml
+@@ -11,3 +11,6 @@ databaseChangeLog:
+   - include:
+       file: changelog/v002-add-teletan-type-column.yml
+       relativeToChangelogFile: true
++  - include:
++      file: changelog/v003-add-unique-hashed-guid.yml
++      relativeToChangelogFile: true
+diff --git a/src/main/resources/db/changelog/v003-add-unique-hashed-guid.yml b/src/main/resources/db/changelog/v003-add-unique-hashed-guid.yml
+new file mode 100644
+index 00000000..cd54389d
+--- /dev/null
++++ b/src/main/resources/db/changelog/v003-add-unique-hashed-guid.yml
+@@ -0,0 +1,8 @@
++databaseChangeLog:
++  - changeSet:
++      id: add-unique-hashed-guid
++      author: f11h
++      changes:
++        - addUniqueConstraint:
++            tableName: app_session
++            columnNames: hashed_guid, hashed_guid_dob
+diff --git a/src/test/java/app/coronawarn/verification/service/EntitiesCleanupServiceTest.java b/src/test/java/app/coronawarn/verification/service/EntitiesCleanupServiceTest.java
+index bdcd7787..cb0f2554 100644
+--- a/src/test/java/app/coronawarn/verification/service/EntitiesCleanupServiceTest.java
++++ b/src/test/java/app/coronawarn/verification/service/EntitiesCleanupServiceTest.java
+@@ -29,6 +29,10 @@
+ import app.coronawarn.verification.model.TanType;
+ import app.coronawarn.verification.repository.VerificationAppSessionRepository;
+ import app.coronawarn.verification.repository.VerificationTanRepository;
++import java.time.LocalDateTime;
++import java.time.Period;
++import java.util.Optional;
++import java.util.concurrent.TimeUnit;
+ import org.junit.jupiter.api.Assertions;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.Test;
+@@ -38,14 +42,8 @@
+ import org.springframework.test.context.ActiveProfiles;
+ import org.springframework.test.context.ContextConfiguration;
+ import org.springframework.test.context.junit.jupiter.SpringExtension;
+-import org.springframework.test.context.junit4.SpringRunner;
+ import rx.Single;
+ 
+-import java.time.LocalDateTime;
+-import java.time.Period;
+-import java.util.Optional;
+-import java.util.concurrent.TimeUnit;
+-
+ @ExtendWith(SpringExtension.class)
+ @ActiveProfiles("local")
+ @SpringBootTest(

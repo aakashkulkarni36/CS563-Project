@@ -1,0 +1,53 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index f05680ea8..322e9080b 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -10,6 +10,7 @@ Changelog
+ ### Bug Fixes
+ 
+ * fix uncaught GeoJSON parsing exception ([#55])
++* fix a bug where `getMetadataTest` unit test fails in certain setups ([#175])
+ 
+ ### Performance and Code Quality
+ 
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java
+index efd95cec2..4f6c6fa48 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java
+@@ -3,6 +3,7 @@
+ import javax.servlet.http.HttpServletRequest;
+ import org.heigit.ohsome.ohsomeapi.Application;
+ import org.heigit.ohsome.ohsomeapi.exception.BadRequestException;
++import org.heigit.ohsome.ohsomeapi.inputprocessing.ProcessingData;
+ import org.heigit.ohsome.ohsomeapi.oshdb.ExtractMetadata;
+ import org.heigit.ohsome.ohsomeapi.output.Attribution;
+ import org.heigit.ohsome.ohsomeapi.output.metadata.ExtractRegion;
+@@ -24,7 +25,7 @@ public static MetadataResponse executeGetMetadata(HttpServletRequest servletRequ
+     }
+     return new MetadataResponse(
+         new Attribution(ExtractMetadata.attributionUrl, ExtractMetadata.attributionShort),
+-        Application.API_VERSION, ExtractMetadata.timeout,
++        Application.API_VERSION, ProcessingData.getTimeout(),
+         new ExtractRegion(ExtractMetadata.dataPolyJson,
+             new TemporalExtent(ExtractMetadata.fromTstamp, ExtractMetadata.toTstamp),
+             ExtractMetadata.replicationSequenceNumber));
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/oshdb/ExtractMetadata.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/oshdb/ExtractMetadata.java
+index 5c9e7b0d4..639cc6c58 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/oshdb/ExtractMetadata.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/oshdb/ExtractMetadata.java
+@@ -1,7 +1,6 @@
+ package org.heigit.ohsome.ohsomeapi.oshdb;
+ 
+ import com.fasterxml.jackson.databind.JsonNode;
+-import org.heigit.ohsome.ohsomeapi.inputprocessing.ProcessingData;
+ import org.locationtech.jts.geom.Geometry;
+ 
+ /** Holds the metadata that is derived from the data-extract. */
+@@ -14,7 +13,6 @@ public class ExtractMetadata {
+   public static Geometry dataPoly = null;
+   public static JsonNode dataPolyJson = null;
+   public static int replicationSequenceNumber;
+-  public static double timeout = ProcessingData.getTimeout();
+ 
+   private ExtractMetadata() {
+     throw new IllegalStateException("Utility class");

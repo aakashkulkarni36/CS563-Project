@@ -1,0 +1,172 @@
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+index f5fc0ef1..c139f392 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+@@ -875,6 +875,8 @@ public static Response aggregateGroupByKey(RequestResource requestResource,
+   /**
+    * Performs a count|length|perimeter|area|ratio calculation.
+    * 
++   * @deprecated Will be removed in next major version update.
++   * 
+    * @param requestResource
+    *        {@link org.heigit.ohsome.ohsomeapi.executor.RequestResource
+    *        RequestResource} definition of the request resource
+@@ -1043,7 +1045,9 @@ public static Response aggregateBasicFiltersRatio(RequestResource requestResourc
+    */
+   public static Response aggregateRatio(RequestResource requestResource,
+       HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws Exception {
+-    if (null == servletRequest.getParameter("filter")) {
++    if (null == servletRequest.getParameter("filter")
++        && (null != servletRequest.getParameter("types")
++            || null != servletRequest.getParameter("keys"))) {
+       return aggregateBasicFiltersRatio(requestResource, servletRequest, servletResponse);
+     }
+     final long startTime = System.currentTimeMillis();
+@@ -1056,7 +1060,8 @@ public static Response aggregateRatio(RequestResource requestResource,
+     ProcessingData processingData = inputProcessor.getProcessingData();
+     ExecutionUtils exeUtils = new ExecutionUtils(processingData);
+     String filter1 = inputProcessor.getProcessingData().getRequestParameters().getFilter();
+-    String filter2 = servletRequest.getParameter("filter2");
++    String filter2 = inputProcessor.createEmptyStringIfNull(servletRequest.getParameter("filter2"));
++    inputProcessor.checkFilter(filter2);
+     String combinedFilter = exeUtils.combineFiltersWithOr(filter1, filter2);
+     FilterParser fp = new FilterParser(DbConnData.tagTranslator);
+     FilterExpression filterExpr1 = inputProcessor.getUtils().parseFilter(fp, filter1);
+@@ -1130,6 +1135,8 @@ public static Response aggregateRatio(RequestResource requestResource,
+   /**
+    * Performs a count|length|perimeter|area-ratio calculation grouped by the boundary.
+    * 
++   * @deprecated Will be removed in next major version update.
++   * 
+    * @param requestResource
+    *        {@link org.heigit.ohsome.ohsomeapi.executor.RequestResource
+    *        RequestResource} definition of the request resource
+@@ -1349,7 +1356,9 @@ public static <P extends Geometry & Polygonal> Response aggregateBasicFiltersRat
+   public static <P extends Geometry & Polygonal> Response aggregateRatioGroupByBoundary(
+       RequestResource requestResource, HttpServletRequest servletRequest,
+       HttpServletResponse servletResponse) throws Exception {
+-    if (null == servletRequest.getParameter("filter")) {
++    if (null == servletRequest.getParameter("filter")
++        && (null != servletRequest.getParameter("types")
++            || null != servletRequest.getParameter("keys"))) {
+       return aggregateBasicFiltersRatioGroupByBoundary(requestResource, servletRequest,
+           servletResponse);
+     }
+@@ -1367,7 +1376,8 @@ public static <P extends Geometry & Polygonal> Response aggregateRatioGroupByBou
+     }
+     ExecutionUtils exeUtils = new ExecutionUtils(processingData);
+     String filter1 = inputProcessor.getProcessingData().getRequestParameters().getFilter();
+-    String filter2 = servletRequest.getParameter("filter2");
++    String filter2 = inputProcessor.createEmptyStringIfNull(servletRequest.getParameter("filter2"));
++    inputProcessor.checkFilter(filter2);
+     String combinedFilter = exeUtils.combineFiltersWithOr(filter1, filter2);
+     FilterParser fp = new FilterParser(DbConnData.tagTranslator);
+     FilterExpression filterExpr1 = inputProcessor.getUtils().parseFilter(fp, filter1);
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+index aa2f7c32..e20fefa9 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+@@ -850,6 +850,10 @@ public Geometry getGeometry(OSMContribution contribution, boolean clipGeometries
+ 
+   /** Combines the two given filters with an OR operation. Used in /ratio computation. */
+   public String combineFiltersWithOr(String firstFilter, String secondFilter) {
++    if (firstFilter.isBlank() || secondFilter.isBlank()) {
++      // definition of an empty combined filter if filter1 or filter2 is empty
++      return "";
++    }
+     return "(" + firstFilter + ") or (" + secondFilter + ")";
+   }
+ 
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+index f8417d52..f8f183cb 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+@@ -575,6 +575,20 @@ public <T extends Mappable<? extends OSHDBMapReducible>> T filterOnGeometryType(
+     });
+   }
+ 
++  /**
++   * Checks the given filter parameter if it's null or blank. Currently used for filter2 parameter
++   * of /ratio processing.
++   * 
++   * @param filter parameter to be checked
++   * @throws BadRequestException if the given filter parameter is null or blank.
++   */
++  public void checkFilter(String filter) throws BadRequestException {
++    if (null == filter || filter.isBlank() && processingData.isRatio()) {
++      throw new BadRequestException(
++          "The filter2 parameter has to be defined when using a /ratio endpoint.");
++    }
++  }
++  
+   /**
+    * Checks the given keys and values parameters on their length and includes them in the
+    * {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapReducer#osmTag(String) osmTag(key)},
+diff --git a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+index a94d12f2..4e03c09b 100644
+--- a/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
++++ b/src/main/java/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+@@ -15,8 +15,9 @@ private ResourceParameters() {
+    * Checks the resource of the request and gives back a list of available parameters for this
+    * resource.
+    *
+-   * <p>Note that some resources don't use this method, but implement their own checks.
+-   * One example for this is the metadata request in
++   * <p>
++   * Note that some resources don't use this method, but implement their own checks. One example for
++   * this is the metadata request in
+    * {@link MetadataRequestExecutor#executeGetMetadata(HttpServletRequest)}.
+    */
+   public static List<String> getResourceSpecificParams(HttpServletRequest servletRequest) {
+@@ -35,10 +36,7 @@ public static List<String> getResourceSpecificParams(HttpServletRequest servletR
+       possibleParams.add("groupByKeys");
+       return possibleParams;
+     } else if (uri.contains("/ratio")) {
+-      if (null != servletRequest.getParameter("filter")) {
+-        possibleParams.add("filter2");
+-        return possibleParams;
+-      }
++      possibleParams.add("filter2");
+       possibleParams.add("keys2");
+       possibleParams.add("types2");
+       possibleParams.add("values2");
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java
+index dd595ae2..79cb7cd8 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java
+@@ -991,7 +991,7 @@ public void areaRatioFilterTest() {
+     assertEquals(0.060083, response.getBody().get("ratioResult").get(0).get("ratio").asDouble(),
+         1e-6);
+   }
+-
++  
+   @Test
+   public void ratioGroupByBoundaryFilterTest() {
+     TestRestTemplate restTemplate = new TestRestTemplate();
+@@ -1009,6 +1009,26 @@ public void ratioGroupByBoundaryFilterTest() {
+         .findFirst().get().get("ratioResult").get(0).get("ratio").asDouble(), 1e-6);
+   }
+ 
++  @Test
++  public void getElementsCountRatioEmptyFilterTest() {
++    TestRestTemplate restTemplate = new TestRestTemplate();
++    ResponseEntity<JsonNode> response = restTemplate.getForEntity(
++        server + port + "/elements/count/ratio?bboxes=8.685824,49.414756,8.686253,49.414955&"
++            + "filter2=highway=*&time=2019-01-01",
++        JsonNode.class);
++    assertEquals(0.2, response.getBody().get("ratioResult").get(0).get("ratio").asDouble(), 1e-6);
++  }
++
++  @Test
++  public void ratioEmptyFilter2Test() {
++    TestRestTemplate restTemplate = new TestRestTemplate();
++    ResponseEntity<JsonNode> response = restTemplate.getForEntity(
++        server + port + "/elements/count/ratio?bboxes=8.687337,49.415067,8.687493,49.415172&"
++            + "time=2010-01-01&filter=building=*",
++        JsonNode.class);
++    assertEquals(400, response.getBody().get("status").asInt());
++  }
++
+   @Test
+   public void getElementsCountWrongFilterTypesCombinationTest() {
+     TestRestTemplate restTemplate = new TestRestTemplate();

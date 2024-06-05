@@ -1,0 +1,349 @@
+diff --git a/docs/changelog.rst b/docs/changelog.rst
+new file mode 100644
+index 0000000000..b2848e1944
+--- /dev/null
++++ b/docs/changelog.rst
+@@ -0,0 +1,22 @@
++.. _kafkarest_changelog:
++
++Changelog
++=========
++
++Version 2.0.0
++-------------
++
++* `PR-64 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Reduce integration test time.
++* `PR-66 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Add support for SimpleConsumer-like access (Issue #26)
++* `PR-67 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Handle conflicting IDs and separate IDs used in the REST proxy and by Kafka's consumer implementation.
++* `PR-78 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Remove kafka from list of production directories to include in CLASSPATH.
++* `PR-89 <https://github.com/confluentinc/kafka-rest/pull/>`_ - JSON message support
++* `PR-96 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Fixed log4j and daemon flag bugs in kafka-rest-run-class based on fix from schema-registry.
++* `PR-99 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Require Java 7
++* `PR-101 <https://github.com/confluentinc/kafka-rest/pull/>`_ - rest-utils updates
++* `PR-103 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Issue 94 rename main
++* `PR-108 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Clarify partitioning behavior for produce requests
++* `PR-117 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Update to Kafka 0.9.0.0-SNAPSHOT and make adjustments to work with updated ZkUtils.
++* `PR-122 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Use x.y.z versioning scheme (i.e. 2.0.0-SNAPSHOT)
++* `PR-123 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Updated args for JaasUtils.isZkSecurityEnabled()
++* `PR-125 <https://github.com/confluentinc/kafka-rest/pull/>`_ - Use Kafka compiled with Scala 2.11
+diff --git a/docs/config.rst b/docs/config.rst
+index f7c6dc9fdd..6e7e7f297a 100644
+--- a/docs/config.rst
++++ b/docs/config.rst
+@@ -69,6 +69,13 @@ Java Kafka clients.
+   * Default: 25
+   * Importance: medium
+ 
++``access.control.allow.origin``
++  Set value for Jetty Access-Control-Allow-Origin header
++
++  * Type: string
++  * Default: ""
++  * Importance: low
++
+ ``consumer.instance.timeout.ms``
+   Amount of idle time before a consumer instance is automatically destroyed.
+ 
+@@ -108,7 +115,7 @@ Java Kafka clients.
+   Prefix to apply to metric names for the default JMX reporter.
+ 
+   * Type: string
+-  * Default: "kafka-rest"
++  * Default: "kafka.rest"
+   * Importance: low
+ 
+ ``metrics.num.samples``
+@@ -172,4 +179,4 @@ Java Kafka clients.
+ 
+   * Type: int
+   * Default: 1000
+-  * Importance: low
+\ No newline at end of file
++  * Importance: low
+diff --git a/docs/index.rst b/docs/index.rst
+index 4438769ac7..c0c742075a 100644
+--- a/docs/index.rst
++++ b/docs/index.rst
+@@ -12,6 +12,7 @@ Contents:
+    :maxdepth: 3
+ 
+    intro
++   changelog
+    api
+    config
+    operations
+diff --git a/docs/intro.rst b/docs/intro.rst
+index 98b234e0a3..cf83a5fc99 100644
+--- a/docs/intro.rst
++++ b/docs/intro.rst
+@@ -13,8 +13,20 @@ framework that doesn't yet support Kafka, and scripting administrative actions.
+ Quickstart
+ ----------
+ 
+-The following assumes you have Kafka, the schema registry, and an instance of
+-the REST Proxy running using the default settings and some topics already created.
++Start by running the REST Proxy and the services it depends on: ZooKeeper, Kafka, and the Schema
++Registry:
++
++.. sourcecode:: bash
++
++   $ ./bin/zookeeper-server-start ./etc/kafka/zookeeper.properties &
++   $ ./bin/kafka-server-start ./etc/kafka/server.properties &
++   $ ./bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
++   $ ./bin/kafka-rest-start ./etc/kafka-rest/kafka-rest.properties &
++
++.. ifconfig:: platform_docs
++
++   See the :ref:`Confluent Platform quickstart<quickstart>` for a more detailed explanation of how
++   to get these services up and running.
+ 
+ Inspect Topic Metadata
+ ~~~~~~~~~~~~~~~~~~~~~~
+@@ -23,15 +35,43 @@ Inspect Topic Metadata
+ 
+    # Get a list of topics
+    $ curl "http://localhost:8082/topics"
+-     [{"name":"test","num_partitions":3},{"name":"test2","num_partitions":1}]
++     ["test","test2","test3"]
+ 
+    # Get info about one topic
+    $ curl "http://localhost:8082/topics/test"
+-     {"name":"test","num_partitions":3}
++     {"test":"connect-test","configs":{},"partitions":[{"partition":0,"leader":0,"replicas":[{"broker":0,"leader":true,"in_sync":true}]},{"partition":1,"leader":0,"replicas":[{"broker":1,"leader":true,"in_sync":true}]}]}
+ 
+    # Get info about a topic's partitions
+    $ curl "http://localhost:8082/topics/test/partitions
+-     [{"partition":0,"leader":1002,"replicas":[{"broker":1002,"leader":true,"in_sync":true}]}]
++     [{"partition":0,"leader":0,"replicas":[{"broker":0,"leader":true,"in_sync":true}]},{"partition":1,"leader":0,"replicas":[{"broker":1,"leader":true,"in_sync":true}]}]
++
++Produce and Consume Avro Messages
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++.. sourcecode:: bash
++
++   # Produce a message using Avro embedded data, including the schema which will
++   # be registered with the schema registry and used to validate and serialize
++   # before storing the data in Kafka
++   $ curl -X POST -H "Content-Type: application/vnd.kafka.avro.v1+json" \
++         --data '{"value_schema": "{\"type\": \"record\", \"name\": \"User\", \"fields\": [{\"name\": \"name\", \"type\": \"string\"}]}", "records": [{"value": {"name": "testUser"}}]}' \
++         "http://localhost:8082/topics/avrotest"
++     {"offsets":[{"partition":0,"offset":0,"error_code":null,"error":null}],"key_schema_id":null,"value_schema_id":21}
++
++   # Create a consumer for Avro data, starting at the beginning of the topic's
++   # log. Then consume some data from a topic, which is decoded, translated to
++   # JSON, and included in the response. The schema used for deserialization is
++   # fetched automatically from the schema registry. Finally, clean up.
++   $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
++         --data '{"name": "my_consumer_instance", "format": "avro", "auto.offset.reset": "smallest"}' \
++         http://localhost:8082/consumers/my_avro_consumer
++     {"instance_id":"my_consumer_instance","base_uri":"http://localhost:8082/consumers/my_avro_consumer/instances/my_consumer_instance"}
++   $ curl -X GET -H "Accept: application/vnd.kafka.avro.v1+json" \
++         http://localhost:8082/consumers/my_avro_consumer/instances/my_consumer_instance/topics/avrotest
++     [{"key":null,"value":{"name":"testUser"},"partition":0,"offset":0}]
++   $ curl -X DELETE \
++         http://localhost:8082/consumers/my_avro_consumer/instances/my_consumer_instance
++     # No content in response
+ 
+ Produce and Consume JSON Messages
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -40,7 +80,7 @@ Produce and Consume JSON Messages
+ 
+    # Produce a message using JSON with the value '{ "foo": "bar" }' to the topic test
+    $ curl -X POST -H "Content-Type: application/vnd.kafka.json.v1+json" \
+-         --data '{"records":[{"value":{"foo":"bar"}]}' "http://localhost:8082/topics/test"
++         --data '{"records":[{"value":{"foo":"bar"}}]}' "http://localhost:8082/topics/jsontest"
+      {"offsets":[{"partition":0,"offset":0,"error_code":null,"error":null}],"key_schema_id":null,"value_schema_id":null}
+ 
+    # Create a consumer for JSON data, starting at the beginning of the topic's
+@@ -48,14 +88,15 @@ Produce and Consume JSON Messages
+    # Finally, close the consumer with a DELETE to make it leave the group and clean up
+    # its resources.
+    $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
+-         --data '{"format": "json", "auto.offset.reset": "smallest"}' \
++         --data '{"name": "my_consumer_instance", "format": "json", "auto.offset.reset": "smallest"}' \
+          http://localhost:8082/consumers/my_json_consumer
+-     {"instance_id":"rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6","base_uri":"http://localhost:8082/consumers/my_json_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6"}
++     {"instance_id":"my_consumer_instance",
++     "base_uri":"http://localhost:8082/consumers/my_json_consumer/instances/my_consumer_instance"}
+    $ curl -X GET -H "Accept: application/vnd.kafka.json.v1+json" \
+-         http://localhost:8082/consumers/my_json_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6/topics/test
++         http://localhost:8082/consumers/my_json_consumer/instances/my_consumer_instance/topics/jsontest
+      [{"key":null,"value":{"foo":"bar"},"partition":0,"offset":0}]
+    $ curl -X DELETE \
+-         http://localhost:8082/consumers/my_json_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6
++         http://localhost:8082/consumers/my_json_consumer/instances/my_consumer_instance
+      # No content in response
+ 
+ Produce and Consume Binary Messages
+@@ -65,7 +106,7 @@ Produce and Consume Binary Messages
+ 
+    # Produce a message using binary embedded data with value "Kafka" to the topic test
+    $ curl -X POST -H "Content-Type: application/vnd.kafka.binary.v1+json" \
+-         --data '{"records":[{"value":"S2Fma2E="}]}' "http://localhost:8082/topics/test"
++         --data '{"records":[{"value":"S2Fma2E="}]}' "http://localhost:8082/topics/binarytest"
+      {"offsets":[{"partition":0,"offset":0,"error_code":null,"error":null}],"key_schema_id":null,"value_schema_id":null}
+ 
+    # Create a consumer for binary data, starting at the beginning of the topic's
+@@ -73,42 +114,14 @@ Produce and Consume Binary Messages
+    # Finally, close the consumer with a DELETE to make it leave the group and clean up
+    # its resources.
+    $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
+-         --data '{"format": "binary", "auto.offset.reset": "smallest"}' \
++         --data '{"name": "my_consumer_instance", "format": "binary", "auto.offset.reset": "smallest"}' \
+          http://localhost:8082/consumers/my_binary_consumer
+-     {"instance_id":"rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6","base_uri":"http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6"}
++     {"instance_id":"my_consumer_instance","base_uri":"http://localhost:8082/consumers/my_binary_consumer/instances/my_consumer_instance"}
+    $ curl -X GET -H "Accept: application/vnd.kafka.binary.v1+json" \
+-         http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6/topics/test
++         http://localhost:8082/consumers/my_binary_consumer/instances/my_consumer_instance/topics/binarytest
+      [{"key":null,"value":"S2Fma2E=","partition":0,"offset":0}]
+    $ curl -X DELETE \
+-         http://localhost:8082/consumers/my_binary_consumer/instances/rest-consumer-11561681-8ba5-4b46-bed0-905ae1769bc6
+-     # No content in response
+-
+-Produce and Consume Avro Messages
+-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-
+-.. sourcecode:: bash
+-
+-   # Produce a message using Avro embedded data, including the schema which will
+-   # be registered with the schema registry and used to validate and serialize
+-   # before storing the data in Kafka
+-   $ curl -X POST -H "Content-Type: application/vnd.kafka.avro.v1+json" \
+-         --data '{"value_schema": "{\"type\": \"record\", \"name\": \"User\", \"fields\": [{\"name\": \"name\", \"type\": \"string\"}]}", "records": [{"value": {"name": "testUser"}}]}' \
+-         "http://localhost:8082/topics/avrotest"
+-     {"offsets":[{"partition":0,"offset":0,"error_code":null,"error":null}],"key_schema_id":null,"value_schema_id":21}
+-
+-   # Create a consumer for Avro data, starting at the beginning of the topic's
+-   # log. Then consume some data from a topic, which is decoded, translated to
+-   # JSON, and included in the response. The schema used for deserialization is
+-   # fetched automatically from the schema registry. Finally, clean up.
+-   $ curl -X POST -H "Content-Type: application/vnd.kafka.v1+json" \
+-         --data '{"format": "avro", "auto.offset.reset": "smallest"}' \
+-         http://localhost:8082/consumers/my_avro_consumer
+-     {"instance_id":"rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b","base_uri":"http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b"}
+-   $ curl -X GET -H "Accept: application/vnd.kafka.avro.v1+json" \
+-         http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b/topics/avrotest
+-     [{"key":null,"value":{"name":"testUser"},"partition":0,"offset":0}]
+-   $ curl -X DELETE \
+-         http://localhost:8082/consumers/my_avro_consumer/instances/rest-consumer-11392f3a-efbe-4fe2-b0bf-5c85d7b25e7b
++         http://localhost:8082/consumers/my_binary_consumer/instances/my_consumer_instance
+      # No content in response
+ 
+ Features
+@@ -289,6 +302,12 @@ generating
+ ``target/kafka-rest-$VERSION-standalone.jar``, which includes all the
+ dependencies as well.
+ 
++Requirements
++------------
++
++- Kafka 0.9.0.0-cp1
++- Required for Avro support: Schema Registry 2.0.0 recommended, 1.0 minimum
++
+ Contribute
+ ----------
+ 
+diff --git a/pom.xml b/pom.xml
+index 924a49a8d8..b093bb6a17 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -43,13 +43,14 @@
+         <confluent.junit.version>4.12</confluent.junit.version>
+         <easymock.version>3.0</easymock.version>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
++        <confluent.maven.repo>http://packages.confluent.io/maven/</confluent.maven.repo>
+     </properties>
+ 
+     <repositories>
+         <repository>
+             <id>confluent</id>
+             <name>Confluent</name>
+-            <url>http://packages.confluent.io/maven/</url>
++            <url>${confluent.maven.repo}</url>
+         </repository>
+     </repositories>
+ 
+diff --git a/src/main/java/io/confluent/kafkarest/MetadataObserver.java b/src/main/java/io/confluent/kafkarest/MetadataObserver.java
+index 5907c65abf..6eb711ee9d 100644
+--- a/src/main/java/io/confluent/kafkarest/MetadataObserver.java
++++ b/src/main/java/io/confluent/kafkarest/MetadataObserver.java
+@@ -114,16 +114,18 @@ private List<Topic> getTopicsData(Seq<String> topicNames) {
+     // shouldn't be common, so we just grab all of them to keep this simple
+     Map<String, Properties> configs = AdminUtils.fetchAllTopicConfigs(zkUtils);
+     for (String topicName : JavaConversions.asJavaCollection(topicNames)) {
+-      Map<Object, Seq<Object>> partitionMap = topicPartitions.get(topicName).get();
+-      List<Partition> partitions = extractPartitionsFromZKData(partitionMap, topicName, null);
+-      if (partitions.size() == 0) {
+-        continue;
++      if(!topicPartitions.get(topicName).isEmpty()) {
++        Map<Object, Seq<Object>> partitionMap = topicPartitions.get(topicName).get();
++        List<Partition> partitions = extractPartitionsFromZKData(partitionMap, topicName, null);
++        if (partitions.size() == 0) {
++          continue;
++        }
++        Option<Properties> topicConfigOpt = configs.get(topicName);
++        Properties topicConfigs =
++                topicConfigOpt.isEmpty() ? new Properties() : topicConfigOpt.get();
++        Topic topic = new Topic(topicName, topicConfigs, partitions);
++        topics.add(topic);
+       }
+-      Option<Properties> topicConfigOpt = configs.get(topicName);
+-      Properties topicConfigs =
+-          topicConfigOpt.isEmpty() ? new Properties() : topicConfigOpt.get();
+-      Topic topic = new Topic(topicName, topicConfigs, partitions);
+-      topics.add(topic);
+     }
+     return topics;
+   }
+@@ -147,9 +149,12 @@ public Partition getTopicPartition(String topic, int partition) {
+ 
+   private List<Partition> getTopicPartitions(String topic, Integer partitions_filter) {
+     Map<String, Map<Object, Seq<Object>>> topicPartitions = zkUtils.getPartitionAssignmentForTopics(
+-        JavaConversions.asScalaBuffer(Arrays.asList(topic)));
+-    Map<Object, Seq<Object>> parts = topicPartitions.get(topic).get();
+-    return extractPartitionsFromZKData(parts, topic, partitions_filter);
++            JavaConversions.asScalaBuffer(Arrays.asList(topic)));
++    if (!topicPartitions.get(topic).isEmpty()) {
++      Map<Object, Seq<Object>> parts = topicPartitions.get(topic).get();
++      return extractPartitionsFromZKData(parts, topic, partitions_filter);
++    }
++    return null;
+   }
+ 
+   public int getLeaderId(final String topicName, final int partitionId) {
+@@ -180,20 +185,21 @@ private List<Partition> extractPartitionsFromZKData(
+ 
+       Partition p = new Partition();
+       p.setPartition(partId);
+-      LeaderAndIsr leaderAndIsr =
+-          zkUtils.getLeaderAndIsrForPartition(topic, partId).get();
+-      p.setLeader(leaderAndIsr.leader());
+-      scala.collection.immutable.Set<Integer> isr = leaderAndIsr.isr().toSet();
+-      List<PartitionReplica> partReplicas = new Vector<PartitionReplica>();
+-      for (Object brokerObj : JavaConversions.asJavaCollection(part.getValue())) {
+-        int broker = (Integer) brokerObj;
+-        PartitionReplica
+-            r =
+-            new PartitionReplica(broker, (leaderAndIsr.leader() == broker), isr.contains(broker));
+-        partReplicas.add(r);
++      Option<LeaderAndIsr> leaderAndIsrOpt = zkUtils.getLeaderAndIsrForPartition(topic, partId);
++      if(!leaderAndIsrOpt.isEmpty()) {
++        LeaderAndIsr leaderAndIsr = leaderAndIsrOpt.get();
++        p.setLeader(leaderAndIsr.leader());
++        scala.collection.immutable.Set<Integer> isr = leaderAndIsr.isr().toSet();
++        List<PartitionReplica> partReplicas = new Vector<PartitionReplica>();
++        for (Object brokerObj : JavaConversions.asJavaCollection(part.getValue())) {
++          int broker = (Integer) brokerObj;
++          PartitionReplica r =
++                  new PartitionReplica(broker, (leaderAndIsr.leader() == broker), isr.contains(broker));
++          partReplicas.add(r);
++        }
++        p.setReplicas(partReplicas);
++        partitions.add(p);
+       }
+-      p.setReplicas(partReplicas);
+-      partitions.add(p);
+     }
+     return partitions;
+   }

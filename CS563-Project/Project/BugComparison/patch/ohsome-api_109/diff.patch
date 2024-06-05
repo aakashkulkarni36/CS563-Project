@@ -1,0 +1,2319 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 2075ceed..ded5b5c7 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -7,6 +7,9 @@ Changelog
+ 
+ * fix some invalid filters in the default swagger examples ([#111])
+ * fix returning invalid GeoJSON using empty coordinates for deletion contributions ([#129], [#131])
++* fix using a proper boolean data type instead of a string for contributionType in response ([#135])
++* fix NPE with createOSMFeature ([#141])
++* make sure geometry filters are applied to all returned features of elementsFullHistory requests ([#109])
+ 
+ ### Performance and Code Quality
+ 
+@@ -17,16 +20,23 @@ Changelog
+ * update all tests using the filter parameter instead of deprecated types, keys, values ([#98])
+ * update some default parameter values in swagger UI to slightly more sensible examples ([#113])
+ * restructure packages and classes within the controller and output packages ([#117])
++* extend docs on contribution types ([#134])
+ * round coordinates of returned OSM features to 7 decimal places ([#138])
++* improve code style by wrapping all code lines longer than 100 characters ([#83])
+ 
++[#83]: https://github.com/GIScience/ohsome-api/issues/83
+ [#98]: https://github.com/GIScience/ohsome-api/issues/98
++[#109]: https://github.com/GIScience/ohsome-api/issues/109
+ [#111]: https://github.com/GIScience/ohsome-api/issues/111
+ [#113]: https://github.com/GIScience/ohsome-api/issues/113
+ [#114]: https://github.com/GIScience/ohsome-api/pull/114
+ [#117]: https://github.com/GIScience/ohsome-api/issues/117
+ [#129]: https://github.com/GIScience/ohsome-api/issues/129
+ [#131]: https://github.com/GIScience/ohsome-api/issues/131
++[#134]: https://github.com/GIScience/ohsome-api/issues/134
++[#135]: https://github.com/GIScience/ohsome-api/pull/135
+ [#138]: https://github.com/GIScience/ohsome-api/issues/138
++[#141]: https://github.com/GIScience/ohsome-api/issues/141
+ 
+ 
+ ## 1.3.2
+diff --git a/README.md b/README.md
+index 309e304e..acc9e7b9 100644
+--- a/README.md
++++ b/README.md
+@@ -1,9 +1,5 @@
+ # ohsome API
+ 
+-> :information_source: 2021 User Survey :information_source:<br>
+-> The organisation behind the ohsome API (<a href="https://heigit.org">HeiGIT</a>) will be having an organisational review. To ensure that we can continue to provide developing software and providing services in the future, we would like to invite you to take part in a <a href="https://survey.heigit.org/653841" target="_blank">user survey</a>. Thanks for your participation!
+-
+-
+ [![Build Status](http://jenkins.ohsome.org/buildStatus/icon?job=ohsome-api/master)](http://jenkins.ohsome.org/blue/organizations/jenkins/ohsome-api/activity)
+ [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.heigit.ohsome/ohsome-api/badge.svg)](https://search.maven.org/artifact/org.heigit.ohsome/ohsome-api)
+ [![LICENSE](https://img.shields.io/github/license/GIScience/ohsome-api)](LICENSE)
+diff --git a/docs/endpoints.rst b/docs/endpoints.rst
+index 3879983b..ee088b08 100644
+--- a/docs/endpoints.rst
++++ b/docs/endpoints.rst
+@@ -1357,7 +1357,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/323191854",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 8,
+             "addr:city" : "Heidelberg",
+@@ -1390,7 +1390,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/5400804545",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 2,
+             "amenity" : "pharmacy",
+@@ -1433,7 +1433,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/323191854",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 8,
+             "addr:city" : "Heidelberg",
+@@ -1466,7 +1466,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/5400804545",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 2,
+             "amenity" : "pharmacy",
+@@ -1509,7 +1509,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/323191854",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 8,
+             "addr:city" : "Heidelberg",
+@@ -1542,7 +1542,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/5400804545",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 2,
+             "amenity" : "pharmacy",
+@@ -1585,7 +1585,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/323191854",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 8,
+             "addr:city" : "Heidelberg",
+@@ -1618,7 +1618,7 @@ Get the changes of pharmacies with opening hours in a certain area of Heidelberg
+             "@changesetId" : 83099383,
+             "@osmId" : "node/5400804545",
+             "@osmType" : "NODE",
+-            "@tagChange" : "true",
++            "@tagChange" : true,
+             "@timestamp" : "2020-04-05T13:32:50Z",
+             "@version" : 2,
+             "amenity" : "pharmacy",
+@@ -1699,7 +1699,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           },
+           "properties" : {
+             "@changesetId" : 85604249,
+-            "@geometryChange" : "true",
++            "@geometryChange" : true,
+             "@osmId" : "way/795435536",
+             "@osmType" : "WAY",
+             "@timestamp" : "2020-05-22T10:22:53Z",
+@@ -1711,7 +1711,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           "geometry" : null,
+           "properties" : {
+             "@changesetId" : 51902131,
+-            "@deletion" : "true",
++            "@deletion" : true,
+             "@osmId" : "way/135635599",
+             "@osmType" : "WAY",
+             "@timestamp" : "2017-09-10T09:22:03Z",
+@@ -1747,7 +1747,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           },
+           "properties" : {
+             "@changesetId" : 85604249,
+-            "@geometryChange" : "true",
++            "@geometryChange" : true,
+             "@osmId" : "way/795435536",
+             "@osmType" : "WAY",
+             "@timestamp" : "2020-05-22T10:22:53Z",
+@@ -1759,7 +1759,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           "geometry" : null,
+           "properties" : {
+             "@changesetId" : 51902131,
+-            "@deletion" : "true",
++            "@deletion" : true,
+             "@osmId" : "way/135635599",
+             "@osmType" : "WAY",
+             "@timestamp" : "2017-09-10T09:22:03Z",
+@@ -1795,7 +1795,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           },
+           "properties" : {
+             "@changesetId" : 85604249,
+-            "@geometryChange" : "true",
++            "@geometryChange" : true,
+             "@osmId" : "way/795435536",
+             "@osmType" : "WAY",
+             "@timestamp" : "2020-05-22T10:22:53Z",
+@@ -1807,7 +1807,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           "geometry" : null,
+           "properties" : {
+             "@changesetId" : 51902131,
+-            "@deletion" : "true",
++            "@deletion" : true,
+             "@osmId" : "way/135635599",
+             "@osmType" : "WAY",
+             "@timestamp" : "2017-09-10T09:22:03Z",
+@@ -1843,7 +1843,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           },
+           "properties" : {
+             "@changesetId" : 85604249,
+-            "@geometryChange" : "true",
++            "@geometryChange" : true,
+             "@osmId" : "way/795435536",
+             "@osmType" : "WAY",
+             "@timestamp" : "2020-05-22T10:22:53Z",
+@@ -1855,7 +1855,7 @@ Get the latest change of constructions in a certain area of the Bahnstadt in Hei
+           "geometry" : null,
+           "properties" : {
+             "@changesetId" : 51902131,
+-            "@deletion" : "true",
++            "@deletion" : true,
+             "@osmId" : "way/135635599",
+             "@osmType" : "WAY",
+             "@timestamp" : "2017-09-10T09:22:03Z",
+diff --git a/docs/response-parameters.rst b/docs/response-parameters.rst
+index eb15a051..bb93f1b5 100644
+--- a/docs/response-parameters.rst
++++ b/docs/response-parameters.rst
+@@ -51,10 +51,12 @@ Descriptions of the custom response parameters that are marked with a leading ``
+ * ``@changesetId`` - id of the OSM changeset where the contribution was performed
+ * ``@osmType`` - type of the OSM element (NODE, WAY or RELATION)
+ * ``@timestamp`` - indicates when this contribution occurred
+-* ``@creation``	- contribution type; indicates if this feature is newly created (true); cannot occur in combination with other contribution types
+-* ``@geometryChange`` - contribution type; indicates if the geometry of this feature has changed (true); can occur in combination with @tagChange
+-* ``@tagChange``- contribution type; indicates if the tag of this feature has changed (true); can occur in combination with @geometryChange
+-* ``@deletion`` - contribution type; indicates if the feature is deleted (true); cannot occur in combination with other contribution types
++* ``@creation`` - contribution type; indicates if the OSM element newly fits the query's requirements: either because it is freshly created, moved into the query's area of interest, or is now matching the defined filter parameter (true); cannot occur in combination with other contribution types
++* ``@geometryChange`` - contribution type; indicates if the geometry of the OSM element has changed (true); can occur in combination with @tagChange
++* ``@tagChange``- contribution type; indicates if the tags of this OSM element have changed (true); can occur in combination with @geometryChange
++* ``@deletion`` - contribution type; indicates if the OSM element does not match the query requirements anymore: either because it got deleted, moved outside of the query area of interest, or is not matching the defined filter anymore (true); cannot occur in combination with other contribution types
++
++.. note:: No `contribution type` can occur with having ``false`` as a value. If any of them is present, the value is always ``true``.
+ 
+ Metadata
+ --------
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/Application.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/Application.java
+index 350af2e2..29e95ca8 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/Application.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/Application.java
+@@ -72,16 +72,15 @@ public static void main(String[] args) {
+    * @throws RuntimeException if a class with a specific name could not be found, or if the database
+    *         parameter is not defined
+    * @throws DatabaseAccessException if the access to keytables or database is not possible
+-   * @throws SQLException thrown by
+-   *         {@link org.heigit.bigspatialdata.oshdb.api.db.OSHDBH2#OSHDBH2(String) OSHDBH2}
+-   * @throws ClassNotFoundException thrown by
+-   *         {@link org.heigit.bigspatialdata.oshdb.api.db.OSHDBH2#OSHDBH2(String) OSHDBH2}
+-   * @throws OSHDBKeytablesNotFoundException thrown by
+-   *         {@link org.heigit.bigspatialdata.oshdb.util.tagtranslator.TagTranslator#TagTranslator(java.sql.Connection)
+-   *         TagTranslator}
+-   * @throws IOException thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.utils.RequestUtils#extractOSHDBMetadata()
+-   *         extractOSHDBMetadata}
++   * @throws SQLException thrown by {@link org.heigit.bigspatialdata.oshdb.api.db.OSHDBH2
++   *         #OSHDBH2(String) OSHDBH2}
++   * @throws ClassNotFoundException thrown by {@link org.heigit.bigspatialdata.oshdb.api.db.OSHDBH2
++   *         #OSHDBH2(String) OSHDBH2}
++   * @throws OSHDBKeytablesNotFoundException thrown by {@link
++   *         org.heigit.bigspatialdata.oshdb.util.tagtranslator.TagTranslator
++   *         #TagTranslator(java.sql.Connection) TagTranslator}
++   * @throws IOException thrown by {@link org.heigit.ohsome.ohsomeapi.utils.RequestUtils
++   *         #extractOSHDBMetadata() extractOSHDBMetadata}
+    */
+   public static void preRun(ApplicationArguments args)
+       throws ClassNotFoundException, SQLException, OSHDBKeytablesNotFoundException, IOException {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/AreaController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/AreaController.java
+index 4933cc0a..d8527bf0 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/AreaController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/AreaController.java
+@@ -57,8 +57,8 @@ public Response area(HttpServletRequest servletRequest, HttpServletResponse serv
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateGroupByType(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse, boolean, boolean) aggregateGroupByType}
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Area of OSM elements grouped by the type", nickname = "areaGroupByType",
+       response = GroupByResponse.class)
+@@ -80,8 +80,8 @@ public Response areaGroupByType(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link
+-   *                   org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
+-   *                   #aggregateGroupByBoundary() aggregateGroupByBoundary}
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Area of OSM elements grouped by the boundary (bboxes, bcircles, or bpolys)",
+@@ -102,8 +102,8 @@ public Response areaGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Area of OSM elements grouped by the boundary and the tag",
+       nickname = "areaGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -128,8 +128,8 @@ public Response areaGroupByBoundaryGroupByTag(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateGroupByKey(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse, boolean, boolean) aggregateGroupByKey}
++   *         #aggregateGroupByKey(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByKey}
+    */
+   @ApiOperation(value = "Area of OSM elements grouped by the key", nickname = "areaGroupByKey",
+       response = GroupByResponse.class)
+@@ -151,8 +151,8 @@ public Response areaGroupByKey(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response }
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateGroupByTag(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse, boolean, boolean) aggregateGroupByTag}
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Area of OSM elements grouped by the tag", nickname = "areaGroupByTag",
+       response = GroupByResponse.class)
+@@ -178,8 +178,7 @@ public Response areaGroupByTag(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link
+-   *                   org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
+-   *                   #aggregate() aggregate}
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements (area of elements divided "
+@@ -201,8 +200,8 @@ public Response areaDensity(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateGroupByType(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse, boolean, boolean) aggregateGroupByType}
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the type",
+       nickname = "areaDensityGroupByType", response = GroupByResponse.class)
+@@ -225,8 +224,8 @@ public Response areaDensityGroupByType(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link
+-   *                   org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
+-   *                   #aggregateGroupByBoundary() aggregateGroupByBoundary}
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements grouped by the boundary (bboxes, bcircles, or bpolys)",
+@@ -247,8 +246,8 @@ public Response areaDensityGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the boundary and the tag",
+       nickname = "areaDensityGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -273,8 +272,8 @@ public Response areaDensityGroupByBoundaryGroupByTag(HttpServletRequest servletR
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateGroupByTag(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse, boolean, boolean) aggregateGroupByTag}
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the tag",
+       nickname = "areaDensityGroupByTag", response = GroupByResponse.class)
+@@ -299,8 +298,8 @@ public Response areaDensityGroupByTag(HttpServletRequest servletRequest,
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
+-   *                   aggregateRatio}
++   *         #aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
++   *         aggregateRatio}
+    */
+   @ApiOperation(
+       value = "Ratio of the area of OSM elements satisfying filter2 within items selected by "
+@@ -335,8 +334,8 @@ public Response areaRatio(HttpServletRequest servletRequest, HttpServletResponse
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
+-   *                   #aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest,
+-   *                   HttpServletResponse) aggregateRatioGroupByBoundary}
++   *         #aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest,
++   *         HttpServletResponse) aggregateRatioGroupByBoundary}
+    */
+   @ApiOperation(value = "Ratio of the area of OSM elements grouped by the boundary",
+       nickname = "areaRatioGroupByBoundary", response = RatioGroupByBoundaryResponse.class)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/CountController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/CountController.java
+index 16fc9d72..6f08e74a 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/CountController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/CountController.java
+@@ -36,8 +36,8 @@ public class CountController {
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
+    */
+   @ApiOperation(value = "Count of OSM elements", nickname = "count",
+       response = DefaultAggregationResponse.class)
+@@ -56,9 +56,9 @@ public Response count(HttpServletRequest servletRequest, HttpServletResponse ser
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Count of OSM elements grouped by the type", nickname = "countGroupByType",
+       response = GroupByResponse.class)
+@@ -79,8 +79,9 @@ public Response countGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregateGroupByBoundary() aggregateGroupByBoundary}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Count of OSM elements grouped by the boundary (bboxes, bcircles, or bpolys)",
+@@ -102,9 +103,9 @@ public Response countGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByBoundaryGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Count of OSM elements grouped by the boundary and the tag",
+       nickname = "countGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -128,9 +129,9 @@ public Response countGroupByBoundaryGroupByTag(HttpServletRequest servletRequest
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByKey(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByKey}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByKey(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByKey}
+    */
+   @ApiOperation(value = "Count of OSM elements grouped by the key", nickname = "countGroupByKey",
+       response = GroupByResponse.class)
+@@ -151,9 +152,9 @@ public Response countGroupByKey(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Count of OSM elements grouped by the tag", nickname = "countGroupByTag",
+       response = GroupByResponse.class)
+@@ -178,8 +179,8 @@ public Response countGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements (number of elements divided by "
+@@ -200,9 +201,9 @@ public Response countDensity(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the type",
+       nickname = "countDensityGroupByType", response = GroupByResponse.class)
+@@ -224,8 +225,9 @@ public Response countDensityGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregateGroupByBoundary() aggregateGroupByBoundary}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements grouped by the boundary (bboxes, bcircles, or bpolys)",
+@@ -247,9 +249,9 @@ public Response countDensityGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByBoundaryGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the boundary and the tag",
+       nickname = "countDensityGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -273,9 +275,9 @@ public Response countDensityGroupByBoundaryGroupByTag(HttpServletRequest servlet
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the tag",
+       nickname = "countDensityGroupByTag", response = GroupByResponse.class)
+@@ -299,8 +301,8 @@ public Response countDensityGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
+    *         aggregateRatio}
+    */
+   @ApiOperation(value = "Ratio of OSM elements satisfying filter2 within items selected by filter",
+@@ -333,9 +335,9 @@ public Response countRatio(HttpServletRequest servletRequest, HttpServletRespons
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest, HttpServletResponse)
+-   *         aggregateRatioGroupByBoundary}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest,
++   *         HttpServletResponse) aggregateRatioGroupByBoundary}
+    */
+   @ApiOperation(value = "Ratio of OSM elements grouped by the boundary",
+       nickname = "countRatioGroupByBoundary", response = RatioGroupByBoundaryResponse.class)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/LengthController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/LengthController.java
+index 8d6a3e6e..d7a1d56e 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/LengthController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/LengthController.java
+@@ -35,8 +35,8 @@ public class LengthController {
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
+    */
+   @ApiOperation(value = "Length of OSM elements", nickname = "length",
+       response = DefaultAggregationResponse.class)
+@@ -44,8 +44,8 @@ public class LengthController {
+       produces = {"application/json", "text/csv"})
+   public Response length(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
+       throws Exception {
+-    AggregateRequestExecutor executor =
+-        new AggregateRequestExecutor(RequestResource.LENGTH, servletRequest, servletResponse, false);
++    AggregateRequestExecutor executor = new AggregateRequestExecutor(RequestResource.LENGTH, 
++        servletRequest, servletResponse, false);
+     return executor.aggregate();
+   }
+ 
+@@ -55,9 +55,9 @@ public Response length(HttpServletRequest servletRequest, HttpServletResponse se
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Length of OSM elements grouped by the type",
+       nickname = "lengthGroupByType", response = GroupByResponse.class)
+@@ -76,8 +76,9 @@ public Response lengthGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregateGroupByBoundary() aggregateGroupByBoundary}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Length of OSM elements grouped by the boundary (bboxes, bcircles, or bpolys)",
+@@ -88,8 +89,8 @@ public Response lengthGroupByType(HttpServletRequest servletRequest,
+       produces = {"application/json", "text/csv"})
+   public Response lengthGroupByBoundary(HttpServletRequest servletRequest,
+       HttpServletResponse servletResponse) throws Exception {
+-    AggregateRequestExecutor executor =
+-        new AggregateRequestExecutor(RequestResource.LENGTH, servletRequest, servletResponse, false);
++    AggregateRequestExecutor executor = new AggregateRequestExecutor(RequestResource.LENGTH, 
++        servletRequest, servletResponse, false);
+     return executor.aggregateGroupByBoundary();
+   }
+ 
+@@ -99,9 +100,9 @@ public Response lengthGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByBoundaryGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Length of OSM elements grouped by the boundary and the tag",
+       nickname = "lengthGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -125,9 +126,9 @@ public Response lengthGroupByBoundaryGroupByTag(HttpServletRequest servletReques
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByKey(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByKey}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByKey(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByKey}
+    */
+   @ApiOperation(value = "Length of OSM elements grouped by the key", nickname = "lengthGroupByKey",
+       response = GroupByResponse.class)
+@@ -148,9 +149,9 @@ public Response lengthGroupByKey(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Length of OSM elements grouped by the tag", nickname = "lengthGroupByTag",
+       response = GroupByResponse.class)
+@@ -175,8 +176,8 @@ public Response lengthGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements (length of elements divided by "
+@@ -197,9 +198,9 @@ public Response lengthDensity(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the OSM type",
+       nickname = "lengthDensityGroupByType", response = GroupByResponse.class)
+@@ -217,8 +218,9 @@ public Response lengthDensityGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregateGroupByBoundary() aggregateGroupByBoundary}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements grouped by the boundary (bboxes, bcircles, or bpolys)",
+@@ -240,9 +242,9 @@ public Response lengthDensityGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByBoundaryGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, 
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the boundary and the tag",
+       nickname = "lengthDensityGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -266,9 +268,9 @@ public Response lengthDensityGroupByBoundaryGroupByTag(HttpServletRequest servle
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, 
++   *         boolean, boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the tag",
+       nickname = "lengthDensityGroupByTag", response = GroupByResponse.class)
+@@ -292,8 +294,8 @@ public Response lengthDensityGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
+    *         aggregateRatio}
+    */
+   @ApiOperation(value = "Ratio of OSM elements satisfying filter2 within items selected by filter",
+@@ -326,9 +328,9 @@ public Response lengthRatio(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest, HttpServletResponse)
+-   *         aggregateRatioGroupByBoundary}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest,
++   *         HttpServletResponse) aggregateRatioGroupByBoundary}
+    */
+   @ApiOperation(value = "Ratio of the length of OSM elements grouped by the boundary",
+       nickname = "lengthRatioGroupByBoundary", response = RatioGroupByBoundaryResponse.class)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/PerimeterController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/PerimeterController.java
+index 0390e447..9c71e1c6 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/PerimeterController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/elements/PerimeterController.java
+@@ -36,8 +36,8 @@ public class PerimeterController {
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
+    */
+   @ApiOperation(value = "Perimeter of OSM elements", nickname = "perimeter",
+       response = DefaultAggregationResponse.class)
+@@ -56,9 +56,9 @@ public Response perimeter(HttpServletRequest servletRequest, HttpServletResponse
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Perimeter of OSM elements grouped by the type",
+       nickname = "perimeterGroupByType", response = GroupByResponse.class)
+@@ -80,8 +80,9 @@ public Response perimeterGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregateGroupByBoundary() aggregateGroupByBoundary}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Perimeter of OSM elements in grouped by the boundary "
+@@ -102,9 +103,9 @@ public Response perimeterGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByBoundaryGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, 
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Perimeter of OSM elements grouped by the boundary and the tag",
+       nickname = "perimeterGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -128,9 +129,9 @@ public Response perimeterGroupByBoundaryGroupByTag(HttpServletRequest servletReq
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByKey(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByKey}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByKey(RequestResource, HttpServletRequest, HttpServletResponse, 
++   *         boolean, boolean) aggregateGroupByKey}
+    */
+   @ApiOperation(value = "Perimeter of OSM elements grouped by the key",
+       nickname = "perimeterGroupByKey", response = GroupByResponse.class)
+@@ -151,9 +152,9 @@ public Response perimeterGroupByKey(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, 
++   *         boolean, boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Perimeter of OSM elements grouped by the tag",
+       nickname = "perimeterGroupByTag", response = GroupByResponse.class)
+@@ -178,8 +179,8 @@ public Response perimeterGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregate() aggregate}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements (perimeter of elements divided by "
+@@ -200,9 +201,9 @@ public Response perimeterDensity(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByType(RequestResource, HttpServletRequest, HttpServletResponse,
++   *         boolean, boolean) aggregateGroupByType}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the type",
+       nickname = "perimeterDensityGroupByType", response = GroupByResponse.class)
+@@ -224,8 +225,9 @@ public Response perimeterDensityGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#aggregateGroupByBoundary() aggregateGroupByBoundary}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #aggregateGroupByBoundary() aggregateGroupByBoundary}
+    */
+   @ApiOperation(
+       value = "Density of OSM elements grouped by the boundary (bboxes, bcircles, or bpolys)",
+@@ -245,9 +247,9 @@ public Response perimeterDensityGroupByBoundary(HttpServletRequest servletReques
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByBoundaryGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByBoundaryGroupByTag(RequestResource, HttpServletRequest,
++   *         HttpServletResponse, boolean, boolean) aggregateGroupByBoundaryGroupByTag}
+    */
+   @ApiOperation(value = "Density of  grouped by the boundary and the tag",
+       nickname = "perimeterDensityGroupByBoundaryGroupByTag", response = GroupByResponse.class)
+@@ -271,9 +273,9 @@ public Response perimeterDensityGroupByBoundaryGroupByTag(HttpServletRequest ser
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean, boolean)
+-   *         aggregateGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateGroupByTag(RequestResource, HttpServletRequest, HttpServletResponse, boolean,
++   *         boolean) aggregateGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM elements grouped by the tag",
+       nickname = "perimeterDensityGroupByTag", response = GroupByResponse.class)
+@@ -297,8 +299,8 @@ public Response perimeterDensityGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateRatio(RequestResource, HttpServletRequest, HttpServletResponse)
+    *         aggregateRatio}
+    */
+   @ApiOperation(value = "Ratio of OSM elements satisfying filter2 within items selected by filter",
+@@ -331,9 +333,9 @@ public Response perimeterRatio(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest, HttpServletResponse)
+-   *         aggregateRatioGroupByBoundary}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #aggregateRatioGroupByBoundary(RequestResource, HttpServletRequest,
++   *         HttpServletResponse) aggregateRatioGroupByBoundary}
+    */
+   @ApiOperation(value = "Ratio of the perimeter of OSM elements grouped by the boundary",
+       nickname = "perimeterRatioGroupByBoundary", response = RatioGroupByBoundaryResponse.class)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/users/UsersController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/users/UsersController.java
+index 3100b1a9..ca252031 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/users/UsersController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataaggregation/users/UsersController.java
+@@ -28,9 +28,8 @@ public class UsersController {
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#count(HttpServletRequest, HttpServletResponse, boolean)
+-   *         count}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #count(HttpServletRequest, HttpServletResponse, boolean) count}
+    */
+   @ApiOperation(value = "Count of OSM users", nickname = "count",
+       response = DefaultAggregationResponse.class)
+@@ -47,9 +46,8 @@ public Response count(HttpServletRequest servletRequest, HttpServletResponse ser
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#countGroupByType(HttpServletRequest, HttpServletResponse, boolean)
+-   *         countGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #countGroupByType(HttpServletRequest, HttpServletResponse, boolean) countGroupByType}
+    */
+   @ApiOperation(value = "Count of OSM users grouped by the type", nickname = "countGroupByType",
+       response = GroupByResponse.class)
+@@ -66,9 +64,8 @@ public Response countGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#countGroupByTag(HttpServletRequest, HttpServletResponse, boolean)
+-   *         countGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #countGroupByTag(HttpServletRequest, HttpServletResponse, boolean) countGroupByTag}
+    */
+   @ApiOperation(value = "Count of OSM users grouped by the tag", nickname = "countGroupByTag",
+       response = GroupByResponse.class)
+@@ -91,9 +88,8 @@ public Response countGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#countGroupByKey(HttpServletRequest, HttpServletResponse, boolean)
+-   *         countGroupByKey}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #countGroupByKey(HttpServletRequest, HttpServletResponse, boolean) countGroupByKey}
+    */
+   @ApiOperation(value = "Count of OSM users grouped by the key", nickname = "countGroupByKey",
+       response = GroupByResponse.class)
+@@ -113,8 +109,8 @@ public Response countGroupByKey(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#countGroupByBoundary(HttpServletRequest, HttpServletResponse, boolean)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #countGroupByBoundary(HttpServletRequest, HttpServletResponse, boolean)
+    *         countGroupByBoundary}
+    */
+   @ApiOperation(value = "Count of OSM users grouped by boundary (bboxes, bcirlces, or bpolys)",
+@@ -133,9 +129,8 @@ public Response countGroupByBoundary(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#count(HttpServletRequest, HttpServletResponse, boolean)
+-   *         count}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *          #count(HttpServletRequest, HttpServletResponse, boolean) count}
+    */
+   @ApiOperation(
+       value = "Density of OSM users (number of users divided "
+@@ -154,9 +149,8 @@ public Response countDensity(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#countGroupByType(HttpServletRequest, HttpServletResponse, boolean)
+-   *         countGroupByType}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #countGroupByType(HttpServletRequest, HttpServletResponse, boolean) countGroupByType}
+    */
+   @ApiOperation(value = "Density of OSM users grouped by the type",
+       nickname = "countDensityGroupByType", response = GroupByResponse.class)
+@@ -173,9 +167,8 @@ public Response countDensityGroupByType(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#countGroupByTag(HttpServletRequest, HttpServletResponse, boolean)
+-   *         countGroupByTag}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #countGroupByTag(HttpServletRequest, HttpServletResponse, boolean) countGroupByTag}
+    */
+   @ApiOperation(value = "Density of OSM users grouped by the tag",
+       nickname = "countDensityGroupByTag", response = GroupByResponse.class)
+@@ -199,8 +192,8 @@ public Response countDensityGroupByTag(HttpServletRequest servletRequest,
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor#countGroupByBoundary(HttpServletRequest, HttpServletResponse, boolean)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.UsersRequestExecutor
++   *         #countGroupByBoundary(HttpServletRequest, HttpServletResponse, boolean)
+    *         countGroupByBoundary}
+    */
+   @ApiOperation(value = "Count of OSM users grouped by boundary (bboxes, bcirlces, or bpolys)",
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/contributions/ContributionsController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/contributions/ContributionsController.java
+index 254e78c9..946bdd91 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/contributions/ContributionsController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/contributions/ContributionsController.java
+@@ -28,8 +28,8 @@ public class ContributionsController {
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(value = "OSM contributions having the raw geometry of each OSM object as geometry",
+       nickname = "contributionsGeometry", response = ExtractionResponse.class)
+@@ -52,8 +52,8 @@ public void contributions(HttpServletRequest servletRequest, HttpServletResponse
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(value = "OSM contributions having the bounding box of each OSM object as geometry",
+       nickname = "contributionsBbox", response = ExtractionResponse.class)
+@@ -76,8 +76,8 @@ public void contributionsBbox(HttpServletRequest servletRequest,
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
+    */
+   @ApiOperation(value = "OSM contributions having the centroid of each OSM object as geometry",
+       nickname = "contributionsCentroid", response = ExtractionResponse.class)
+@@ -100,8 +100,8 @@ public void contributionsCentroid(HttpServletRequest servletRequest,
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(
+       value = "Latest OSM contributions having the raw geometry of each OSM object as geometry",
+@@ -125,8 +125,8 @@ public void contributionsLatest(HttpServletRequest servletRequest,
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(
+       value = "Latest OSM contributions having the bounding box of each OSM object as geometry",
+@@ -150,8 +150,8 @@ public void contributionsBboxLatest(HttpServletRequest servletRequest,
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(
+       value = "Latest OSM contributions having the centroid of each OSM object as geometry",
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsController.java
+index c729c003..b923da89 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsController.java
+@@ -26,8 +26,8 @@ public class ElementsController {
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#extract(RequestResource, ElementsGeometry, HttpServletRequest, HttpServletResponse)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #extract(RequestResource, ElementsGeometry, HttpServletRequest, HttpServletResponse)
+    *         extract}
+    */
+   @ApiOperation(value = "OSM Data having the raw geometry of each OSM object as geometry",
+@@ -46,8 +46,8 @@ public void elementsGeometry(HttpServletRequest servletRequest,
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#extract(RequestResource, ElementsGeometry, HttpServletRequest, HttpServletResponse)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #extract(RequestResource, ElementsGeometry, HttpServletRequest, HttpServletResponse)
+    *         extract}
+    */
+   @ApiOperation(value = "OSM Data, having the bounding box of each OSM object as geometry",
+@@ -66,8 +66,8 @@ public void elementsBbox(HttpServletRequest servletRequest, HttpServletResponse
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor#extract(RequestResource, ElementsGeometry, HttpServletRequest, HttpServletResponse)
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ElementsRequestExecutor
++   *         #extract(RequestResource, ElementsGeometry, HttpServletRequest, HttpServletResponse)
+    *         extract}
+    */
+   @ApiOperation(value = "OSM Data, having the centroid of each OSM object as geometry",
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsFullHistoryController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsFullHistoryController.java
+index 5bfc7ae9..7a0e24d4 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsFullHistoryController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/dataextraction/elements/ElementsFullHistoryController.java
+@@ -28,8 +28,8 @@ public class ElementsFullHistoryController {
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(
+       value = "Full-history OSM data having the raw geometry of each OSM object as geometry",
+@@ -53,8 +53,8 @@ public void elementsFullHistory(HttpServletRequest servletRequest,
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(
+       value = "Full-history OSM data, having the bounding box of each OSM object as geometry",
+@@ -78,8 +78,8 @@ public void elementsBboxFullHistory(HttpServletRequest servletRequest,
+    * 
+    * @param servletRequest <code>HttpServletRequest</code> of the incoming request
+    * @param servletResponse <code>HttpServletResponse</code> of the outgoing response
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor#extract() extract}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.executor.DataRequestExecutor
++   *         #extract() extract}
+    */
+   @ApiOperation(value = "Full-history OSM data, having the centroid of each OSM object as geometry",
+       nickname = "elementsCentroidFullHistory", response = ExtractionResponse.class)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/metadata/MetadataController.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/metadata/MetadataController.java
+index 80eb3bf5..c6a812c1 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/metadata/MetadataController.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/controller/metadata/MetadataController.java
+@@ -20,8 +20,7 @@ public class MetadataController {
+   /**
+    * GET request giving the metadata of the underlying extract-region(s).
+    * 
+-   * @return {@link org.heigit.ohsome.ohsomeapi.output.metadata.MetadataResponse
+-   *         MetadataResponse}
++   * @return {@link org.heigit.ohsome.ohsomeapi.output.metadata.MetadataResponse MetadataResponse}
+    */
+   @GetMapping(produces = "application/json")
+   @ApiOperation(nickname = "Metadata", value = "Metadata of the underlying OSHDB data-extract")
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/AggregateRequestExecutor.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/AggregateRequestExecutor.java
+index c50a04b7..cb31c633 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/AggregateRequestExecutor.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/AggregateRequestExecutor.java
+@@ -73,9 +73,8 @@ public AggregateRequestExecutor(RequestResource requestResource,
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws RuntimeException if an unsupported RequestResource type is used. Only COUNT, LENGTH,
+    *         PERIMETER, and AREA are permitted here
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters},
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters},
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#count() count}, or
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#sum() sum}
+    */
+@@ -130,11 +129,11 @@ public Response aggregate() throws Exception {
+    * Performs a count|length|perimeter|area calculation grouped by the boundary.
+    * 
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters} and
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor#computeCountLengthPerimeterAreaGbB(RequestResource, BoundaryType, MapReducer, InputProcessor)
+-   *         computeCountLengthPerimeterAreaGbB}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters} and
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.AggregateRequestExecutor
++   *         #computeCountLengthPerimeterAreaGbB(RequestResource, BoundaryType, MapReducer,
++   *         InputProcessor) computeCountLengthPerimeterAreaGbB}
+    */
+   public Response aggregateGroupByBoundary() throws Exception {
+     processingData.setGroupByBoundary(true);
+@@ -332,14 +331,15 @@ private ElementsResult[] fillElementsResult(SortedMap<OSHDBTimestamp, ? extends
+    * Computes the result for the /count|length|perimeter|area/groupBy/boundary resources.
+    * 
+    * @throws BadRequestException if a boundary parameter is not defined.
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#count() count}, or
+-   *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#sum(SerializableFunction)
+-   *         sum}
++   * @throws Exception thrown by {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator
++   *         #count() count}, or
++   *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator
++   *         #sum(SerializableFunction) sum}
+    */
+-  private <P extends Geometry & Polygonal> SortedMap<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, ? extends Number> computeCountLengthPerimeterAreaGbB(
+-      RequestResource requestResource, BoundaryType boundaryType,
+-      MapReducer<OSMEntitySnapshot> mapRed, InputProcessor inputProcessor) throws Exception {
++  private <P extends Geometry & Polygonal> SortedMap<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, 
++        ? extends Number> computeCountLengthPerimeterAreaGbB(RequestResource requestResource, 
++        BoundaryType boundaryType, MapReducer<OSMEntitySnapshot> mapRed, 
++        InputProcessor inputProcessor) throws Exception {
+     if (boundaryType == BoundaryType.NOBOUNDARY) {
+       throw new BadRequestException(ExceptionMessages.NO_BOUNDARY);
+     }
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataExtractionTransformer.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataExtractionTransformer.java
+index 919515f8..39e4d1ba 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataExtractionTransformer.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataExtractionTransformer.java
+@@ -7,12 +7,12 @@
+ import java.util.Map;
+ import java.util.Set;
+ import java.util.TreeMap;
+-import java.util.function.Supplier;
+ import org.heigit.bigspatialdata.oshdb.api.object.OSMContribution;
+ import org.heigit.bigspatialdata.oshdb.api.object.OSMEntitySnapshot;
+ import org.heigit.bigspatialdata.oshdb.osm.OSMEntity;
+ import org.heigit.bigspatialdata.oshdb.util.celliterator.ContributionType;
+ import org.heigit.bigspatialdata.oshdb.util.time.TimestampFormatter;
++import org.heigit.ohsome.filter.FilterExpression;
+ import org.heigit.ohsome.ohsomeapi.controller.dataextraction.elements.ElementsGeometry;
+ import org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessingUtils;
+ import org.heigit.ohsome.ohsomeapi.inputprocessing.SimpleFeatureType;
+@@ -28,6 +28,7 @@ public class DataExtractionTransformer implements Serializable {
+   private final String startTimestamp;
+   private final InputProcessingUtils utils;
+   private final Set<SimpleFeatureType> simpleFeatureTypes;
++  private final FilterExpression filter;
+   private final Set<Integer> keysInt;
+   private final boolean includeTags;
+   private final boolean includeOSMMetadata;
+@@ -38,8 +39,9 @@ public class DataExtractionTransformer implements Serializable {
+   public DataExtractionTransformer(boolean isContributionsLatestEndpoint,
+       boolean isContributionsEndpoint, ExecutionUtils exeUtils,
+       boolean clipGeometries, String startTimestamp, InputProcessingUtils utils,
+-      Set<SimpleFeatureType> simpleFeatureTypes, Set<Integer> keysInt, boolean includeTags,
+-      boolean includeOSMMetadata, ElementsGeometry elementsGeometry, String endTimestamp,
++      Set<SimpleFeatureType> simpleFeatureTypes, FilterExpression filter,
++      Set<Integer> keysInt, boolean includeTags, boolean includeOSMMetadata,
++      ElementsGeometry elementsGeometry, String endTimestamp,
+       boolean isContainingSimpleFeatureTypes) {
+     this.isContributionsLatestEndpoint = isContributionsLatestEndpoint;
+     this.isContributionsEndpoint = isContributionsEndpoint;
+@@ -48,6 +50,7 @@ public DataExtractionTransformer(boolean isContributionsLatestEndpoint,
+     this.startTimestamp = startTimestamp;
+     this.utils = utils;
+     this.simpleFeatureTypes = simpleFeatureTypes;
++    this.filter = filter;
+     this.keysInt = keysInt;
+     this.includeTags = includeTags;
+     this.includeOSMMetadata = includeOSMMetadata;
+@@ -90,9 +93,7 @@ public List<Feature> buildChangedFeatures(List<OSMContribution> contributions) {
+         // set valid_to of previous row
+         validTo = TimestampFormatter.getInstance().isoDateTime(contribution.getTimestamp());
+         if (!skipNext && currentGeom != null && !currentGeom.isEmpty()) {
+-          final Geometry geomToCheck = currentGeom;
+-          boolean addToOutput = addEntityToOutput(isContainingSimpleFeatureTypes, utils,
+-              simpleFeatureTypes, () -> geomToCheck);
++          boolean addToOutput = addEntityToOutput(currentEntity, currentGeom);
+           if (addToOutput) {
+             properties = new TreeMap<>();
+             if (!isContributionsEndpoint) {
+@@ -134,9 +135,7 @@ public List<Feature> buildChangedFeatures(List<OSMContribution> contributions) {
+             TimestampFormatter.getInstance().isoDateTime(lastContribution.getTimestamp()));
+       }
+       if (!currentGeom.isEmpty()) {
+-        final Geometry geomToCheck = currentGeom;
+-        boolean addToOutput = addEntityToOutput(isContainingSimpleFeatureTypes, utils,
+-            simpleFeatureTypes, () -> geomToCheck);
++        boolean addToOutput = addEntityToOutput(currentEntity, currentGeom);
+         if (addToOutput) {
+           output.add(exeUtils.createOSMFeature(currentEntity, currentGeom, properties, keysInt,
+               includeTags, includeOSMMetadata, isContributionsEndpoint, elementsGeometry,
+@@ -162,21 +161,20 @@ public List<Feature> buildUnchangedFeatures(OSMEntitySnapshot snapshot) {
+     if (includeOSMMetadata) {
+       properties.put("@lastEdit", entity.getTimestamp().toString());
+     }
+-    Supplier<Geometry> geom;
++    Geometry geom;
+     if (clipGeometries) {
+-      geom = snapshot::getGeometry;
++      geom = snapshot.getGeometry();
+     } else {
+-      geom = snapshot::getGeometryUnclipped;
++      geom = snapshot.getGeometryUnclipped();
+     }
+     properties.put("@snapshotTimestamp",
+         TimestampFormatter.getInstance().isoDateTime(snapshot.getTimestamp()));
+     properties.put("@validFrom", startTimestamp);
+     properties.put("@validTo", endTimestamp);
+-    boolean addToOutput = addEntityToOutput(isContainingSimpleFeatureTypes, utils,
+-        simpleFeatureTypes, geom);
++    boolean addToOutput = addEntityToOutput(entity, geom);
+     if (addToOutput) {
+       return Collections.singletonList(
+-          exeUtils.createOSMFeature(entity, geom.get(), properties, keysInt, includeTags,
++          exeUtils.createOSMFeature(entity, geom, properties, keysInt, includeTags,
+               includeOSMMetadata, isContributionsEndpoint, elementsGeometry, null));
+     } else {
+       return Collections.emptyList();
+@@ -184,17 +182,11 @@ public List<Feature> buildUnchangedFeatures(OSMEntitySnapshot snapshot) {
+   }
+ 
+   /** Checks whether the given entity should be added to the output (true) or not (false). */
+-  public static boolean addEntityToOutput(
+-      boolean isContainingSimpleFeatureTypes,
+-      InputProcessingUtils utils,
+-      final Set<SimpleFeatureType> simpleFeatureTypes,
+-      Supplier<Geometry> currentGeom) {
+-    boolean addToOutput;
++  public boolean addEntityToOutput(OSMEntity currentEntity, Geometry currentGeom) {
+     if (isContainingSimpleFeatureTypes) {
+-      addToOutput = utils.checkGeometryOnSimpleFeatures(currentGeom.get(), simpleFeatureTypes);
++      return utils.checkGeometryOnSimpleFeatures(currentGeom, simpleFeatureTypes);
+     } else {
+-      addToOutput = true;
++      return filter == null || filter.applyOSMGeometry(currentEntity, currentGeom);
+     }
+-    return addToOutput;
+   }
+ }
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java
+index 9ade334b..8276f221 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/DataRequestExecutor.java
+@@ -50,14 +50,14 @@ public DataRequestExecutor(RequestResource requestResource, ElementsGeometry ele
+   /**
+    * Performs an OSM data extraction using the full-history of the data.
+    * 
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters}, {@link
+-   *         org.heigit.bigspatialdata.oshdb.util.time.IsoDateTimeParser#parseIsoDateTime(String)
+-   *         parseIsoDateTime},
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters},
++   *         {@link org.heigit.bigspatialdata.oshdb.util.time.IsoDateTimeParser
++   *         #parseIsoDateTime(String) parseIsoDateTime},
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapReducer#stream() stream}, or
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#streamResponse(
+-   *         HttpServletResponse, ExtractionResponse, Stream) streamElementsResponse}
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #streamResponse(HttpServletResponse, ExtractionResponse, Stream)
++   *         streamElementsResponse}
+    */
+   public void extract() throws Exception {
+     inputProcessor.getProcessingData().setFullHistory(true);
+@@ -110,8 +110,8 @@ public void extract() throws Exception {
+     final boolean isContainingSimpleFeatureTypes = processingData.isContainingSimpleFeatureTypes();
+     DataExtractionTransformer dataExtractionTransformer = new DataExtractionTransformer(
+         isContributionsLatestEndpoint, isContributionsEndpoint, exeUtils, clipGeometries,
+-        startTimestamp, utils, simpleFeatureTypes, keysInt, includeTags, includeOSMMetadata,
+-        elementsGeometry, endTimestamp, isContainingSimpleFeatureTypes);
++        startTimestamp, utils, simpleFeatureTypes, filter.orElse(null), keysInt, includeTags,
++        includeOSMMetadata, elementsGeometry, endTimestamp, isContainingSimpleFeatureTypes);
+     MapReducer<Feature> contributionPreResult = mapRedContributions
+         .flatMap(dataExtractionTransformer::buildChangedFeatures)
+         .filter(Objects::nonNull);
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+index c6968490..653fbd59 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ElementsRequestExecutor.java
+@@ -31,6 +31,7 @@
+ import org.heigit.bigspatialdata.oshdb.osm.OSMType;
+ import org.heigit.bigspatialdata.oshdb.util.OSHDBTag;
+ import org.heigit.bigspatialdata.oshdb.util.OSHDBTimestamp;
++import org.heigit.bigspatialdata.oshdb.util.celliterator.ContributionType;
+ import org.heigit.bigspatialdata.oshdb.util.geometry.Geo;
+ import org.heigit.bigspatialdata.oshdb.util.tagtranslator.TagTranslator;
+ import org.heigit.bigspatialdata.oshdb.util.time.TimestampFormatter;
+@@ -49,8 +50,8 @@
+ import org.heigit.ohsome.ohsomeapi.oshdb.DbConnData;
+ import org.heigit.ohsome.ohsomeapi.oshdb.ExtractMetadata;
+ import org.heigit.ohsome.ohsomeapi.output.Attribution;
+-import org.heigit.ohsome.ohsomeapi.output.ExtractionResponse;
+ import org.heigit.ohsome.ohsomeapi.output.Description;
++import org.heigit.ohsome.ohsomeapi.output.ExtractionResponse;
+ import org.heigit.ohsome.ohsomeapi.output.Metadata;
+ import org.heigit.ohsome.ohsomeapi.output.Response;
+ import org.heigit.ohsome.ohsomeapi.output.elements.ElementsResult;
+@@ -75,17 +76,18 @@ private ElementsRequestExecutor() {
+   /**
+    * Performs an OSM data extraction.
+    * 
+-   * @param elemGeom {@link org.heigit.ohsome.ohsomeapi.controller.dataextraction.elements.ElementsGeometry
++   * @param elemGeom {@link 
++   *        org.heigit.ohsome.ohsomeapi.controller.dataextraction.elements.ElementsGeometry
+    *        ElementsGeometry} defining the geometry of the OSM elements
+    * @param servletRequest {@link javax.servlet.http.HttpServletRequest HttpServletRequest} incoming
+    *        request object
+    * @param servletResponse {@link javax.servlet.http.HttpServletResponse HttpServletResponse]}
+    *        outgoing response object
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters},
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters},
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapReducer#stream() stream}, or
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#streamResponse(HttpServletResponse, ExtractionResponse, Stream)
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #streamResponse(HttpServletResponse, ExtractionResponse, Stream)
+    *         streamElementsResponse}
+    */
+   public static void extract(RequestResource requestResource, ElementsGeometry elemGeom,
+@@ -125,15 +127,15 @@ public static void extract(RequestResource requestResource, ElementsGeometry ele
+         geom = snapshot.getGeometryUnclipped();
+       }
+       return exeUtils.createOSMFeature(snapshot.getEntity(), geom, properties, keysInt, includeTags,
+-          includeOSMMetadata, false, elemGeom, null);
++          includeOSMMetadata, false, elemGeom, EnumSet.noneOf(ContributionType.class));
+     }).filter(Objects::nonNull);
+     Metadata metadata = null;
+     if (processingData.isShowMetadata()) {
+       metadata = new Metadata(null, requestResource.getDescription(),
+           inputProcessor.getRequestUrlIfGetRequest(servletRequest));
+     }
+-    ExtractionResponse osmData = new ExtractionResponse(new Attribution(URL, TEXT), Application.API_VERSION,
+-        metadata, "FeatureCollection", Collections.emptyList());
++    ExtractionResponse osmData = new ExtractionResponse(new Attribution(URL, TEXT), 
++        Application.API_VERSION, metadata, "FeatureCollection", Collections.emptyList());
+     try (Stream<Feature> streamResult = preResult.stream()) {
+       exeUtils.streamResponse(servletResponse, osmData, streamResult);
+     }
+@@ -153,9 +155,8 @@ public static void extract(RequestResource requestResource, ElementsGeometry ele
+    * @param isDensity whether this request is accessed via the /density resource
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws BadRequestException if groupByKey parameter is not given
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters}
+    */
+   public static <P extends Geometry & Polygonal> Response aggregateGroupByBoundaryGroupByTag(
+       RequestResource requestResource, HttpServletRequest servletRequest,
+@@ -260,11 +261,10 @@ public static <P extends Geometry & Polygonal> Response aggregateGroupByBoundary
+    * @param isDensity whether this request is accessed via the /density resource
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws BadRequestException if groupByKey parameter is not given
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters} and
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#computeResult(RequestResource, MapAggregator)
+-   *         computeResult}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters} and
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #computeResult(RequestResource, MapAggregator) computeResult}
+    */
+   public static Response aggregateGroupByTag(RequestResource requestResource,
+       HttpServletRequest servletRequest, HttpServletResponse servletResponse, boolean isSnapshot,
+@@ -345,11 +345,10 @@ public static Response aggregateGroupByTag(RequestResource requestResource,
+    *        (false)
+    * @param isDensity whether this request is accessed via the /density resource
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters} and
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#computeResult(RequestResource, MapAggregator)
+-   *         computeResult}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters} and
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #computeResult(RequestResource, MapAggregator) computeResult}
+    */
+   public static Response aggregateGroupByType(RequestResource requestResource,
+       HttpServletRequest servletRequest, HttpServletResponse servletResponse, boolean isSnapshot,
+@@ -407,11 +406,10 @@ public static Response aggregateGroupByType(RequestResource requestResource,
+    * @param isDensity whether this request is accessed via the /density resource
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws BadRequestException if groupByKeys parameter is not given
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters} and
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#computeResult(RequestResource, MapAggregator)
+-   *         computeResult}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters} and
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #computeResult(RequestResource, MapAggregator) computeResult}
+    */
+   public static Response aggregateGroupByKey(RequestResource requestResource,
+       HttpServletRequest servletRequest, HttpServletResponse servletResponse, boolean isSnapshot,
+@@ -498,11 +496,10 @@ public static Response aggregateGroupByKey(RequestResource requestResource,
+    * @param servletResponse {@link javax.servlet.http.HttpServletResponse HttpServletResponse]}
+    *        outgoing response object
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters} and
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#computeResult(RequestResource, MapAggregator)
+-   *         computeResult}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters} and
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #computeResult(RequestResource, MapAggregator) computeResult}
+    */
+   @Deprecated(forRemoval = true)
+   public static Response aggregateBasicFiltersRatio(RequestResource requestResource,
+@@ -644,11 +641,10 @@ public static Response aggregateBasicFiltersRatio(RequestResource requestResourc
+    * @param servletResponse {@link javax.servlet.http.HttpServletResponse HttpServletResponse]}
+    *        outgoing response object
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters} and
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#computeResult(RequestResource, MapAggregator)
+-   *         computeResult}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters} and
++   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #computeResult(RequestResource, MapAggregator) computeResult}
+    */
+   public static Response aggregateRatio(RequestResource requestResource,
+       HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws Exception {
+@@ -748,9 +744,8 @@ public static Response aggregateRatio(RequestResource requestResource,
+    *        outgoing response object
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws BadRequestException if a boundary parameter (bboxes, bcircles, bpolys) is not defined
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters},
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters},
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#count() count}, or
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#sum() sum}
+    */
+@@ -859,8 +854,8 @@ public static <P extends Geometry & Polygonal> Response aggregateBasicFiltersRat
+           }
+           return MatchType.MATCHESNONE;
+         }, EnumSet.allOf(MatchType.class)).map(OSMEntitySnapshot::getGeometry);
+-    SortedMap<OSHDBCombinedIndex<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, MatchType>, ? extends Number> result =
+-        null;
++    SortedMap<OSHDBCombinedIndex<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, MatchType>, ? extends
++        Number> result = null;
+     switch (requestResource) {
+       case COUNT:
+         result = preResult.count();
+@@ -940,9 +935,8 @@ public static <P extends Geometry & Polygonal> Response aggregateBasicFiltersRat
+    *        outgoing response object
+    * @return {@link org.heigit.ohsome.ohsomeapi.output.Response Response}
+    * @throws BadRequestException if a boundary parameter (bboxes, bcircles, bpolys) is not defined
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters()
+-   *         processParameters},
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters() processParameters},
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#count() count}, or
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#sum() sum}
+    */
+@@ -1012,8 +1006,8 @@ public static <P extends Geometry & Polygonal> Response aggregateRatioGroupByBou
+           }
+           return MatchType.MATCHESNONE;
+         }, EnumSet.allOf(MatchType.class)).map(OSMEntitySnapshot::getGeometry);
+-    SortedMap<OSHDBCombinedIndex<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, MatchType>, ? extends Number> result =
+-        null;
++    SortedMap<OSHDBCombinedIndex<OSHDBCombinedIndex<OSHDBTimestamp, Integer>, MatchType>, ? extends
++        Number> result = null;
+     switch (requestResource) {
+       case COUNT:
+         result = preResult.count();
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+index 87a1f51b..950ce959 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/ExecutionUtils.java
+@@ -225,12 +225,12 @@ SortedMap<V, SortedMap<U, A>> nest(Map<OSHDBCombinedIndex<U, V>, A> result) {
+    *         #writeStreamResponse(ThreadLocal, Stream, ThreadLocal, ServletOutputStream)
+    *         writeStreamResponse}, {@link javax.servlet.ServletOutputStream#print(String) print},
+    *         and {@link javax.servlet.ServletResponse#flushBuffer() flushBuffer}
+-   * @throws ExecutionException thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#writeStreamResponse(
+-   *         ThreadLocal, Stream, ThreadLocal, ServletOutputStream) writeStreamResponse}
+-   * @throws InterruptedException thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#writeStreamResponse(
+-   *         ThreadLocal, Stream, ThreadLocal, ServletOutputStream) writeStreamResponse}
++   * @throws ExecutionException thrown by {@link org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils
++   *         #writeStreamResponse(ThreadLocal, Stream, ThreadLocal, ServletOutputStream)
++   *         writeStreamResponse}
++   * @throws InterruptedException thrown by {@link
++   *         org.heigit.ohsome.ohsomeapi.executor.ExecutionUtils#writeStreamResponse(ThreadLocal,
++   *         Stream, ThreadLocal, ServletOutputStream) writeStreamResponse}
+    */
+   public void streamResponse(HttpServletResponse servletResponse, ExtractionResponse osmData,
+       Stream<org.wololo.geojson.Feature> resultStream) throws Exception {
+@@ -425,8 +425,8 @@ public org.wololo.geojson.Feature createOSMFeature(OSMEntity entity, Geometry ge
+    * Computes the result depending on the <code>RequestResource</code> using a
+    * <code>MapAggregator</code> object as input and returning a <code>SortedMap</code>.
+    * 
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#count() count}, and
++   * @throws Exception thrown by {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator
++   *         #count() count}, and
+    *         {@link org.heigit.bigspatialdata.oshdb.api.mapreducer.MapAggregator#sum() sum}
+    */
+   @SuppressWarnings({"unchecked"}) // intentionally suppressed as type format is valid
+@@ -947,24 +947,24 @@ private Map<String, Object> addAdditionalProperties(OSMEntity entity,
+     properties.put("@changesetId", entity.getChangesetId());
+     if (isContributionsEndpoint) {
+       if (contributionTypes.contains(ContributionType.CREATION)) {
+-        properties.put("@creation", "true");
++        properties.put("@creation", true);
+       }
+       if (contributionTypes.contains(ContributionType.DELETION)) {
+-        properties.put("@deletion", "true");
++        properties.put("@deletion", true);
+       }
+       if (contributionTypes.contains(ContributionType.TAG_CHANGE)) {
+-        properties.put("@tagChange", "true");
++        properties.put("@tagChange", true);
+       }
+       if (contributionTypes.contains(ContributionType.GEOMETRY_CHANGE)) {
+-        properties.put("@geometryChange", "true");
++        properties.put("@geometryChange", true);
+       }
+     }
+     return properties;
+   }
+ 
+   /**
+-   * returns a new geometry precision reducer using a precision of 7 digits, having an activated
+-   * point-wise mode and a deactivated remove-collapsed-components mode
++   * Returns a new geometry precision reducer using a precision of 7 digits, having an activated
++   * point-wise mode and a deactivated remove-collapsed-components mode.
+    */
+   private GeometryPrecisionReducer createGeometryPrecisionReducer() {
+     var gpr = new GeometryPrecisionReducer(new PrecisionModel(1E7));
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java
+index 8151eb08..efd95cec 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/executor/MetadataRequestExecutor.java
+@@ -15,8 +15,7 @@ public class MetadataRequestExecutor {
+   /**
+    * Returns the metadata of the underlying extract-file.
+    * 
+-   * @return {@link org.heigit.ohsome.ohsomeapi.output.metadata.MetadataResponse
+-   *         MetadataResponse}
++   * @return {@link org.heigit.ohsome.ohsomeapi.output.metadata.MetadataResponse MetadataResponse}
+    * @throws BadRequestException if parameters are given in the query.
+    */
+   public static MetadataResponse executeGetMetadata(HttpServletRequest servletRequest) {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/filter/RequestFilter.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/filter/RequestFilter.java
+index 30ac667f..82788370 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/filter/RequestFilter.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/filter/RequestFilter.java
+@@ -22,13 +22,11 @@
+ public class RequestFilter extends OncePerRequestFilter {
+ 
+   /**
+-   * @throws IOException thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.utils.RequestUtils#extractOSHDBMetadata()
+-   *         extractOSHDBMetadata}, and
++   * @throws IOException thrown by {@link org.heigit.ohsome.ohsomeapi.utils.RequestUtils
++   *         #extractOSHDBMetadata() extractOSHDBMetadata}, and
+    *         {@link javax.servlet.ServletRequest#setCharacterEncoding(String) setCharacterEncoding}
+-   * @throws ServletException thrown by
+-   *         {@link javax.servlet.FilterChain#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
+-   *         doFilter}
++   * @throws ServletException thrown by {@link javax.servlet.FilterChain
++   *         #doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse) doFilter}
+    */
+   @Override
+   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilder.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilder.java
+index b595a2a5..df3931bb 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilder.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilder.java
+@@ -312,9 +312,9 @@ private Geometry unifyPolys(Collection<Geometry> geometries) {
+    * Creates a boundary ID value from the 'id' field in the given <code>JsonObject</code>.
+    * 
+    * @param jsonObject <code>JsonObject</code> where the 'id' value is extracted from
+-   * @param inputProcessor used for
+-   *        {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessingUtils#checkCustomBoundaryId(String)
+-   *        checkCustomBoundaryId}
++   * @param inputProcessor used for {@link
++   *        org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessingUtils
++   *        #checkCustomBoundaryId(String) checkCustomBoundaryId}
+    * @return <code>Object</code> having the custom id of type <code>String</code> or
+    *         <code>Integer</code>
+    */
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtils.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtils.java
+index 4b93808a..30186fde 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtils.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtils.java
+@@ -36,12 +36,11 @@ public class InputProcessingUtils {
+   private String[] toTimestamps = null;
+ 
+   /**
+-   * Finds and returns the EPSG code of the given point, which is needed for
+-   * {@link org.heigit.ohsome.ohsomeapi.inputprocessing.GeometryBuilder#createCircularPolygons(String[] bcircles)
+-   * createCircularPolygons}.
++   * Finds and returns the EPSG code of the given point, which is needed for {@link
++   * org.heigit.ohsome.ohsomeapi.inputprocessing.GeometryBuilder#createCircularPolygons(String[]
++   * bcircles) createCircularPolygons}.
+    * 
+-   * <p>
+-   * Adapted code from UTMCodeFromLonLat.java class in the osmatrix project (© by Michael Auer)
++   * <p>Adapted code from UTMCodeFromLonLat.java class in the osmatrix project (© by Michael Auer)
+    * 
+    * @param lon Longitude coordinate of the point.
+    * @param lat Latitude coordinate of the point.
+@@ -206,8 +205,7 @@ public String[] defineToTimestamps(String[] timeData) {
+    * <li><strong>invalid</strong>: throws BadRequestException</li>
+    * </ul>
+    * 
+-   * <p>
+-   * For clarification: the format YYYY-MM-DDThh:mm:ss can be applied to any format, where a
++   * <p>For clarification: the format YYYY-MM-DDThh:mm:ss can be applied to any format, where a
+    * timestamp is used and # is a replacement holder for "no value". Note that the positioning and
+    * using of the forward slash '/' is very important.
+    * 
+@@ -414,8 +412,8 @@ protected void checkTemporalExtend(String... timeInfo) {
+       start = IsoDateTimeParser.parseIsoDateTime(ExtractMetadata.fromTstamp).toEpochSecond();
+       end = IsoDateTimeParser.parseIsoDateTime(ExtractMetadata.toTstamp).toEpochSecond();
+     } catch (Exception e) {
+-      throw new RuntimeException(
+-          "The ISO 8601 Date or the combined Date-Time String cannot be converted into a UTC based ZonedDateTime Object");
++      throw new RuntimeException("The ISO 8601 Date or the combined Date-Time String cannot be"
++          + " converted into a UTC based ZonedDateTime Object");
+     }
+     for (String timestamp : timeInfo) {
+       try {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+index 9686ca3d..33b64960 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessor.java
+@@ -45,10 +45,11 @@
+ 
+ /**
+  * Holds general input processing and validation methods and validates specific parameters given by
+- * the request. Uses geometry methods from
+- * {@link org.heigit.ohsome.ohsomeapi.inputprocessing.GeometryBuilder GeometryBuilder} and
+- * inputProcessingUtils from {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessingUtils
+- * InputProcessingUtils}. Throws exceptions depending on their validity.
++ * the request. Uses geometry methods from {@link
++ * org.heigit.ohsome.ohsomeapi.inputprocessing.GeometryBuilder GeometryBuilder} and
++ * inputProcessingUtils from {@link
++ * org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessingUtils InputProcessingUtils}. Throws
++ * exceptions depending on their validity.
+  */
+ public class InputProcessor {
+ 
+@@ -96,9 +97,8 @@ public InputProcessor(HttpServletRequest servletRequest, boolean isSnapshot, boo
+   }
+ 
+   /**
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#processParameters(ComputeMode)
+-   *         processParameters}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #processParameters(ComputeMode) processParameters}
+    */
+   public <T extends OSHDBMapReducible> MapReducer<T> processParameters() throws Exception {
+     return this.processParameters(null);
+@@ -113,9 +113,8 @@ public <T extends OSHDBMapReducible> MapReducer<T> processParameters() throws Ex
+    *         format, if the geometry of given boundary cannot be parsed for the creation of the
+    *         response GeoJSON or if the keys, values and types parameters are not empty, while the
+    *         filter parameter is set.
+-   * @throws Exception thrown by
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#extractTime(MapReducer, String[], boolean)
+-   *         extractTime}
++   * @throws Exception thrown by {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #extractTime(MapReducer, String[], boolean) extractTime}
+    */
+   @SuppressWarnings("unchecked") // unchecked to allow cast of (MapReducer<T>) to mapRed
+   public <T extends OSHDBMapReducible> MapReducer<T> processParameters(ComputeMode forceComputeMode)
+@@ -442,9 +441,8 @@ public String getRequestUrlIfGetRequest(HttpServletRequest servletRequest) {
+    * Applies respective Puntal|Lineal|Polygonal filter(s) on features of the given MapReducer.
+    *
+    * @return MapReducer with filtered geometries
+-   * @throws RuntimeException if
+-   *         {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor#filterOnSimpleFeatures(Mappable)
+-   *         filterOnSimpleFeatures} was called on mapped entries
++   * @throws RuntimeException if {@link org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor
++   *         #filterOnSimpleFeatures(Mappable) filterOnSimpleFeatures} was called on mapped entries
+    */
+   // suppressed, as filter always returns the same mappable type T
+   @SuppressWarnings("unchecked")
+@@ -535,9 +533,8 @@ private MapReducer<? extends OSHDBMapReducible> extractKeysValues(
+    * (in case of isSnapshot=false).
+    * 
+    * @throws BadRequestException if the time format is invalid
+-   * @throws Exception thrown by {@link
+-   *         org.heigit.bigspatialdata.oshdb.util.time.IsoDateTimeParser#parseIsoDateTime(String)
+-   *         parseIsoDateTime}
++   * @throws Exception thrown by {@link org.heigit.bigspatialdata.oshdb.util.time.IsoDateTimeParser
++   *         #parseIsoDateTime(String) parseIsoDateTime}
+    */
+   private MapReducer<? extends OSHDBMapReducible> extractTime(
+       MapReducer<? extends OSHDBMapReducible> mapRed, String[] time, boolean isSnapshot)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ProcessingData.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ProcessingData.java
+index 3b0922a1..3f9cb431 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ProcessingData.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ProcessingData.java
+@@ -11,7 +11,7 @@
+ import org.heigit.ohsome.ohsomeapi.executor.RequestParameters;
+ import org.locationtech.jts.geom.Geometry;
+ 
+-/** Holds the relevant objects for processing the request and creating the response. */
++/** Holds the relevant objects for processing the request and creating the response.*/
+ @Getter
+ @Setter
+ public class ProcessingData {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+index 09205501..bfdaf7e3 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/ResourceParameters.java
+@@ -15,13 +15,12 @@ private ResourceParameters() {
+    * Checks the resource of the request and gives back a list of available parameters for this
+    * resource.
+    *
+-   * <p>
+-   * Note that some resources don't use this method, but implement their own checks. One example for
+-   * this is the metadata request in
+-   * {@link MetadataRequestExecutor#executeGetMetadata(HttpServletRequest) executeGetMetadata}.
++   * <p>Note that some resources don't use this method, but implement their own checks. One example 
++   * for this is the metadata request in {@link MetadataRequestExecutor
++   * #executeGetMetadata(HttpServletRequest) executeGetMetadata}.
+    * 
+-   * @return a list of of available parameters for the given resource.
+    * @param servletRequest
++   * @return a list of of available parameters for the given resource.
+    */
+   public static List<String> getResourceSpecificParams(HttpServletRequest servletRequest) {
+     String uri = servletRequest.getRequestURI();
+@@ -62,9 +61,9 @@ public static List<String> getResourceSpecificParams(HttpServletRequest servletR
+   /**
+    * Checks, if the request contains unexpected parameters for this resource.
+    * 
+-   * @return a list of unexpected parameters
+    * @param servletRequest
+    * @param resourceParams
++   * @return a list of unexpected parameters
+    */
+   public static List<String> checkUnexpectedParams(HttpServletRequest servletRequest,
+       List<String> resourceParams) {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/StringSimilarity.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/StringSimilarity.java
+index 92df0a2b..fc240938 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/StringSimilarity.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/inputprocessing/StringSimilarity.java
+@@ -23,11 +23,9 @@ private StringSimilarity() {
+    * considered. If all comparisons give a fuzzy score lower than 5, it returns only a message of
+    * "unknown parameter" without suggestions.
+    * 
+-   * <p>
+-   * For example:
++   * <p>For example:
+    * 
+-   * <p>
+-   * <ul>
++   * <p><ul>
+    * <li>Given the false parameter "metadata" for the resource "groupByTag", it returns the
+    * suggestions "showMetadata" and "timeout", which are the only two matches with a score higher
+    * than 4.</li>
+@@ -40,15 +38,14 @@ private StringSimilarity() {
+    * a message of "unknown parameter" without suggestions.</li>
+    * </ul>
+    * 
+-   * <p>
+-   * <strong>Warning: Given typical mistyped parameters like "froupByKeys" or "fgroupByKeys" for the
+-   * resource "groupByKey", it returns only a message of "unknown parameter" without suggestions
++   * <p><strong>Warning: Given typical mistyped parameters like "froupByKeys" or "fgroupByKeys" for 
++   * the resource "groupByKey", it returns only a message of "unknown parameter" without suggestions
+    * despite the similarity to the right available parameter. This is because the Fuzzy Score
+    * algorithm matches the chars of the two strings from left to right.</strong>
+    * 
+-   * @return a String containing up to two suggested parameter if available.
+    * @param parameter - request parameter to compare
+    * @param possibleParameters - list of possible parameters
++   * @return a String containing up to two suggested parameter if available.
+    */
+   public static String findSimilarParameters(String parameter, List<String> possibleParameters) {
+     ArrayList<FuzzyScoreObject> scoreHigherThanFour = new ArrayList<>();
+@@ -85,10 +82,10 @@ public static String findSimilarParameters(String parameter, List<String> possib
+    * Sorts the suggested parameters, which are already sorted by the fuzzy matching score, by the
+    * difference in length between the requested parameter and the suggested parameters.
+    * 
+-   * @return an ArrayList of suggested parameters sorted by the difference in length between the
+-   *         requested parameter and the suggested parameters.
+    * @param parameter - request parameter
+    * @param possibleParams - list of possible parameters
++   * @return an ArrayList of suggested parameters sorted by the difference in length between the
++   *        requested parameter and the suggested parameters.
+    */
+   private static ArrayList<FuzzyScoreObject> sortParamsByLength(String parameter,
+       ArrayList<FuzzyScoreObject> possibleParams) {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/DefaultAggregationResponse.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/DefaultAggregationResponse.java
+index 536ac2e2..710fc4fb 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/DefaultAggregationResponse.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/DefaultAggregationResponse.java
+@@ -10,10 +10,9 @@
+ 
+ /**
+  * Represents the outer JSON response object for the data aggregation requests that do not use the
+- * /groupBy resource. It contains attribution info, the version of the api, optional
+- * {@link org.heigit.ohsome.ohsomeapi.output.Metadata Metadata} and the
+- * {@link org.heigit.ohsome.ohsomeapi.output.elements.ElementsResult
+- * ElementsResult} objects.
++ * /groupBy resource. It contains attribution info, the version of the api, optional {@link
++ * org.heigit.ohsome.ohsomeapi.output.Metadata Metadata} and the {@link
++ * org.heigit.ohsome.ohsomeapi.output.elements.ElementsResult ElementsResult} objects.
+  */
+ @Getter
+ @NoArgsConstructor(access = AccessLevel.PRIVATE)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Response.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Response.java
+index 174b0356..80c3c4ca 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Response.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Response.java
+@@ -5,14 +5,11 @@
+  * <ul>
+  * <li>{@link org.heigit.ohsome.ohsomeapi.output.DefaultAggregationResponse
+  * DefaultAggregationResponse}</li>
+- * <li>{@link org.heigit.ohsome.ohsomeapi.output.groupby.GroupByResponse
+- * GroupByResponse}</li>
++ * <li>{@link org.heigit.ohsome.ohsomeapi.output.groupby.GroupByResponse GroupByResponse}</li>
+  * <li>{@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioGroupByBoundaryResponse
+  * RatioGroupByBoundaryResponse}</li>
+- * <li>{@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResponse
+- * RatioResponse}</li>
+- * <li>{@link org.heigit.ohsome.ohsomeapi.output.ExtractionResponse
+- * DataResponse}</li>
++ * <li>{@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResponse RatioResponse}</li>
++ * <li>{@link org.heigit.ohsome.ohsomeapi.output.ExtractionResponse DataResponse}</li>
+  * </ul>
+  */
+ public interface Response {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Result.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Result.java
+index df3f012d..23980e1c 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Result.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/Result.java
+@@ -3,10 +3,8 @@
+ /**
+  * Interface for two Result objects.
+  * <ul>
+- * <li>{@link org.heigit.ohsome.ohsomeapi.output.elements.ElementsResult
+- * ElementsResult}</li>
+- * <li>{@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResult
+- * RatioResult}</li>
++ * <li>{@link org.heigit.ohsome.ohsomeapi.output.elements.ElementsResult ElementsResult}</li>
++ * <li>{@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResult RatioResult}</li>
+  * </ul>
+  */
+ public interface Result {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByObject.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByObject.java
+index 758fd671..b88cbc20 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByObject.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByObject.java
+@@ -7,10 +7,8 @@
+ /**
+  * Abstract class used by the groupByResult classes:
+  * <ul>
+- * <li>{@link org.heigit.ohsome.ohsomeapi.output.groupby.GroupByResult
+- * GroupByResult}</li>
+- * <li>{@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioGroupByResult
+- * RatioGroupByResult}</li>
++ * <li>{@link org.heigit.ohsome.ohsomeapi.output.groupby.GroupByResult GroupByResult}</li>
++ * <li>{@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioGroupByResult RatioGroupByResult}</li>
+  * </ul>
+  */
+ @Getter
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResponse.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResponse.java
+index 07351f2d..963d6852 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResponse.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResponse.java
+@@ -14,13 +14,12 @@
+ 
+ /**
+  * Represents the whole JSON response object for the data aggregation response using the
+- * count|length|area|perimeter/groupBy resource. It contains an optional
+- * {@link org.heigit.ohsome.ohsomeapi.output.Metadata Metadata}, the
+- * requested
+- * {@link org.heigit.ohsome.ohsomeapi.output.groupby.GroupByResult
+- * GroupByResult} for a JSON response and an identifier of the object. If the output format is
+- * GeoJSON, the response includes a {@link org.geojson.Feature Feature} array, which holds the
+- * respective objects with their timestamp-value pairs.
++ * count|length|area|perimeter/groupBy resource. It contains an optional {@link 
++ * org.heigit.ohsome.ohsomeapi.output.Metadata Metadata}, the requested {@link 
++ * org.heigit.ohsome.ohsomeapi.output.groupby.GroupByResult GroupByResult} for a JSON response and 
++ * an identifier of the object. If the output format is GeoJSON, the response includes a {@link 
++ * org.geojson.Feature Feature} array, which holds the respective objects with their 
++ * timestamp-value pairs.
+  */
+ @Getter
+ @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@@ -49,7 +48,7 @@ public GroupByResponse(Attribution attribution, String apiVersion, Metadata meta
+     this.groupByResult = groupByUserResult;
+   }
+ 
+-  /** Static factory method returning the whole GeoJSON response. */
++  /** Static factory method returning the whole GeoJSON response.*/
+   public static GroupByResponse of(Attribution attribution, String apiVersion, Metadata metadata,
+       String type, Feature[] features) {
+     GroupByResponse response = new GroupByResponse();
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResult.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResult.java
+index 599f6ffb..1bb5790d 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResult.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/groupby/GroupByResult.java
+@@ -6,8 +6,8 @@
+ 
+ /**
+  * Represents the groupBy result JSON object containing the groupBy value and the respective
+- * {@link org.heigit.ohsome.ohsomeapi.output.Result Result} objects. The
+- * GroupByResult is only used in responses for groupBy requests.
++ * {@link org.heigit.ohsome.ohsomeapi.output.Result Result} objects. The GroupByResult is only used 
++ * in responses for groupBy requests.
+  */
+ @Getter
+ public class GroupByResult extends GroupByObject {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/ExtractRegion.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/ExtractRegion.java
+index 974bcd59..c91f51bf 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/ExtractRegion.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/ExtractRegion.java
+@@ -6,9 +6,9 @@
+ import lombok.Getter;
+ 
+ /**
+- * Represents the result JSON object containing the spatial extent as GeoJSON, the
+- * {@link org.heigit.ohsome.ohsomeapi.output.metadata.TemporalExtent TemporalExtent} and the
+- * replication sequence number of the data-extract.
++ * Represents the result JSON object containing the spatial extent as GeoJSON, the {@link
++ * org.heigit.ohsome.ohsomeapi.output.metadata.TemporalExtent TemporalExtent} and the replication
++ * sequence number of the data-extract.
+  */
+ @Getter
+ @AllArgsConstructor
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/MetadataResponse.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/MetadataResponse.java
+index 8bd23e38..1585e560 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/MetadataResponse.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/metadata/MetadataResponse.java
+@@ -9,8 +9,8 @@
+ 
+ /**
+  * Represents the JSON response object for the /metadata request. It contains information about the
+- * attribution, the version of the API and the
+- * {@link org.heigit.ohsome.ohsomeapi.output.metadata.ExtractRegion ExtractRegion}.
++ * attribution, the version of the API and the {@link
++ * org.heigit.ohsome.ohsomeapi.output.metadata.ExtractRegion ExtractRegion}.
+  */
+ @Getter
+ @AllArgsConstructor
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByBoundaryResponse.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByBoundaryResponse.java
+index c5584534..1f740907 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByBoundaryResponse.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByBoundaryResponse.java
+@@ -14,13 +14,12 @@
+ 
+ /**
+  * Represents the whole JSON response object for the data aggregation response using the
+- * /ratio/groupBy/boundary resource. It contains an optional
+- * {@link org.heigit.ohsome.ohsomeapi.output.Metadata Metadata} object, the
+- * requested
+- * {@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioGroupByResult
+- * RatioGroupByResult} for a JSON response and an identifier of the object. If the output format is
+- * GeoJSON, the response includes a {@link org.geojson.Feature Feature} array, which holds the
+- * respective objects with their timestamp-value pairs.
++ * /ratio/groupBy/boundary resource. It contains an optional {@link
++ * org.heigit.ohsome.ohsomeapi.output.Metadata Metadata} object, the requested {@link
++ * org.heigit.ohsome.ohsomeapi.output.ratio.RatioGroupByResult RatioGroupByResult} for a JSON
++ * response and an identifier of the object. If the output format is GeoJSON, the response includes
++ * a {@link org.geojson.Feature Feature} array, which holds the respective objects with their
++ * timestamp-value pairs.
+  */
+ @Getter
+ @NoArgsConstructor(access = AccessLevel.PRIVATE)
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByResult.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByResult.java
+index b7d2f56f..bd84b2aa 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByResult.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioGroupByResult.java
+@@ -6,8 +6,8 @@
+ 
+ /**
+  * Represents the ratio-groupBy result JSON object containing the groupBy value and the respective
+- * {@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResult RatioResult}
+- * objects. The RatioGroupByResult is only used in responses for /ratio/groupBy requests.
++ * {@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResult RatioResult} objects. The
++ * RatioGroupByResult is only used in responses for /ratio/groupBy requests.
+  */
+ @Getter
+ public class RatioGroupByResult extends GroupByObject {
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioResponse.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioResponse.java
+index 186b4249..3185d4c5 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioResponse.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/output/ratio/RatioResponse.java
+@@ -11,11 +11,9 @@
+ 
+ /**
+  * Represents the whole JSON response object for the data aggregation response using the /ratio
+- * resource. It contains the license and copyright, optional
+- * {@link org.heigit.ohsome.ohsomeapi.output.Metadata Metadata}, as well as
+- * the results section showing
+- * {@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResult RatioResult}
+- * objects.
++ * resource. It contains the license and copyright, optional {@link
++ * org.heigit.ohsome.ohsomeapi.output.Metadata Metadata}, as well as the results section showing
++ * {@link org.heigit.ohsome.ohsomeapi.output.ratio.RatioResult RatioResult} objects.
+  */
+ @Getter
+ @AllArgsConstructor
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/GroupByBoundaryGeoJsonGenerator.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/GroupByBoundaryGeoJsonGenerator.java
+index 096e201d..f55b78e2 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/GroupByBoundaryGeoJsonGenerator.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/GroupByBoundaryGeoJsonGenerator.java
+@@ -15,7 +15,7 @@
+  */
+ public class GroupByBoundaryGeoJsonGenerator {
+ 
+-  /** Creates the GeoJson features used in the GeoJson response. */
++  /** Creates the GeoJson features used in the GeoJson response.*/
+   public static Feature[] createGeoJsonFeatures(GroupByObject[] results,
+       GeoJsonObject[] geojsonGeoms) {
+     int groupByResultsLength = results.length;
+@@ -61,11 +61,9 @@ private static Feature[] generateRatioGroupByResultGeoJson(GroupByObject[] resul
+ 
+   /**
+    * @throws UnsupportedOperationException if one of the values contained in results is not an
+-   *         instance of
+-   *         {@link org.heigit.ohsome.ohsomeapi.output.elements.ElementsResult
++   *         instance of {@link org.heigit.ohsome.ohsomeapi.output.elements.ElementsResult
+    *         ElementsResult}, or
+-   *         {@link org.heigit.ohsome.ohsomeapi.output.contributions.UsersResult
+-   *         UserResult}
++   *         {@link org.heigit.ohsome.ohsomeapi.output.contributions.UsersResult UserResult}
+    */
+   private static Feature[] generateGroupByResultGeoJson(GroupByObject[] results,
+       GeoJsonObject[] geojsonGeoms, int groupByResultsLength, int groupByResultCount,
+diff --git a/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/RequestUtils.java b/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/RequestUtils.java
+index 023e860c..b37ec84a 100644
+--- a/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/RequestUtils.java
++++ b/src/main/lombok/org/heigit/ohsome/ohsomeapi/utils/RequestUtils.java
+@@ -88,8 +88,8 @@ public static boolean usesCsvFormat(HttpServletRequest request) {
+    * 
+    * @throws DatabaseAccessException if the keytables are missing
+    * @throws RuntimeException if the timerange metadata cannot be retrieved from the db
+-   * @throws IOException thrown by
+-   *         {@link com.fasterxml.jackson.databind.ObjectMapper#readTree(String) readTree}
++   * @throws IOException thrown by {@link com.fasterxml.jackson.databind.ObjectMapper
++   *         #readTree(String) readTree}
+    */
+   public static void extractOSHDBMetadata() throws IOException {
+     OSHDBDatabase db;
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java
+index 416e7543..6b496363 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/DataExtractionTest.java
+@@ -4,6 +4,7 @@
+ import static org.junit.Assert.assertNull;
+ import static org.junit.Assert.assertTrue;
+ import static org.junit.Assume.assumeTrue;
++
+ import com.fasterxml.jackson.databind.JsonNode;
+ import com.fasterxml.jackson.databind.node.JsonNodeType;
+ import java.util.ArrayList;
+@@ -132,7 +133,7 @@ public void elementsBboxTest() {
+   @Test
+   public void elementsCentroidTest() {
+     TestRestTemplate restTemplate = new TestRestTemplate();
+-    ResponseEntity<JsonNode> response = restTemplate.getForEntity( server + port 
++    ResponseEntity<JsonNode> response = restTemplate.getForEntity(server + port 
+         + "/elements/centroid?bboxes=8.67452,49.40961,8.70392,49.41823&time=2015-01-01"
+         + "&properties=metadata&filter=type:way and building=residential", JsonNode.class);
+     assertEquals(2, Helper.getFeatureByIdentifier(response, "@osmId", "way/294644468")
+@@ -294,10 +295,9 @@ public void contributionsContributionTypesTest() {
+         + "/contributions/geometry?bboxes=8.686017,49.406453,8.686983,49.406966&filter=building=*&"
+         + "time=2008-01-01,2009-09-01&properties=metadata,tags&clipGeometry=false", JsonNode.class);
+     JsonNode featuresArray = response.getBody().get("features");
+-    assertTrue(featuresArray.get(0).get("properties").get("@creation").asText().equals("true"));
+-    assertTrue(
+-        featuresArray.get(1).get("properties").get("@geometryChange").asText().equals("true"));
+-    assertTrue(featuresArray.get(2).get("properties").get("@tagChange").asText().equals("true"));
++    assertTrue(featuresArray.get(0).get("properties").get("@creation").asBoolean());
++    assertTrue(featuresArray.get(1).get("properties").get("@geometryChange").asBoolean());
++    assertTrue(featuresArray.get(2).get("properties").get("@tagChange").asBoolean());
+   }
+ 
+   @Test
+@@ -340,8 +340,8 @@ public void contributionsTwoContributionTypesTest() {
+         + "time=2010-01-01,2012-01-01&properties=metadata&clipGeometry=false", JsonNode.class);
+     JsonNode featureProperties =
+         Helper.getFeatureByIdentifier(response, "@changesetId", "10082609").get("properties");
+-    assertTrue(featureProperties.get("@geometryChange").asText().equals("true")
+-        && featureProperties.get("@tagChange").asText().equals("true"));
++    assertTrue(featureProperties.get("@geometryChange").asBoolean()
++        && featureProperties.get("@tagChange").asBoolean());
+   }
+ 
+   @Test
+@@ -353,7 +353,7 @@ public void contributionsCreationTest() {
+         JsonNode.class);
+     JsonNode featureProperties =
+         Helper.getFeatureByIdentifier(response, "@changesetId", "8371765").get("properties");
+-    assertEquals("true", featureProperties.get("@creation").asText());
++    assertTrue(featureProperties.get("@creation").asBoolean());
+   }
+ 
+   @Test
+@@ -426,7 +426,7 @@ public void contributionsVersionTest() {
+   }
+ 
+   @Test
+-  public void contributionsAssociationChangeSetIdWithOsmIdAndVersion() {
++  public void contributionsAssociationChangeSetIdWithOsmIdAndVersionTest() {
+     TestRestTemplate restTemplate = new TestRestTemplate();
+     ResponseEntity<JsonNode> response = restTemplate.getForEntity(server + port
+         + "/contributions/bbox?bboxes=8.70606,49.412150,8.70766,49.413686"
+@@ -497,8 +497,8 @@ public void contributionsLatestOnlyOneEntryTest() {
+   public void contributionsLatestDeletionTest() {
+     TestRestTemplate restTemplate = new TestRestTemplate();
+     ResponseEntity<JsonNode> response = restTemplate.getForEntity(server + port
+-        + "/contributions/latest/geometry?bboxes=8.699552,49.411985,8.700909,49.412648&filter=building=* "
+-        + "and type:way and id:14195519&time=2008-01-28,2012-01-01&properties=metadata",
++        + "/contributions/latest/geometry?bboxes=8.699552,49.411985,8.700909,49.412648&filter="
++        + "building=* and type:way and id:14195519&time=2008-01-28,2012-01-01&properties=metadata",
+         JsonNode.class);
+     assertEquals(Helper.getFeatureByIdentifier(response, "@changesetId", "9218673").get("geometry")
+         .getNodeType(), JsonNodeType.NULL);
+@@ -512,7 +512,21 @@ public void contributionsLatestCreationTest() {
+             + "/contributions/latest/geometry?bboxes=8.679253,49.424025,8.679623,49.424185&filter="
+             + "building=*&time=2010-01-01,2011-01-17&properties=metadata,tags&clipGeometry=false",
+         JsonNode.class);
+-    assertTrue(response.getBody().get("features").get(0).get("properties").get("@creation").asText()
+-        .equals("true"));
++    assertTrue(
++        response.getBody().get("features").get(0).get("properties").get("@creation").asBoolean());
++  }
++
++  @Test
++  public void issue109Test() {
++    // see https://github.com/GIScience/ohsome-api/issues/109
++    TestRestTemplate restTemplate = new TestRestTemplate();
++    // this uses the centroid endpoint to make sure that geometry filters are even applied to
++    // the geometries before being transformed to, e.g., centroid points
++    ResponseEntity<JsonNode> response = restTemplate.getForEntity(
++        server + port
++            + "/elementsFullHistory/centroid?bboxes=8.69525,49.40938,8.70461,49.41203&"
++            + "time=2011-09-05,2011-09-06&filter=geometry:polygon and id:relation/1391838",
++        JsonNode.class);
++    assertEquals(1, response.getBody().get("features").size());
+   }
+ }
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java
+index ed247eda..decf45a6 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/GetControllerTest.java
+@@ -1238,7 +1238,7 @@ public void getOrFilterTest() {
+   }
+ 
+   @Test
+-  public void getRequestEndsByQuestionMark() {
++  public void getRequestEndsByQuestionMarkTest() {
+     TestRestTemplate restTemplate = new TestRestTemplate();
+     ResponseEntity<JsonNode> response =
+         restTemplate.getForEntity(server + port + "/users/count?", JsonNode.class);
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/PostControllerTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/PostControllerTest.java
+index 3aa97b85..9bcc7fe7 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/controller/PostControllerTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/controller/PostControllerTest.java
+@@ -1129,7 +1129,7 @@ public void postUmlautFilterTest() {
+   }
+ 
+   @Test
+-  public void postQueryRequestEndsByQuestionMark() {
++  public void postQueryRequestEndsByQuestionMarkTest() {
+     TestRestTemplate restTemplate = new TestRestTemplate();
+     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+     ResponseEntity<JsonNode> response =
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilderTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilderTest.java
+index 9ff339bc..54b767c7 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilderTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/GeometryBuilderTest.java
+@@ -3,12 +3,9 @@
+ import static org.junit.Assert.assertEquals;
+ import static org.junit.Assert.assertTrue;
+ import static org.junit.Assume.assumeTrue;
++
+ import org.heigit.ohsome.ohsomeapi.controller.TestProperties;
+ import org.heigit.ohsome.ohsomeapi.exception.BadRequestException;
+-import org.heigit.ohsome.ohsomeapi.inputprocessing.GeometryBuilder;
+-import org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessingUtils;
+-import org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessor;
+-import org.heigit.ohsome.ohsomeapi.inputprocessing.ProcessingData;
+ import org.junit.Before;
+ import org.junit.BeforeClass;
+ import org.junit.Test;
+diff --git a/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtilsTest.java b/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtilsTest.java
+index 4cc4abb0..c90912a7 100644
+--- a/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtilsTest.java
++++ b/src/test/java/org/heigit/ohsome/ohsomeapi/inputprocessing/InputProcessingUtilsTest.java
+@@ -2,9 +2,9 @@
+ 
+ import static org.junit.Assert.assertTrue;
+ import static org.junit.Assume.assumeTrue;
++
+ import org.heigit.ohsome.ohsomeapi.controller.TestProperties;
+ import org.heigit.ohsome.ohsomeapi.exception.BadRequestException;
+-import org.heigit.ohsome.ohsomeapi.inputprocessing.InputProcessingUtils;
+ import org.heigit.ohsome.ohsomeapi.oshdb.ExtractMetadata;
+ import org.junit.Before;
+ import org.junit.BeforeClass;
