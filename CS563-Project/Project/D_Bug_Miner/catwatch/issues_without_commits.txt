@@ -1,6 +1,0 @@
-Issue #52 - Inconsistent project-naming issue has no associated commits.
-Issue #22 - Forked repos (non-Zalando projects) should not be shown has no associated commits.
-Issue #5 - Bug: Not all repositories of the organizations are listed has no associated commits.
-Issue #52 - Inconsistent project-naming issue has no associated commits.
-Issue #22 - Forked repos (non-Zalando projects) should not be shown has no associated commits.
-Issue #5 - Bug: Not all repositories of the organizations are listed has no associated commits.

@@ -1,8 +1,0 @@
-Issue #105 - Race condition when consuming while topic is being created has no associated commits.
-Issue #95 - Fix log4j issue in kafka-rest-run-class with equivalent fix from schema-registry has no associated commits.
-Issue #91 - Handle large number of schemas has no associated commits.
-Issue #74 - Custom partitioning doesn't work in `POST /topics/:topic` has no associated commits.
-Issue #69 - Debian packages are missing files in /etc/kafka-rest has no associated commits.
-Issue #68 - kafka-rest packages don't include /etc/kafka-rest/log4j.properties has no associated commits.
-Issue #65 - Consumer read request hangs if you try to create two consumer instances with the same ID has no associated commits.
-Issue #55 - Some requests can block forever waiting for ZooKeeper has no associated commits.

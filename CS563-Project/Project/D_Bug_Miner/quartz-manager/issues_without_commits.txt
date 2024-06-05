@@ -1,3 +1,0 @@
-Issue #115 - [QUESTION] Run `quartz-persistance` independently has no associated commits.
-Issue #68 - Setup of the API with or without security has no associated commits.
-Issue #2 - Sometime I have to re-create a new trigger (press submit button) to start actually the job has no associated commits.
