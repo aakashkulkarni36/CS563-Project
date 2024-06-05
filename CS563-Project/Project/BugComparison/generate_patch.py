@@ -3,7 +3,7 @@ import os
 import requests
 
 ## Github token
-access_token = "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"
+access_token = ""
 if not access_token:
     raise EnvironmentError("GITHUB_TOKEN environment variable not set")
 

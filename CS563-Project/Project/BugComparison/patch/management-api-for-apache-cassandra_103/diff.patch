@@ -97,6 +97,80 @@ index eeb15c4e..4aceaab8 100644
  RUN chmod +x /tini
  
  RUN set -eux; \
+diff --git a/management-api-agent-3.x/pom.xml b/management-api-agent-3.x/pom.xml
+index 7daa5819..9ef97d93 100644
+--- a/management-api-agent-3.x/pom.xml
++++ b/management-api-agent-3.x/pom.xml
+@@ -15,7 +15,6 @@
+         <cassandra3.version>3.11.10</cassandra3.version>
+         <bytebuddy.version>1.10.10</bytebuddy.version>
+         <docker.java.version>3.1.5</docker.java.version>
+-        <driver.version>4.10.0</driver.version>
+         <build.version.file>build_version.sh</build.version.file>
+         <junit.version>4.13.1</junit.version>
+     </properties>
+diff --git a/management-api-agent-4.x/pom.xml b/management-api-agent-4.x/pom.xml
+index 88c0a592..409776ce 100644
+--- a/management-api-agent-4.x/pom.xml
++++ b/management-api-agent-4.x/pom.xml
+@@ -12,10 +12,9 @@
+     <artifactId>datastax-mgmtapi-agent-4.x</artifactId>
+ 
+     <properties>
+-        <cassandra4.version>4.0-beta4</cassandra4.version>
++        <cassandra4.version>4.0-rc1</cassandra4.version>
+         <bytebuddy.version>1.10.10</bytebuddy.version>
+         <docker.java.version>3.1.5</docker.java.version>
+-        <driver.version>4.10.0</driver.version>
+         <build.version.file>build_version.sh</build.version.file>
+         <junit.version>4.13.1</junit.version>
+     </properties>
+diff --git a/management-api-agent-4.x/src/main/java/com/datastax/mgmtapi/shim/CassandraAPI4x.java b/management-api-agent-4.x/src/main/java/com/datastax/mgmtapi/shim/CassandraAPI4x.java
+index 2b69b33f..29dc414b 100644
+--- a/management-api-agent-4.x/src/main/java/com/datastax/mgmtapi/shim/CassandraAPI4x.java
++++ b/management-api-agent-4.x/src/main/java/com/datastax/mgmtapi/shim/CassandraAPI4x.java
+@@ -111,7 +111,7 @@ public Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLev
+                 Token midpoint = partitioner.midpoint(range.left, range.right);
+                 EndpointsForRange endpoints = mockStrategy.calculateNaturalReplicas(midpoint, tokenMetadata);
+ 
+-                if (!ReplicaPlans.isSufficientLiveReplicasForRead(mockKs, cl, endpoints))
++                if (!ReplicaPlans.isSufficientLiveReplicasForRead(mockKs.getReplicationStrategy(), cl, endpoints))
+                 {
+                     List<String> downEndpoints = new ArrayList<>();
+                     for (InetAddressAndPort endpoint : endpoints.endpoints())
+@@ -122,7 +122,7 @@ public Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLev
+                             downEndpoints.add(endpoint.toString());
+                     }
+ 
+-                    int blockFor = cl.blockFor(mockKs);
++                    int blockFor = cl.blockFor(mockKs.getReplicationStrategy());
+ 
+                     if (downEndpoints.isEmpty() && endpoints.size() < blockFor)
+                         downEndpoints.add(String.format("%d replicas required, but only %d nodes in the ring", blockFor, endpoints.size()));
+diff --git a/management-api-agent-common/pom.xml b/management-api-agent-common/pom.xml
+index db32cfa6..c60d2b70 100644
+--- a/management-api-agent-common/pom.xml
++++ b/management-api-agent-common/pom.xml
+@@ -15,7 +15,6 @@
+         <cassandra3.version>3.11.10</cassandra3.version>
+         <bytebuddy.version>1.10.10</bytebuddy.version>
+         <docker.java.version>3.1.5</docker.java.version>
+-        <driver.version>4.10.0</driver.version>
+         <build.version.file>build_version.sh</build.version.file>
+         <junit.version>4.13.1</junit.version>
+     </properties>
+diff --git a/management-api-server/pom.xml b/management-api-server/pom.xml
+index e0600d6f..bbeb4354 100644
+--- a/management-api-server/pom.xml
++++ b/management-api-server/pom.xml
+@@ -28,7 +28,6 @@
+         <jaxrs.version>2.1.6</jaxrs.version>
+         <resteasy.version>4.5.9.Final</resteasy.version>
+         <netty.version>4.1.50.Final</netty.version>
+-        <driver.version>4.10.0</driver.version>
+         <cassandra3.version>3.11.10</cassandra3.version>
+         <docker.java.version>3.1.1</docker.java.version>
+         <awaitility.version>4.0.3</awaitility.version>
 diff --git a/management-api-server/src/test/java/com/datastax/mgmtapi/helpers/DockerHelper.java b/management-api-server/src/test/java/com/datastax/mgmtapi/helpers/DockerHelper.java
 index 30b845b8..9095df48 100644
 --- a/management-api-server/src/test/java/com/datastax/mgmtapi/helpers/DockerHelper.java
@@ -240,3 +314,15 @@ index 30b845b8..9095df48 100644
 +        }
 +    }
  }
+diff --git a/pom.xml b/pom.xml
+index 677af333..c011e6e2 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -11,6 +11,7 @@
+     <properties>
+         <build.version.file>build_version.sh</build.version.file>
+         <revision>0.1.0-SNAPSHOT</revision>
++        <driver.version>4.11.1</driver.version>
+     </properties>
+ 
+     <dependencies>
